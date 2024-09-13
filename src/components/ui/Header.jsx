@@ -13,8 +13,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { signOut, useSession } from "next-auth/react";
 
 export const Header = () => {
+  const { data: session, status } = useSession();
+
   const menu = [
     {
       name: "Home",
@@ -52,18 +55,41 @@ export const Header = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full h-10 w-10 p-0">
+              <Button
+                variant="outline"
+                className="rounded-full h-10 w-10 p-0 dark:bg-gray-900 dark:hover:bg-gray-800"
+              >
                 <AiOutlineUser size={20} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="rounded-lg">
-              <Button variant="ghost" className="w-full text-sm" asChild>
-                <Link href="/auth/signin">Sign In</Link>
-              </Button>
-              <Button variant="ghost" className="w-full text-sm" asChild>
-                <Link href="/auth/signup">Sign Up</Link>
-              </Button>
+              {status === "authenticated" ? (
+                <>
+                  <DropdownMenuLabel>{session?.user?.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
 
+                  <DropdownMenuItem
+                    onClick={() => {
+                      signOut({
+                        callbackUrl: "/",
+                      });
+                    }}
+                  >
+                    Sign out
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" className="w-full text-sm" asChild>
+                    <Link href="/auth/signin">Sign In</Link>
+                  </Button>
+                  <Button variant="ghost" className="w-full text-sm" asChild>
+                    <Link href="/auth/signup">Sign Up</Link>
+                  </Button>
+                </>
+              )}
               {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem>Profile</DropdownMenuItem>
