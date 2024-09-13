@@ -15,7 +15,12 @@ export default function RootLayout({ children }) {
   const session = getServerAuthSession();
   return (
     <html lang="en">
-      <body className={cn(inter.className, "dark:bg-gray-900")}>
+      <body
+        className={cn(
+          inter.className,
+          "min-w-80 min-h-screen dark:bg-gray-900"
+        )}
+      >
         <AuthProvider session={session}>{children}</AuthProvider>
       </body>
     </html>

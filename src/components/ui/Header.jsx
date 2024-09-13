@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
+import { Brand } from "@/components/ui/Brand";
 
 export const Header = () => {
   const { data: session, status } = useSession();
@@ -40,7 +41,7 @@ export const Header = () => {
   return (
     <header className="w-full px-2">
       <nav className="h-16 flex justify-between items-center shadow-sm">
-        <h1 className="text-2xl font-bold text-violet-500">FlexFit</h1>
+        <Brand />
 
         <div className="flex items-center gap-2">
           <ul className="flex gap-4">
@@ -90,12 +91,6 @@ export const Header = () => {
                   </Button>
                 </>
               )}
-              {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
