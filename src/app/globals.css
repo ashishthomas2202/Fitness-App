@@ -20,6 +20,15 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Add these classes for text color handling */
+  .light-mode-text {
+    @apply text-gray-900;
+  }
+
+  .dark-mode-text {
+    @apply text-white;
+  }
 }
 
 @layer base {
