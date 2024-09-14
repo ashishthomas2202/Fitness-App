@@ -2,6 +2,9 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 
 export async function GET(req) {
+    const emailTest = process.env.NODE_ENV === 'development' ? 'testuser@example.com' : req.query.email;
+
+    console.log("email", email);
 
     const { email } = req.query;
     console.log("email", email)
