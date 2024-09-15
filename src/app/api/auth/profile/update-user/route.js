@@ -1,36 +1,21 @@
+import { db } from "@/lib/firebaseConfig";
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
-import { getSession } from 'next-auth/react';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-  const session = await getSession({ req });
+// Update user profile based on email and provided data
+export async function POST(request) {
+  try {
+    const { email, profileData } = await request.json();
 
-  if (!session) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
-  if (req.method === 'POST') {
-    const { firstName, lastName, height, weight, gender, profilePicture } = req.body;
-    const userEmail = session.user.email; // must match loggin in user
-
-    try {
-      const userDocRef = doc(db, 'users', userEmail);
-      await setDoc(userDocRef, {
-        firstName,
-        lastName,
-        email,
-        phone,
-        height,
-        weight,
-        gender,
-        profilePicture
-      }, { merge: true });
-
-      res.status(200).json({ message: 'Profile updated successfully' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating profile', error: error.message });
+    if (!email || !profileData) {
+      return NextResponse.json({ error: 'Email and profile data are required' }, { status: 400 });
     }
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
+
+    const profileRef = doc(db, 'profile', email);
+    await setDoc(profileRef, profileData, { merge: true });
+    return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
   }
 }

@@ -1,21 +1,38 @@
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
+import { db } from "@/lib/firebaseConfig";
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { NextResponse } from 'next/server';
 
-export async function GET(req) {
+// Fetch user profile based on email
+export async function GET(request) {
+// Extract email query parameter from the request URL
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get('email');
 
-    const { email } = req.query;
-    console.log("email", email)
-    try {
-        const userDocRef = doc(db, 'profile', email);
-        const userSnapshot = await getDoc(userDocRef);
+// Return an error response if email is not provided
+  if (!email) {
+    return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+  }
 
-        if (userSnapshot.exists()) {
-            return Response(JSON.stringify({ success: true, data: userSnapshot.data() }))
+  try {
+    // Fetch user document to ensure the email exists
+    const userQuery = query(collection(db, 'users'), where('email', '==', email));
+    const userSnapshot = await getDocs(userQuery);
 
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Error retrieving user profile', error: error.message });
+    if (userSnapshot.empty) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // Fetch profile document based on email
+    const profileRef = doc(db, 'profile', email);
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+      return NextResponse.json({ profile: profileSnap.data() }, { status: 200 });
+    } else {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
+  }
 }
