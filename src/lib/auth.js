@@ -38,7 +38,18 @@ export const authOptions = {
           const user = userCredential.user;
           return { id: user.uid, email: user.email }; // Return user object if successful
         } catch (error) {
-          console.error("Login error:", error);
+          // console.error("Login error:", error);
+          // Handle specific Firebase authentication errors
+          switch (error.code) {
+            case "auth/too-many-requests":
+              throw new Error(
+                "Too many failed login attempts. Please try again later or reset your password."
+              );
+            default:
+              throw new Error(
+                "An unexpected error occurred. Please try again."
+              );
+          }
           return null; // Return null if login fails
         }
       },
