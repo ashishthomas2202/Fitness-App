@@ -40,8 +40,19 @@ export const authOptions = {
             displayName: user.displayName || '',  // Optional, add any other fields you want
           };
         } catch (error) {
-          console.error("Login error:", error);
-          return null;
+          // console.error("Login error:", error);
+          // Handle specific Firebase authentication errors
+          switch (error.code) {
+            case "auth/too-many-requests":
+              throw new Error(
+                "Too many failed login attempts. Please try again later or reset your password."
+              );
+            default:
+              throw new Error(
+                "An unexpected error occurred. Please try again."
+              );
+          }
+          return null; // Return null if login fails
         }
       },
     }),

@@ -24,18 +24,19 @@ export async function POST(req) {
       profilePicture: ''
     });
 
-    // Return the basic user details from Firebase Authentication
-    return new Response(
-      JSON.stringify({
-        success: true,
-        uid: user.uid,
-        email: user.email,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+      // Return the basic user details from Firebase Authentication
+      return new Response(
+        JSON.stringify({
+          success: true,
+          uid: user.uid,
+          email: user.email,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    });
   } catch (error) {
     if (error.code === "auth/email-already-in-use") {
       return new Response(

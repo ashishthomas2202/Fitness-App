@@ -1,7 +1,6 @@
 "use client";
-
 import React from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
 import {
@@ -13,10 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Brand } from "@/components/ui/Brand";
 
 export const Header = () => {
+  const router = useRouter();
   const { data: session, status } = useSession();
 
   const menu = [
@@ -72,9 +73,12 @@ export const Header = () => {
                   <DropdownMenuItem>Settings</DropdownMenuItem>
 
                   <DropdownMenuItem
-                    onClick={() => {
-                      signOut({
+                    onClick={async () => {
+                      await signOut({
                         callbackUrl: "/",
+                        redirect: false,
+                      }).then(() => {
+                        router.push("/");
                       });
                     }}
                   >
