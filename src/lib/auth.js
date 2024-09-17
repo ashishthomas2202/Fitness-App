@@ -30,13 +30,16 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
+          // Sign in the user with Firebase Authentication
           const userCredential = await signInWithEmailAndPassword(
             auth,
             credentials.email,
             credentials.password
           );
           const user = userCredential.user;
-          return { id: user.uid, email: user.email }; // Return user object if successful
+
+          // Return Firebase user data (uid and email)
+          return { uid: user.uid, email: user.email };
         } catch (error) {
           console.error("Login error:", error);
           return null; // Return null if login fails
@@ -45,22 +48,24 @@ export const authOptions = {
     }),
   ],
   callbacks: {
+    // Callback to include the Firebase `uid` in the JWT token
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
+        token.uid = user.uid;  // Add Firebase `uid` to the JWT token
+        token.email = user.email;  // Add email
       }
       return token;
     },
+    // Callback to include the Firebase `uid` in the session
     async session({ session, token }) {
       if (token) {
-        session.id = token.id;
-        session.email = token.email;
+        session.user.uid = token.uid;  // Add Firebase `uid` to the session
+        session.user.email = token.email;  // Add email
       }
       return session;
     },
   },
 };
 
-// Export a helper function to retrieve server-side session
+// Helper function to retrieve the server-side session
 export const getServerAuthSession = () => getServerSession(authOptions);
