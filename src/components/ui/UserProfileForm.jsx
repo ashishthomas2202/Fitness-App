@@ -1,19 +1,17 @@
 import { useState } from 'react';
 
-const UserProfileForm = ({ profile, onSubmit }) => {
-    // Set form fields with initial profile data
+const UserProfileForm = ({ profile, onSubmit, session }) => {
     const [formData, setFormData] = useState({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         phoneNumber: profile.phoneNumber || '',
-        picture: profile.profilePicture || '',  // Will hold the file object for profile picture
-        DOB: profile.DOB ? new Date(profile.DOB) : '',  // Ensure DOB is a valid Date object
-        gender: profile.gender || '',  // Gender field will be a select dropdown
-        height: profile.height || '',
-        weight: profile.weight || '',
+        picture: profile.profilePicture || '',
+        DOB: profile.DOB || '',  // Initialize DOB as empty if it's null
+        gender: profile.gender || '',
+        height: profile.height || '',  // Set to empty string if null
+        weight: profile.weight || '',  // Set to empty string if null
     });
 
-    // Handle input changes in the form
     const handleInputChange = (e) => {
         setFormData({
             ...formData,
@@ -21,22 +19,29 @@ const UserProfileForm = ({ profile, onSubmit }) => {
         });
     };
 
-    // Handle file input for profile picture
-    const handleFileChange = (e) => {
-        setFormData({
-            ...formData,
-            picture: e.target.files[0],  // Set the file object as the picture
-        });
-    };
+    const handleSubmit = async (e) => {
+        // e.preventDefault();
 
-    // Handle form submission and call the update function
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSubmit(formData);  // Pass the file and form data to the submit handler
+        const data = new FormData();
+        data.append('uid', session.user.uid);  // Use uid instead of email
+        data.append('firstName', formData.firstName);
+        data.append('lastName', formData.lastName);
+        data.append('phoneNumber', formData.phoneNumber);
+        data.append('DOB', formData.DOB);
+        data.append('gender', formData.gender);
+        data.append('height', formData.height);
+        data.append('weight', formData.weight);
+
+        if (formData.picture) {
+            data.append('picture', formData.picture);
+        }
+
+        // Call parent onSubmit function
+        handleSubmit(data);
     };
 
     return (
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit}>
             {/* Input fields */}
             <label>
                 First Name:
@@ -45,7 +50,6 @@ const UserProfileForm = ({ profile, onSubmit }) => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
@@ -56,7 +60,6 @@ const UserProfileForm = ({ profile, onSubmit }) => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
@@ -67,29 +70,25 @@ const UserProfileForm = ({ profile, onSubmit }) => {
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
             <label>
-                Date of Birth:
+                Date of Birth (MM/DD/YYYY):
                 <input
-                    type="date"
+                    type="text"
                     name="DOB"
-                    value={formData.DOB ? formData.DOB.toISOString().substr(0, 10) : ''}  // Check if DOB is valid
+                    value={formData.DOB}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
-            {/* Gender select dropdown */}
             <label>
                 Gender:
                 <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
-                    style={styles.input}
                 >
                     <option value="" disabled>Select Gender</option>
                     <option value="Male">Male</option>
@@ -99,13 +98,12 @@ const UserProfileForm = ({ profile, onSubmit }) => {
             </label>
 
             <label>
-                Height (in):
+                Height (inches):
                 <input
                     type="number"
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
@@ -116,27 +114,24 @@ const UserProfileForm = ({ profile, onSubmit }) => {
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
-                    style={styles.input}
                 />
             </label>
 
-            {/* File input for profile picture */}
             <label>
                 Profile Picture:
                 <input
                     type="file"
                     accept="image/*"
-                    onChange={handleFileChange}
-                    style={styles.input}
+                    onChange={(e) => setFormData({ ...formData, picture: e.target.files[0] })}
                 />
             </label>
 
-            <button type="submit" style={styles.button}>Update Profile</button>
+            <button type="submit">Update Profile</button>
         </form>
     );
 };
 
-// Styles (without theme-based styling)
+// Styles 
 const styles = {
     form: {
         display: 'flex',

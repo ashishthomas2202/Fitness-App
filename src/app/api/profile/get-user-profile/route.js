@@ -1,31 +1,41 @@
 import { db } from "@/lib/firebaseConfig";
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from "firebase/firestore";
 import { NextResponse } from 'next/server';
 
-// Fetch user profile based on email
+// Fetch user profile based on uid
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const email = searchParams.get('email');
-
-  if (!email) {
-    return NextResponse.json({ error: 'Email is required' }, { status: 400 });
-  }
-
   try {
-    // Retrieve the profile document by email (which is the document ID)
-    const profileRef = doc(db, 'profile', email);
+    const { searchParams } = new URL(request.url);
+    const uid = searchParams.get('uid');
+    console.log('Fetching profile for uid:', uid);  // Debug log
+
+    if (!uid) {
+      return NextResponse.json({ error: 'User ID (uid) is required' }, { status: 400 });
+    }
+
+    // Fetch document from Firestore
+    const profileRef = doc(db, 'profile', uid);
     const profileSnap = await getDoc(profileRef);
 
-    // Return profile data if document exists
     if (profileSnap.exists()) {
-      return NextResponse.json({ profile: profileSnap.data() }, { status: 200 });
+      console.log('Profile data found:', profileSnap.data());  // Log data for debugging
+      const profileData = profileSnap.data();
+
+      // Convert Firestore Timestamp to date string if necessary
+      if (profileData.DOB && profileData.DOB.seconds) {
+        const date = profileData.DOB.toDate();
+        profileData.DOB = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+      } else {
+        profileData.DOB = '';  // Handle missing DOB
+      }
+
+      return NextResponse.json({ profile: profileData }, { status: 200 });
     } else {
-      // Return 404 if profile is not found
+      console.error('Profile not found for uid:', uid);  // Log if profile not found
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
   } catch (error) {
-    // Log and return a 500 error if something goes wrong
-    console.error('Error fetching profile:', error);
+    console.error('Error fetching profile:', error);  // Log detailed error
     return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
   }
 }

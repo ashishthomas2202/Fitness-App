@@ -1,50 +1,52 @@
 import { db, storage } from "@/lib/firebaseConfig";
-import { doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { NextResponse } from 'next/server';
-import { Timestamp } from 'firebase/firestore';
+import { doc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Timestamp } from "firebase/firestore";
 
-// Update user profile based on email and provided data
+// Update user profile based on uid and provided data
 export async function POST(request) {
   try {
-    const { email, profileData } = await request.json();
+    const formData = await request.formData();
+    const uid = formData.get('uid');  // Get uid from FormData instead of email
 
-    if (!email || !profileData) {
-      return NextResponse.json({ error: 'Email and profile data are required' }, { status: 400 });
+    if (!uid) {
+      return NextResponse.json({ error: 'User ID (uid) is required' }, { status: 400 });
     }
 
-    // Initialize an object to hold profile data for Firestore
-    const updatedProfile = { ...profileData };
+    const updatedProfile = {};
 
-    // Convert DOB to Firestore Timestamp if available
-    if (profileData.DOB) {
-      updatedProfile.DOB = Timestamp.fromDate(new Date(profileData.DOB));
+    // Convert DOB (MM/DD/YYYY) to Firestore Timestamp
+    const DOBString = formData.get('DOB');
+    if (DOBString) {
+      const [month, day, year] = DOBString.split('/');
+      const DOBDate = new Date(`${year}-${month}-${day}`);
+      updatedProfile.DOB = Timestamp.fromDate(DOBDate);
     }
 
-    // Handle profile picture upload if a picture file is provided
-    if (profileData.picture) {
-      const pictureFile = profileData.picture;  // File object
+    // Append other profile fields
+    updatedProfile.firstName = formData.get('firstName');
+    updatedProfile.lastName = formData.get('lastName');
+    updatedProfile.phoneNumber = formData.get('phoneNumber');
+    updatedProfile.gender = formData.get('gender');
+    updatedProfile.height = formData.get('height');
+    updatedProfile.weight = formData.get('weight');
 
-      // Create a reference to Firebase Storage for the profile picture
-      const storageRef = ref(storage, `profilePictures/${email}/${pictureFile.name}`);
-
-      // Upload the file to Firebase Storage
+    // Handle profile picture upload if provided
+    const pictureFile = formData.get('picture');
+    if (pictureFile) {
+      const storageRef = ref(storage, `profilePictures/${uid}/${pictureFile.name}`);
       const uploadResult = await uploadBytes(storageRef, pictureFile);
-
-      // Get the download URL for the uploaded image
       const downloadURL = await getDownloadURL(uploadResult.ref);
-
-      // Update the profile picture URL in Firestore
       updatedProfile.profilePicture = downloadURL;
     }
 
-    // Save profile data to Firestore
-    const profileRef = doc(db, 'profile', email);
+    // Save profile data using the uid as the document ID
+    const profileRef = doc(db, 'profile', uid);  // Use uid as document ID
     await setDoc(profileRef, updatedProfile, { merge: true });
 
     return NextResponse.json({ message: 'Profile updated successfully' }, { status: 200 });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    return NextResponse.json({ error: 'Failed to update user profile' }, { status: 500 });
+    console.error("Error updating profile:", error);
+    return NextResponse.json({ error: "Failed to update user profile" }, { status: 500 });
   }
 }
