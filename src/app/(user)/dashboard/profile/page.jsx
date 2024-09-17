@@ -1,6 +1,6 @@
-'use client'
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+"use client";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import UserProfileForm from "@/components/ui/UserProfileForm";
 
 const Profile = () => {
@@ -10,9 +10,8 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    console.log("user", session?.user)
-
-  }, [])
+    console.log("user", session?.user);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,23 +19,25 @@ const Profile = () => {
       setError(null);
       try {
         if (session?.user?.uid) {
-          console.log('Fetching profile for uid:', session.user.uid);  // Debug log for UID
+          console.log("Fetching profile for uid:", session.user.uid); // Debug log for UID
 
-          const response = await fetch(`/api/profile/get-user-profile?uid=${session.user.uid}`);
+          const response = await fetch(
+            `/api/profile/get-user-profile?uid=${session.user.uid}`
+          );
           const data = await response.json();
-          console.log('Profile fetch response:', data);  // Debug log for API response
+          console.log("Profile fetch response:", data); // Debug log for API response
 
           if (response.ok) {
             setProfile(data.profile);
           } else {
-            setError(data.error || 'Failed to fetch profile');
+            setError(data.error || "Failed to fetch profile");
           }
         } else {
-          setError('No user ID found in session');
+          setError("No user ID found in session");
         }
       } catch (err) {
-        console.error('Error during profile fetch:', err);
-        setError('Failed to fetch profile');
+        console.error("Error during profile fetch:", err);
+        setError("Failed to fetch profile");
       } finally {
         setLoading(false);
       }
@@ -45,7 +46,7 @@ const Profile = () => {
     fetchProfile();
   }, [session?.user?.uid]);
 
-  if (status === 'loading') return <p>Loading...</p>;
+  if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>Please sign in to view your profile</p>;
 
   if (loading) return <p>Loading profile...</p>;
