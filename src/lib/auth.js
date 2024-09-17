@@ -14,10 +14,6 @@ export const authOptions = {
     signIn: "/auth/signin", // Custom sign-in page
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -30,7 +26,6 @@ export const authOptions = {
       },
       async authorize(credentials) {
         try {
-          // Sign in the user with Firebase Authentication
           const userCredential = await signInWithEmailAndPassword(
             auth,
             credentials.email,
@@ -38,8 +33,12 @@ export const authOptions = {
           );
           const user = userCredential.user;
 
-          // Return Firebase user data (uid and email)
-          return { uid: user.uid, email: user.email };
+          // Return the full user object (or parts of it)
+          return {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName || '',  // Optional, add any other fields you want
+          };
         } catch (error) {
           // console.error("Login error:", error);
           // Handle specific Firebase authentication errors
@@ -59,19 +58,17 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    // Callback to include the Firebase `uid` in the JWT token
+    // JWT callback to store the full user object
     async jwt({ token, user }) {
       if (user) {
-        token.uid = user.uid;  // Add Firebase `uid` to the JWT token
-        token.email = user.email;  // Add email
+        token.user = user;  // Store the full user object in the token
       }
       return token;
     },
-    // Callback to include the Firebase `uid` in the session
+    // Session callback to store the full user object in the session
     async session({ session, token }) {
-      if (token) {
-        session.user.uid = token.uid;  // Add Firebase `uid` to the session
-        session.user.email = token.email;  // Add email
+      if (token.user) {
+        session.user = token.user;  // Store the full user object in the session
       }
       return session;
     },

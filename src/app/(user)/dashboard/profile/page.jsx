@@ -1,31 +1,30 @@
-"use client";
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import UserProfileForm from "@/components/ui/UserProfileForm";
+'use client'
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import UserProfileForm from '@/components/ui/UserProfileForm';
 
-const Profile = () => {
+const UserProfile = () => {
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    console.log("user", session?.user);
-  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       setError(null);
+
       try {
         if (session?.user?.uid) {
-          console.log("Fetching profile for uid:", session.user.uid); // Debug log for UID
-
-          const response = await fetch(
-            `/api/profile/get-user-profile?uid=${session.user.uid}`
-          );
+          const response = await fetch(`/api/profile/get-user-profile/${session?.user?.uid}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            //body: JSON.stringify({ user: { uid: session.user.uid } }),
+          });
           const data = await response.json();
-          console.log("Profile fetch response:", data); // Debug log for API response
 
           if (response.ok) {
             setProfile(data.profile);
@@ -33,17 +32,18 @@ const Profile = () => {
             setError(data.error || "Failed to fetch profile");
           }
         } else {
-          setError("No user ID found in session");
+          setError('No UID found in session');
         }
       } catch (err) {
-        console.error("Error during profile fetch:", err);
-        setError("Failed to fetch profile");
+        setError('Failed to fetch profile');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    if (session?.user?.uid) {
+      fetchProfile();
+    }
   }, [session?.user?.uid]);
 
   if (status === "loading") return <p>Loading...</p>;
@@ -55,8 +55,8 @@ const Profile = () => {
   return profile ? (
     <UserProfileForm profile={profile} session={session} />
   ) : (
-    <p>No profile data available</p>
+    <p>No profile data found</p>
   );
 };
 
-export default Profile;
+export default UserProfile;

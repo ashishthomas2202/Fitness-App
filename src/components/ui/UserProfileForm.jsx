@@ -1,136 +1,141 @@
 import { useState } from 'react';
 
-const UserProfileForm = ({ profile, onSubmit, session }) => {
-    const [formData, setFormData] = useState({
-        firstName: profile.firstName || '',
-        lastName: profile.lastName || '',
-        phoneNumber: profile.phoneNumber || '',
-        picture: profile.profilePicture || '',
-        DOB: profile.DOB || '',  // Initialize DOB as empty if it's null
-        gender: profile.gender || '',
-        height: profile.height || '',  // Set to empty string if null
-        weight: profile.weight || '',  // Set to empty string if null
+const UserProfileForm = ({ profile, session }) => {
+    const [formData, setFormData] = useState(profile || {
+        firstName: '',
+        lastName: '',
+        gender: '',
+        DOB: '',
+        height: '',
+        weight: '',
+        phoneNumber: '',
+        profilePicture: '',
+        uid: session?.user?.uid || '', // Ensure UID is pre-filled
     });
 
     const handleInputChange = (e) => {
+        const { name, value } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
     };
 
     const handleSubmit = async (e) => {
-        // e.preventDefault();
-
-        const data = new FormData();
-        data.append('uid', session.user.uid);  // Use uid instead of email
-        data.append('firstName', formData.firstName);
-        data.append('lastName', formData.lastName);
-        data.append('phoneNumber', formData.phoneNumber);
-        data.append('DOB', formData.DOB);
-        data.append('gender', formData.gender);
-        data.append('height', formData.height);
-        data.append('weight', formData.weight);
-
-        if (formData.picture) {
-            data.append('picture', formData.picture);
+        e.preventDefault();
+        try {
+            const response = await fetch('/api/profile/update-user-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user: { uid: session.user.uid }, // Pass the UID
+                    profileData: formData,
+                }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                alert('Profile updated successfully');
+            } else {
+                console.error('Error updating profile:', data.error);
+                alert('Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            alert('Failed to update profile');
         }
-
-        // Call parent onSubmit function
-        handleSubmit(data);
     };
 
     return (
         <form onSubmit={handleSubmit}>
-            {/* Input fields */}
-            <label>
-                First Name:
+            <div>
+                <label>First Name</label>
                 <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
                 />
-            </label>
+            </div>
 
-            <label>
-                Last Name:
+            <div>
+                <label>Last Name</label>
                 <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
                 />
-            </label>
+            </div>
 
-            <label>
-                Phone Number:
-                <input
-                    type="text"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                />
-            </label>
-
-            <label>
-                Date of Birth (MM/DD/YYYY):
-                <input
-                    type="text"
-                    name="DOB"
-                    value={formData.DOB}
-                    onChange={handleInputChange}
-                />
-            </label>
-
-            <label>
-                Gender:
+            <div>
+                <label>Gender</label>
                 <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
                 >
-                    <option value="" disabled>Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="">Select Gender</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
                     <option value="Other">Other</option>
                 </select>
-            </label>
+            </div>
 
-            <label>
-                Height (inches):
+            <div>
+                <label>Date of Birth</label>
+                <input
+                    type="date"
+                    name="DOB"
+                    value={formData.DOB ? new Date(formData.DOB).toISOString().substr(0, 10) : ''}
+                    onChange={handleInputChange}
+                />
+            </div>
+
+            <div>
+                <label>Height (in cm)</label>
                 <input
                     type="number"
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
                 />
-            </label>
+            </div>
 
-            <label>
-                Weight (lbs):
+            <div>
+                <label>Weight (in kg)</label>
                 <input
                     type="number"
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
                 />
-            </label>
+            </div>
 
-            <label>
-                Profile Picture:
+            <div>
+                <label>Phone Number</label>
+                <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                />
+            </div>
+
+            <div>
+                <label>Profile Picture</label>
                 <input
                     type="file"
-                    accept="image/*"
-                    onChange={(e) => setFormData({ ...formData, picture: e.target.files[0] })}
+                    name="profilePicture"
+                    onChange={(e) => setFormData({ ...formData, profilePicture: e.target.files[0] })}
                 />
-            </label>
+            </div>
 
             <button type="submit">Update Profile</button>
         </form>
     );
 };
-
 // Styles 
 const styles = {
     form: {
