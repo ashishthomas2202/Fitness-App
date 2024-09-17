@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
 import {

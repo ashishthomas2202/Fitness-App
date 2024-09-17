@@ -1,81 +1,3 @@
-// "use client";
-// import { useState } from "react";
-
-// import { useRouter } from "next/navigation";
-// import axios from "axios";
-
-// const SignUp = () => {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [error, setError] = useState("");
-//   const [loading, setLoading] = useState(false);
-//   const router = useRouter();
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setLoading(true);
-//     setError("");
-
-//     try {
-//       await axios
-//         .post("/api/auth/signup", {
-//           email,
-//           password,
-//         })
-//         .then((response) => {
-//           if (response?.data?.success) {
-//             console.log("Success", response.data);
-//           } else {
-//             console.log("Error", response.data);
-//           }
-//         });
-
-//     } catch (err) {
-//       console.error("Sign-up error:", err.message);
-//       //   console.error("Sign-up error:", err.message);
-//       //   setError("Failed to sign up. Please try again.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h1>Sign Up</h1>
-//       {error && <p>{error}</p>}
-//       <form onSubmit={handleSubmit}>
-//         <label>
-//           Email:
-//           <input
-//             type="email"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             required
-//             style={{ color: "black" }}
-//           />
-//         </label>
-//         <br />
-//         <label>
-//           Password:
-//           <input
-//             type="password"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//             required
-//             style={{ color: "black" }}
-//           />
-//         </label>
-//         <br />
-//         <button type="submit" disabled={loading}>
-//           {loading ? "Signing up..." : "Sign Up"}
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default SignUp;
-
 "use client";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
@@ -90,7 +12,6 @@ import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
-import { set } from "lodash";
 
 export default function SignUp() {
   const searchParams = useSearchParams();
@@ -192,7 +113,7 @@ export default function SignUp() {
     <section className="flex h-screen min-h-[700px] justify-center items-center">
       <article className="flex-1 h-full relative">
         <Image
-          className="object-cover object-right-bottom lg:hidden"
+          className="object-cover object-left-bottom lg:hidden"
           src="/full-shot-woman-climbing-wall.jpg"
           // src="/close-up-couple-doing-crossfit-workout.jpg"
           // src="/muscular-bodybuilder-man-doing-exercises-biceps-with-dumbbells-gym.jpg"
@@ -286,7 +207,7 @@ export default function SignUp() {
       <article className="hidden lg:block lg:flex-1 h-full px-6 py-4">
         <div className="rounded-2xl overflow-hidden relative h-full">
           <Image
-            className="object-cover object-right-bottom"
+            className="object-cover object-left-bottom"
             src="/full-shot-woman-climbing-wall.jpg"
             alt="workout image"
             fill

@@ -67,6 +67,7 @@ export const authOptions = {
       if (token) {
         session.id = token.id;
         session.email = token.email;
+        console.log("Session:", session, "\ntoken:", token);
       }
       return session;
     },
