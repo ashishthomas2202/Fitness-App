@@ -1,4 +1,5 @@
 "use client";
+
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import { Brand } from "@/components/ui/Brand";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
+
 export default function SignIn() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -44,7 +46,6 @@ export default function SignIn() {
         email,
         password,
       });
-      // console.log("Sign-in result:", result);
       if (result.error) {
         setError(result.error);
       }
@@ -54,7 +55,6 @@ export default function SignIn() {
     }
 
     if (result?.ok) {
-      // Redirect or handle successful sign-in
       if (searchParams.has("callbackUrl")) {
         router.push(searchParams.get("callbackUrl"));
       } else {
@@ -87,14 +87,13 @@ export default function SignIn() {
       <article className="flex-1 h-full relative">
         <Image
           className="object-cover object-right-top lg:hidden"
-          // src="/close-up-couple-doing-crossfit-workout.jpg"
           src="/muscular-bodybuilder-man-doing-exercises-biceps-with-dumbbells-gym.jpg"
           alt="workout image"
           fill
         />
-        <div className="absolute h-full w-full  bg-gradient-to-tl from-blue-900 to-gray-800  blur-xl opacity-50 lg:hidden"></div>
+        <div className="absolute h-full w-full bg-gradient-to-tl from-blue-900 to-gray-800 blur-xl opacity-50 lg:hidden"></div>
         <div className="absolute h-full w-full flex flex-col justify-evenly items-center z-10 px-2 sm:px-6">
-          <header className="">
+          <header>
             <Brand />
           </header>
           <main className="w-full max-w-lg">
@@ -105,11 +104,10 @@ export default function SignIn() {
               Unlock personalized workout plans and achieve your fitness goals!
             </h3>
             {error && (
-              <p className=" mb-6 text-center text-red-500 font-light">
+              <p className="mb-6 text-center text-red-500 font-light">
                 {error}
               </p>
             )}
-            {/* {error && <p>{error}</p>} */}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Input
                 className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
@@ -125,7 +123,6 @@ export default function SignIn() {
                 placeholder="Enter your password"
               />
               <p className="mb-4 text-red-500">{errors?.password?.message}</p>
-
               <p className="text-sm text-right cursor-pointer text-white lg:text-black">
                 Forgot password?
               </p>
@@ -138,7 +135,6 @@ export default function SignIn() {
                 {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
-
             <div className="flex justify-center items-center gap-5 my-5">
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />
               <p className="text-white lg:text-slate-500 font-light text-sm">
