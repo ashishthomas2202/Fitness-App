@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebaseConfig";
 
 export async function POST(req) {
@@ -11,12 +11,13 @@ export async function POST(req) {
     const user = userCredential.user;
 
     // Create a blank profile for the new user in Firestore
-    const profileRef = doc(db, 'profile', user.uid);  // Use uid as document ID
-    await setDoc(profileRef, {
+    const profileRef = collection(db, 'profile'); // Reference to 'profile' collection
+    await addDoc(profileRef, {
+      uid: user.uid,        // Store uid as a field within the document
       firstName: '',
       lastName: '',
       phoneNumber: '',
-      DOB: null,  // Set as null to allow later updates
+      DOB: null,            // Set as null to allow updates
       gender: '',
       height: null,
       weight: null,
@@ -61,4 +62,3 @@ export async function POST(req) {
     );
   }
 }
-
