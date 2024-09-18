@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "@/lib/firebaseConfig"; // Import Firestore and Storage
 
 const UserProfileForm = ({ profile, session }) => {
     const [formData, setFormData] = useState(profile || {
@@ -13,6 +15,15 @@ const UserProfileForm = ({ profile, session }) => {
         uid: session?.user?.uid || '', // Ensure UID is pre-filled
     });
 
+    const [imagePreview, setImagePreview] = useState('/default-user-icon.png');
+    const [profilePictureFile, setProfilePictureFile] = useState(null);
+
+    useEffect(() => {
+        if (formData.profilePicture && typeof formData.profilePicture === 'string') {
+            setImagePreview(formData.profilePicture); // Display the current profile picture URL
+        }
+    }, [formData.profilePicture]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -21,8 +32,42 @@ const UserProfileForm = ({ profile, session }) => {
         });
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const imageURL = URL.createObjectURL(file);
+            setImagePreview(imageURL); // Preview the image before upload
+            setProfilePictureFile(file); // Store the file for upload later
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!session || !session.user || !session.user.uid) {
+            alert('You must be logged in to update your profile.');
+            return;
+        }
+
+        let profilePictureURL = formData.profilePicture;
+
+        if (profilePictureFile) {
+            try {
+                const storageRef = ref(storage, `profilePictures/${session.user.uid}/${profilePictureFile.name}`);
+                const snapshot = await uploadBytes(storageRef, profilePictureFile);
+                profilePictureURL = await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error('Error uploading profile picture:', error);
+                return;
+            }
+        }
+
+        const updatedProfileData = {
+            ...formData,
+            profilePicture: profilePictureURL,
+            uid: session.user.uid // Ensure UID is included
+        };
+
         try {
             const response = await fetch('/api/profile/update-user-profile', {
                 method: 'POST',
@@ -30,11 +75,13 @@ const UserProfileForm = ({ profile, session }) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    user: { uid: session.user.uid }, // Pass the UID
-                    profileData: formData,
+                    user: { uid: session.user.uid }, // Send the user's UID for profile lookup
+                    profileData: updatedProfileData,
                 }),
             });
+
             const data = await response.json();
+
             if (response.ok) {
                 alert('Profile updated successfully');
             } else {
@@ -48,7 +95,16 @@ const UserProfileForm = ({ profile, session }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={styles.form}>
+            <div style={styles.imageContainer}>
+                <img
+                    src={imagePreview}
+                    alt="Profile Picture"
+                    style={styles.profileImage}
+                />
+            </div>
+
+            {/* Other form fields */}
             <div>
                 <label>First Name</label>
                 <input
@@ -56,6 +112,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -66,6 +123,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -75,6 +133,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
+                    style={styles.input}
                 >
                     <option value="">Select Gender</option>
                     <option value="M">Male</option>
@@ -90,6 +149,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="DOB"
                     value={formData.DOB ? new Date(formData.DOB).toISOString().substr(0, 10) : ''}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -100,6 +160,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="height"
                     value={formData.height}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -110,6 +171,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="weight"
                     value={formData.weight}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -120,6 +182,7 @@ const UserProfileForm = ({ profile, session }) => {
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
+                    style={styles.input}
                 />
             </div>
 
@@ -128,11 +191,12 @@ const UserProfileForm = ({ profile, session }) => {
                 <input
                     type="file"
                     name="profilePicture"
-                    onChange={(e) => setFormData({ ...formData, profilePicture: e.target.files[0] })}
+                    onChange={handleFileChange}
+                    style={styles.input}
                 />
             </div>
 
-            <button type="submit">Update Profile</button>
+            <button type="submit" style={styles.button}>Update Profile</button>
         </form>
     );
 };
@@ -166,6 +230,23 @@ const styles = {
         borderRadius: '4px',
         fontWeight: 'bold',
         cursor: 'pointer',
+    },
+    imageContainer: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '150px',
+        height: '150px',
+        margin: '0 auto',
+        borderRadius: '50%',
+        backgroundColor: '#e0e0e0',
+        overflow: 'hidden',
+        marginBottom: '20px',
+    },
+    profileImage: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
     },
 };
 
