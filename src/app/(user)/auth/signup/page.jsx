@@ -127,7 +127,7 @@ export default function SignUp() {
           </header>
           <main className="w-full max-w-lg">
             <h1 className="text-4xl sm:text-5xl font-bold mb-2 text-center text-white lg:text-slate-800 lg:dark:text-white">
-              Let's Get Started
+              Lets Get Started
             </h1>
             <h3 className="text-sm font-light mb-6 text-center text-white lg:text-black lg:dark:text-white">
               Discover tailored workouts to power your fitness journey!
