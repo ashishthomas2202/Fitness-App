@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { DarkModeToggle } from "@/components/ui/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
 import {
@@ -69,7 +69,9 @@ export const Header = () => {
                 <>
                   <DropdownMenuLabel>{session?.user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile">Profile</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
 
                   <DropdownMenuItem

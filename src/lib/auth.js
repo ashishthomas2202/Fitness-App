@@ -1,8 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebaseConfig"; // Your Firebase configuration
 import { getServerSession } from "next-auth";
+import { authenticate, linkGoogleAuth } from "@/lib/user";
 
 export const authOptions = {
   session: {
@@ -20,60 +19,68 @@ export const authOptions = {
         email: {
           label: "Email",
           type: "email",
-          placeholder: "email@example.com",
+          placeholder: "email@flexfit.com",
         },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        try {
-          const userCredential = await signInWithEmailAndPassword(
-            auth,
-            credentials.email,
-            credentials.password
-          );
-          const user = userCredential.user;
+        const { email, password } = credentials;
 
-          // Return the full user object (or parts of it)
-          return {
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || '',  // Optional, add any other fields you want
-          };
-        } catch (error) {
-          // console.error("Login error:", error);
-          // Handle specific Firebase authentication errors
-          switch (error.code) {
-            case "auth/too-many-requests":
-              throw new Error(
-                "Too many failed login attempts. Please try again later or reset your password."
-              );
-            default:
-              throw new Error(
-                "An unexpected error occurred. Please try again."
-              );
+        try {
+          const user = await authenticate(email, password);
+          if (user) {
+            return user;
+          } else {
+            throw new Error("Invalid email or password. Please try again.");
           }
-          return null; // Return null if login fails
+        } catch (error) {
+          throw new Error(
+            error.message || "An unexpected error occurred. Please try again."
+          );
         }
+
+        return null;
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      async profile(profile) {
+        // Extract the necessary user information from the Google profile
+        const userData = {
+          email: profile.email,
+          name: profile.name,
+          googleId: profile.sub, // Google's unique ID for the user
+          picture: profile.picture,
+        };
+
+        // Save user data to the database
+        await linkGoogleAuth(userData);
+
+        // return profile;
+        return {
+          id: profile.sub, // Assigning Google ID to 'id'
+          email: profile.email,
+          name: profile.name,
+          picture: profile.picture,
+        };
       },
     }),
   ],
   callbacks: {
-    // JWT callback to store the full user object
     async jwt({ token, user }) {
       if (user) {
-        token.user = user;  // Store the full user object in the token
+        token.user = user;
       }
       return token;
     },
-    // Session callback to store the full user object in the session
     async session({ session, token }) {
       if (token.user) {
-        session.user = token.user;  // Store the full user object in the session
+        session.user = token.user;
       }
       return session;
     },
   },
 };
 
-// Helper function to retrieve the server-side session
 export const getServerAuthSession = () => getServerSession(authOptions);
