@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 
@@ -17,6 +18,7 @@ const mealSchema = Yup.object().shape({
 });
 
 const AddMealForm = ({ onMealAdded = "create" }) => {
+    const [loading, setLoading] = useState(false); // Add loading state
     // Initialize the form with React Hook Form
     const {
         register,
@@ -156,11 +158,14 @@ const AddMealForm = ({ onMealAdded = "create" }) => {
             </div>
 
             {/* Submit Button */}
-            <button
+            {/* <button
                 type="submit"
                 className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700"
             >
                 Add Meal
+            </button> */}
+            <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded-md hover:bg-purple-700" disabled={loading}> 
+                {loading ? "Adding..." : "Add Meal"}  {/* Show loading text if loading */}
             </button>
         </form>
     );
