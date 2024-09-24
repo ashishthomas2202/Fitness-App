@@ -8,13 +8,13 @@ const mealSchema = Yup.object().shape({
     name: Yup.string().required("Meal name is required"),
     category: Yup.string().required("Category is required"),
     macros: Yup.object().shape({
-        protein: Yup.number().min(0, "Protein must be a positive number").required("Protein is required"),
-        carbs: Yup.number().min(0, "Carbs must be a positive number").required("Carbs are required"),
-        fat: Yup.number().min(0, "Fat must be a positive number").required("Fat is required"),
+        protein: Yup.number().min(0, "Protein must be a positive number").required("Protein is required").test("is-decimal","Protein must be a valid number without 'e'", value => (value !== undefined ? !/[eE]/.test(value.toString()) : true)),
+        carbs: Yup.number().min(0, "Carbs must be a positive number").required("Carbs are required").test("is-decimal","Carbs must be a valid number without 'e'", value => (value !== undefined ? !/[eE]/.test(value.toString()) : true)),
+        fat: Yup.number().min(0, "Fat must be a positive number").required("Fat is required").test("is-decimal","Fat must be a valid number without 'e'", value => (value !== undefined ? !/[eE]/.test(value.toString()) : true)),
     }),
-    calories: Yup.number().min(0, "Calories must be a positive number").required("Calories are required"),
+    calories: Yup.number().min(0, "Calories must be a positive number").required("Calories are required").test("is-decimal","Calories must be a valid number without 'e'", value => (value !== undefined ? !/[eE]/.test(value.toString()) : true)),
     ingredients: Yup.array().of(Yup.string().required("Ingredient is required")).min(1, "At least one ingredient is required"),
-    preparation_time_min: Yup.number().positive("Preparation time must be a positive number").required("Preparation time is required"),
+    preparation_time_min: Yup.number().positive("Preparation time must be a positive number").required("Preparation time is required").test("is-decimal","Preparation time must be a valid number without 'e'", value => (value !== undefined ? !/[eE]/.test(value.toString()) : true)),
 });
 
 const AddMealForm = ({ onMealAdded = "create" }) => {
