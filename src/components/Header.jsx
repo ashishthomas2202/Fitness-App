@@ -17,6 +17,7 @@ import { signOut, useSession } from "next-auth/react";
 import { Brand } from "@/components/Brand";
 import axios from "axios";
 import Image from "next/image";
+import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 
 export const Header = () => {
   const router = useRouter();
@@ -72,10 +73,28 @@ export const Header = () => {
   return (
     <header className="w-full px-2">
       <nav className="h-16 flex justify-between items-center shadow-sm">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="dark:bg-slate-900 md:hidden">
+              <HamburgerMenuIcon />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {menu.map((item, i) => (
+              <DropdownMenuItem
+                key={`${item.name}-${i}`}
+                className="text-center"
+              >
+                <Link href={item?.href || ""}>{item.name}</Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Brand />
 
         <div className="flex items-center gap-2">
-          <ul className="flex gap-4">
+          <ul className="hidden md:flex gap-4">
             {menu.map((item, i) => (
               <Link key={`${item.name}-${i}`} href={item?.href || ""}>
                 <li className="font-light">{item.name}</li>
@@ -109,6 +128,9 @@ export const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/workouts">Workouts</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
 
