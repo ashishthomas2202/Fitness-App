@@ -4,7 +4,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { NextResponse } from "next/server";
 
 export async function GET(request, { params }) {
-  const uid = params?.uid;
+  const userId = params?.userId;
   try {
     // const { user } = await request.json();
     // if (!user || !user.uid) {
@@ -12,18 +12,23 @@ export async function GET(request, { params }) {
     // }
 
     if (!uid) {
-      return NextResponse.json(
-        { error: "User UID is required" },
-        { status: 400 }
+      return Response.json(
+        {
+          success: false,
+          message: "User UID is required",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    console.log("Querying Firestore for UID:", uid);
+    // const profile =
 
-    // Query Firestore using only the uid
-    const profileRef = collection(db, "profile");
-    const profileQuery = query(profileRef, where("uid", "==", uid));
-    const querySnapshot = await getDocs(profileQuery);
+    // // Query Firestore using only the uid
+    // const profileRef = collection(db, "profile");
+    // const profileQuery = query(profileRef, where("uid", "==", uid));
+    // const querySnapshot = await getDocs(profileQuery);
 
     if (querySnapshot.empty) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });

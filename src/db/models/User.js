@@ -24,15 +24,13 @@ const UserSchema = new Schema(
       type: String,
       default: null,
     },
-    picture: {
-      type: String,
-      default: null,
-    },
   },
   {
     timestamps: true,
     toJSON: {
       transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.hashedPassword;
         delete ret.__v;
         return ret;

@@ -32,7 +32,7 @@ export async function POST(req) {
     await connectDB();
 
     const user = await createUser(validatedData);
-    console.log("user", user);
+    // console.log("user", user);
     return Response.json(
       {
         success: true,

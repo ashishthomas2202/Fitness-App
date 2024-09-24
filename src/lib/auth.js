@@ -55,7 +55,7 @@ export const authOptions = {
         };
 
         // Save user data to the database
-        await linkGoogleAuth(userData);
+        const currentUser = await linkGoogleAuth(userData);
 
         // return profile;
         return {
@@ -63,21 +63,40 @@ export const authOptions = {
           email: profile.email,
           name: profile.name,
           picture: profile.picture,
+          ...(currentUser || {}),
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    // async jwt({ token, user }) {
+    //   if (user) {
+    //     token.user = user;
+    //   }
+    //   return token;
+    // },
+    async jwt({ token, account, user }) {
+      // This gets called when the user logs in
       if (user) {
-        token.user = user;
+        token.user = {
+          ...user, // Add all user properties to the token
+          firstName: user.firstName,
+          lastName: user.lastName,
+          googleId: user.googleId,
+          picture: user.picture,
+        };
       }
       return token;
     },
     async session({ session, token }) {
+      // console.log("Session(before):", token);
       if (token.user) {
         session.user = token.user;
       }
+
+      // console.log("Session(after):", session);
+
+      
       return session;
     },
   },

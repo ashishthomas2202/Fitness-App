@@ -1,5 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+        port: "",
+      },
+    ],
+  },
   env: {
     FIRESTORE_USE_REST_TRANSPORT: "true", // This forces Firestore to use REST instead of gRPC
   },

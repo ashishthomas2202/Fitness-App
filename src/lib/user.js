@@ -1,8 +1,12 @@
 import connectDB from "@/db/db";
+import Profile from "@/db/models/Profile";
+
 import User from "@/db/models/User";
 import bcrypt from "bcrypt";
 import FieldError from "@/lib/errors/FieldError";
 import _ from "lodash";
+// import { getServerSession } from "next-auth";
+import { getServerAuthSession } from "@/lib/auth";
 
 export async function authenticate(email, password) {
   try {
@@ -28,7 +32,7 @@ export async function authenticate(email, password) {
     if (match) {
       // Passwords match, return the user object (excluding the password hash)
 
-      const { hashedPassword, __v, ...filteredUser } = user.toObject();
+      const { hashedPassword, __v, ...filteredUser } = user.toJSON();
 
       return filteredUser;
     } else {
@@ -71,33 +75,91 @@ export async function createUser({ firstName, lastName, email, password }) {
     hashedPassword: hashedPassword,
   });
 
-  return await newUser.save();
+  await newUser.save();
+
+  const newProfile = new Profile({
+    userId: newUser.id,
+  });
+  await newProfile.save();
+
+  //   const { hashedPassword: _, __v, ...filteredUser } = newUser.toJSON();
+  const { hashedPassword: hash, __v, ...filteredUser } = newUser.toJSON();
+  return filteredUser;
 }
 
 export async function linkGoogleAuth({ email, name, googleId, picture }) {
-  await connectDB();
+  try {
+    await connectDB();
 
-  // Insert the new user into the database
-  const user = await User.findOne({ email });
-  if (user) {
-    //check if the user has googleId
-    if (!user.googleId) {
-      user.googleId = googleId;
-      if (user?.picture === null) {
-        user.picture = picture;
+    // Insert the new user into the database
+    const user = await User.findOne({ email });
+    if (user) {
+      //check if the user has googleId
+      if (!user?.googleId) {
+        console.log("User exists but no googleId");
+        user.googleId = googleId;
+        if (user?.picture === null) {
+          user.picture = picture;
+        }
+        await user.save();
       }
-      await user.save();
-    }
-  } else {
-    const newUser = new User({
-      firstName: name.split(" ")[0],
-      lastName: name.split(" ")[1],
-      email: email,
-      hashedPassword: null,
-      googleId: googleId,
-      picture: picture,
-    });
 
-    await newUser.save();
+      const { hashedPassword, __v, ...filteredUser } = user.toJSON();
+      return filteredUser;
+    } else {
+      console.log("User does not exist");
+      const newUser = new User({
+        firstName: name.split(" ")[0],
+        lastName: name.split(" ")[1],
+        email: email,
+        hashedPassword: null,
+        googleId: googleId,
+        picture: picture,
+      });
+
+      await newUser.save();
+      const newProfile = new Profile({
+        userId: newUser.id,
+      });
+      await newProfile.save();
+
+      const { hashedPassword, __v, ...filteredUser } = newUser.toJSON();
+      return filteredUser;
+    }
+  } catch (error) {
+    return null;
   }
 }
+
+export async function authenticatedUser() {
+  await connectDB();
+  const session = await getServerAuthSession();
+
+  console.log("Session:", session);
+
+  if (!session || !session?.user?.id) {
+    return null;
+  }
+  return await User.findOne({ _id: session?.user?.id });
+}
+
+// export function authenticatedUser() {
+//   return getServerAuthSession().then(async (session) => {
+//     const user = session?.user;
+
+//     if (user) {
+//       return await User.findOne({ email: user?.email })
+//         .then((result) => {
+//           return (
+//             (result.userRole === "user" || result.userRole === "admin") &&
+//             result
+//           );
+//         })
+//         .catch((error) => {
+//           return null;
+//         });
+//     }
+
+//     return null;
+//   });
+// }

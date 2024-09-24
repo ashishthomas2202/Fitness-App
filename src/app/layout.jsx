@@ -3,7 +3,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { getServerAuthSession } from "@/lib/auth";
-
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
         )}
       >
         <AuthProvider session={session}>{children}</AuthProvider>
+        <ToastContainer position="top-center" />
       </body>
     </html>
   );
