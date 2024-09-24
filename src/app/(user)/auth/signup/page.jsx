@@ -7,19 +7,22 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Brand } from "@/components/ui/Brand";
+import { Brand } from "@/components/Brand";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
+import _ from "lodash";
 
 export default function SignUp() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const schema = yup.object().shape({
+    firstName: yup.string().required("First name is required"),
+    lastName: yup.string().required("Last name is required"),
     email: yup.string().email("Email is invalid").required("Email is required"),
     password: yup.string().required("Password is required"),
     confirmPassword: yup
@@ -31,6 +34,7 @@ export default function SignUp() {
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -39,26 +43,26 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
-    const { email, password } = data;
+    const { firstName, lastName, email, password } = data;
 
     setLoading(true);
 
     try {
       await axios
         .post("/api/auth/signup", {
-          email,
+          firstName: _.startCase(firstName),
+          lastName: _.startCase(lastName),
+          email: email.toLowerCase(),
           password,
         })
         .then(async (response) => {
           if (response?.data?.success) {
-            console.log("Success", response.data);
             let result = await signIn("credentials", {
               redirect: false,
               email,
               password,
             });
             if (result?.ok) {
-              // Redirect or handle successful sign-in
               if (searchParams.has("callbackUrl")) {
                 router.push(searchParams.get("callbackUrl"));
               } else {
@@ -67,46 +71,27 @@ export default function SignUp() {
             }
           } else {
             console.log("Error", response.data);
-            setError(response?.data?.message);
+            setErrorMessage(response?.data?.message);
           }
         })
         .catch((error) => {
-          if (error?.response?.data?.message) {
-            setError(error?.response?.data?.message);
+          console.error("Sign-up error:", error);
+          if (error?.response?.data?.error?.field) {
+            setError("email", {
+              type: "manual",
+              message: error?.response?.data?.error?.message,
+            });
+          } else if (error?.response?.data?.message) {
+            setErrorMessage(error?.response?.data?.message);
           } else {
-            setError("Failed to sign up. Please try again.");
+            setErrorMessage("Failed to sign up. Please try again.");
           }
         });
     } catch (err) {
-      setError("Failed to sign up. Please try again.");
+      setErrorMessage("Failed to sign up. Please try again.");
     } finally {
       setLoading(false);
     }
-
-    // try {
-    //   result = await signIn("credentials", {
-    //     redirect: false,
-    //     email,
-    //     password,
-    //   });
-    //   // console.log("Sign-in result:", result);
-    //   if (result.error) {
-    //     setError(result.error);
-    //   }
-    // } catch (error) {
-    //   console.error("Sign-in error:", error);
-    //   setError("Failed to sign in. Please try again.");
-    // }
-
-    // if (result?.ok) {
-    //   // Redirect or handle successful sign-in
-    //   if (searchParams.has("callbackUrl")) {
-    //     router.push(searchParams.get("callbackUrl"));
-    //   } else {
-    //     router.push("/dashboard");
-    //   }
-    // }
-    // setLoading(false);
   };
 
   return (
@@ -115,8 +100,6 @@ export default function SignUp() {
         <Image
           className="object-cover object-left-bottom lg:hidden"
           src="/full-shot-woman-climbing-wall.jpg"
-          // src="/close-up-couple-doing-crossfit-workout.jpg"
-          // src="/muscular-bodybuilder-man-doing-exercises-biceps-with-dumbbells-gym.jpg"
           alt="workout image"
           fill
         />
@@ -132,13 +115,39 @@ export default function SignUp() {
             <h3 className="text-sm font-light mb-6 text-center text-white lg:text-black lg:dark:text-white">
               Discover tailored workouts to power your fitness journey!
             </h3>
-            {error && (
+            {errorMessage && (
               <p className=" mb-6 text-center text-red-500 font-light">
-                {error}
+                {errorMessage}
               </p>
             )}
             {/* {error && <p>{error}</p>} */}
             <form onSubmit={handleSubmit(onSubmit)}>
+              <fieldset className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1">
+                  <Input
+                    className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                    type="text"
+                    {...register("firstName")}
+                    placeholder="Enter your First Name"
+                  />
+                  <p className="mb-4 text-red-500">
+                    {errors?.firstName?.message}
+                  </p>
+                </div>
+                <div className="flex-1">
+                  <Input
+                    className="bg-white lg:dark:bg-gray-700
+                  lg:dark:text-white mb-1"
+                    type="text"
+                    {...register("lastName")}
+                    placeholder="Enter your Last Name"
+                  />
+                  <p className="mb-4 text-red-500">
+                    {errors?.lastName?.message}
+                  </p>
+                </div>
+              </fieldset>
+
               <Input
                 className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
                 type="email"
@@ -181,9 +190,8 @@ export default function SignUp() {
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />
             </div>
             <Button
-              className="w-full py-6 text-base font-light"
+              className="w-full py-6 text-base font-light dark:bg-white dark:text-black"
               variant="outline"
-              onClick={() => signIn("google")}
             >
               <span className="mr-2">
                 <FcGoogle size={20} />
