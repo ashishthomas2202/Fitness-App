@@ -1,6 +1,6 @@
 "use client";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 
 export const DarkModeToggle = () => {

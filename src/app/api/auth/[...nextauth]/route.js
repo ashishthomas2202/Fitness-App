@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 const handler = NextAuth(authOptions);
 
 // Export a helper function to retrieve server-side session
-export const getServerAuthSession = () => getServerSession(authOptions);
+// export const getServerAuthSession = () => getServerSession(authOptions);
 
 export { handler as GET, handler as POST };
 
