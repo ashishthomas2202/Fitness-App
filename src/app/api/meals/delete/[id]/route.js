@@ -1,43 +1,49 @@
-import { db } from "@/lib/firebaseConfig";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
-import { NextResponse } from "next/server";
+import { connectDB } from "@/db/db";
+import Meal from "@/db/models/Meal";
 
 export async function DELETE(req, { params }) {
+    const { id } = params;
+
+    if (!id) {
+        return Response.json(
+            {
+                success: false,
+                message: "Meal ID is required",
+            },
+            { status: 400 }
+        );
+    }
+
+    console.log("Deleting meal with ID:", id);
+
     try {
-        const { id } = params; // Extract the meal ID from the URL parameters
+        await connectDB();
+        const meal = await Meal.findByIdAndDelete(id);
 
-        // Validate if the ID is provided
-        if (!id) {
-            return NextResponse.json(
-                { success: false, message: "Meal ID is required", error: "Missing meal ID" },
-                { status: 400 }
-            );
-        }
-
-        // Reference to the meal document in Firestore
-        const mealRef = doc(db, "meals", id);
-        const mealDoc = await getDoc(mealRef);
-
-        // Check if the meal exists
-        if (!mealDoc.exists()) {
-            return NextResponse.json(
-                { success: false, message: "Meal not found", error: "No meal found with the provided ID" },
+        if (!meal) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Meal not found"
+                },
                 { status: 404 }
             );
         }
 
-        // Delete the meal document
-        await deleteDoc(mealRef);
-
-        // Respond with success
-        return NextResponse.json(
-            { success: true, message: "Meal successfully deleted" },
+        return Response.json(
+            {
+                success: true,
+                message: "Meal deleted",
+            },
             { status: 200 }
         );
     } catch (error) {
         console.error("Error deleting meal:", error);
-        return NextResponse.json(
-            { success: false, message: "Failed to delete meal", error: error.message },
+        return Response.json(
+            {
+                success: false,
+                message: "Failed to delete meal",
+            },
             { status: 500 }
         );
     }
