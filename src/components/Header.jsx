@@ -132,6 +132,9 @@ export const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/workouts">Workouts</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/meals">Meals</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
 
                   <DropdownMenuItem

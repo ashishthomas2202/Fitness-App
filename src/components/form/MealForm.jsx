@@ -14,11 +14,23 @@ const mealSchema = Yup.object().shape({
     name: Yup.string().required("Meal name is required"),
     category: Yup.string().required("Category is required"),
     macros: Yup.object().shape({
-        protein: Yup.number().required("Protein is required"),
-        carbs: Yup.number().required("Carbs are required"),
-        fat: Yup.number().required("Fat is required"),
+        protein: Yup.number()
+            .typeError("Protein must be a valid number")
+            .min(0, "Protein cannot be negative")
+            .required("Protein is required"),
+        carbs: Yup.number()
+            .typeError("Carbs must be a valid number")
+            .min(0, "Carbs cannot be negative")
+            .required("Carbs is required"),
+        fat: Yup.number()
+            .typeError("Fat must be a valid number")
+            .min(0, "Fat cannot be negative")
+            .required("Fat is required"),
     }),
-    calories: Yup.number().required("Calories are required"),
+    calories: Yup.number()
+        .typeError("Calories must be a valid number")
+        .min(0, "Calories cannot be negative")
+        .required("Calories is required"),
     ingredients: Yup.array()
         .of(
             Yup.object().shape({
@@ -27,7 +39,10 @@ const mealSchema = Yup.object().shape({
             })
         )
         .min(1, "At least one ingredient is required"),
-    preparation_time_min: Yup.number().required("Preparation time is required"),
+    preparation_time_min: Yup.number()
+        .typeError("Preperation time must be a valid number")
+        .min(0, "Preperation time cannot be negative")
+        .required("Preperation time is required"),
 });
 
 const MealForm = ({
