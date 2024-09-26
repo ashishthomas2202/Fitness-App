@@ -1,4 +1,4 @@
-import { connectDB } from "@/db/db";
+import connectDB from "@/db/db";
 import Meal from "@/db/models/Meal";
 
 export async function DELETE(req, { params }) {

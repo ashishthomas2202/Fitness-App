@@ -1,127 +1,123 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import AddMealForm from "@/components/ui/AddMealForm";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { PencilIcon, Trash2 } from "lucide-react";
+import { Pencil2Icon } from "@radix-ui/react-icons";
 
-const MealsPage = () => {
-    const { data: session, status } = useSession();
+export default function MealsPage() {
     const [meals, setMeals] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchMeals = async () => {
-            if (status === "authenticated" && session.user?.email) {
-                try {
-                    const response = await fetch(`/api/meals/list?email=${session.user.email}`);
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        setMeals(data.data);
-                    } else {
-                        setError(data.message || "Failed to fetch meals");
-                    }
-                } catch (err) {
-                    setError("Error fetching meals");
-                } finally {
-                    setLoading(false);
+    // Fetch meals from the server
+    const fetchMeals = async () => {
+        setLoading(true);
+        await axios
+            .get("/api/meals")
+            .then((response) => {
+                if (response?.data?.success) {
+                    setMeals(response.data.data);
+                    return response.data.data;
                 }
-            }
-        };
-
-        fetchMeals();
-    }, [session, status]);
-
-    const handleDelete = async (id) => {
-        const confirmDelete = confirm("Are you sure you want to delete this meal?");
-        if (!confirmDelete) return;
-
-        try {
-            const response = await fetch(`/api/meals/delete/${id}`, {
-                method: "DELETE",
+                return null;
+            })
+            .catch((error) => {
+                toast.error("Error fetching meals");
+                return null;
             });
+        setLoading(false);
+    };
 
-            if (response.ok) {
-                alert("Meal deleted successfully");
-                setMeals((prevMeals) => prevMeals.filter((meal) => meal.id !== id));
-            } else {
-                alert("Failed to delete meal");
-            }
+    // Delete a meal
+    const deleteMeal = async (id) => {
+        try {
+            await axios.delete(`/api/meals/delete/${id}`);
+            toast.success("Meal deleted successfully.");
+            fetchMeals(); // Refresh the list after deletion
         } catch (error) {
-            alert("Error deleting meal");
+            toast.error("Failed to delete meal.");
         }
     };
 
-    const handleMealAdded = (newMeal) => {
-        setMeals((prevMeals) => [newMeal, ...prevMeals]);
-    };
+    useLayoutEffect(() => {
+        fetchMeals();
+    }, []);
 
-    if (loading) return <p>Loading meals...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
-        <div className="max-w-6xl mx-auto p-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Add Meal Form on the left */}
-                <div>
-                    <h2 className="text-xl font-bold mb-4">Add New Meal</h2>
-                    <AddMealForm onMealAdded={handleMealAdded} />
-                </div>
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-bold mb-6 text-center">Meals</h1>
 
-                {/* Meal List on the right */}
-                <div>
-                    <h2 className="text-xl font-bold mb-4">Your Meals</h2>
-                    {meals.length === 0 ? (
-                        <p>No meals added yet. Start by adding a meal!</p>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full bg-white border rounded-lg shadow-md">
-                                <thead>
-                                    <tr className="bg-gray-200 text-left">
-                                        <th className="p-2">Meal Name</th>
-                                        <th className="p-2">Category</th>
-                                        <th className="p-2">Calories</th>
-                                        <th className="p-2">Macros (P/C/F)</th>
-                                        <th className="p-2">Prep Time (min)</th>
-                                        <th className="p-2">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {meals.map((meal) => (
-                                        <tr key={meal.id} className="border-t">
-                                            <td className="p-2">{meal.name}</td>
-                                            <td className="p-2">{meal.category}</td>
-                                            <td className="p-2">{meal.calories}</td>
-                                            <td className="p-2">
-                                                {meal.macros.protein}g / {meal.macros.carbs}g / {meal.macros.fat}g
-                                            </td>
-                                            <td className="p-2">{meal.preparation_time_min}</td>
-                                            <td className="p-2">
-                                                <Link href={`/meals/edit/${meal.id}`}
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600"
-                                                >
-                                                    Edit
-                                                </Link>
+            {/* Add Meal Card */}
+            <div className="mb-6 max-w-sm mx-auto">
+                <Button variant="primary" className="w-full py-6" asChild>
+                    <Link href="/dashboard/meals/add">Add New Meal</Link>
+                </Button>
+            </div>
 
-                                                <button
-                                                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                                    onClick={() => handleDelete(meal.id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
+            {/* Meal Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {meals.length === 0 ? (
+                    <p className="col-span-3 text-center text-gray-600">
+                        No meals available.
+                    </p>
+                ) : (
+                    meals.map((meal) => (
+                        <MealCard
+                            key={meal.id}
+                            meal={meal}
+                            onDelete={() => deleteMeal(meal.id)}
+                        />
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+
+// Card component for meal
+const MealCard = ({ meal, onDelete }) => {
+    return (
+        <div className="bg-neutral-50 dark:bg-slate-800 shadow-md rounded-lg p-6 flex flex-col justify-between">
+            <h3 className="text-2xl font-semibold mb-2">{meal.name}</h3>
+            <p className="text-gray-600 dark:text-white mb-4">
+                Category: {meal.category}
+            </p>
+            <p className="text-gray-600 dark:text-white mb-4">
+                Calories: {meal.calories} kcal
+            </p>
+            <p className="text-gray-600  dark:text-white mb-4">
+                Macros: {meal.macros.protein}g Protein / {meal.macros.carbs}g Carbs /{" "}
+                {meal.macros.fat}g Fat
+            </p>
+            <p className="text-gray-600 dark:text-white mb-4">
+                Prep Time: {meal.preparation_time_min} mins
+            </p>
+            <div className="flex justify-between">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => Router.push(`/dashboard/meals/edit/${meal.id}`)}
+                    className="w-10 h-10 p-0 flex items-center justify-center"
+                >
+                    <PencilIcon size={20} />
+                </Button>
+                <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => onDelete(meal.id)}
+                    className="w-10 h-10 p-0 flex items-center justify-center"
+                >
+                    <Trash2 size={20} />
+                </Button>
             </div>
         </div>
     );
 };
 
-export default MealsPage;
