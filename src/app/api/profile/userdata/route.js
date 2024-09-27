@@ -1,47 +1,31 @@
-import { authenticatedUser } from "@/lib/user";
-import Profile from "@/db/models/Profile";
+// pages/api/userdata.js
+import { getSession } from "next-auth/react";
+import connectDB from "@/db/db";
+import User from "@/db/models/User"; // Ensure the path is correct
 
-export async function GET(req) {
-  try {
-    const currentUser = await authenticatedUser();
-    if (!currentUser) {
-      return Response.json(
-        {
-          success: false,
-          message: "User not authenticated",
-        },
-        { status: 401 }
-      );
+export default async function handler(req, res) {
+    // Ensure the database connection
+    await connectDB();
+
+    // Get session information (user authentication)
+    const session = await getSession({ req });
+    if (!session) {
+        return res.status(401).json({ message: "Unauthorized" });
     }
 
-    // Fetching specific user data (height, weight, etc.)
-    const profile = await Profile.findOne({ userId: currentUser?._id });
-    if (!profile) {
-      return Response.json(
-        {
-          success: false,
-          message: "Profile not found",
-        },
-        { status: 404 }
-      );
+    // Extract user ID from session
+    const userId = session.user.id; // Ensure session.user has the `id` field
+    if (!userId) {
+        return res.status(400).json({ message: "Invalid user ID" });
     }
 
-    const { height, weight, age, gender } = profile;
+    // Fetch user details from the database using the user ID
+    const user = await User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
 
-    return Response.json(
-      {
-        success: true,
-        data: { height, weight, age, gender }, // Extracting the relevant data for calorie calculator
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return Response.json(
-      {
-        success: false,
-        message: "Failed to fetch user data",
-      },
-      { status: 500 }
-    );
-  }
+    // Return the user data
+    return res.status(200).json({ success: true, data: user });
 }
+

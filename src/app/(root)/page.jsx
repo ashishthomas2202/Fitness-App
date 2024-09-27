@@ -1,25 +1,46 @@
-// import React from "react";
+// page.jsx (Home page)
+"use client";
 
-// export default function HomePage() {
-//    return <div>Home Page</div>;
-//  }
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CalorieCalculator from "@/components/ui/CalorieCalculator";
 import { getSession } from "next-auth/react";
 
-export default async function HomePage() {
-  let user = null;
+export default function HomePage() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const session = await getSession();
-  if (session) {
-    const res = await fetch(`/api/userdata?email=${session.user.email}`);
-    const userData = await res.json();
-    user = userData;
+  // Fetch session and user profile data client-side
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const session = await getSession(); // Fetch the current session
+
+      if (session) {
+        try {
+          // Fetch user data based on session userId from the API route
+          const res = await fetch("/api/userdata");
+          const { data } = await res.json();
+
+          if (data) {
+            setUser(data); // Set the fetched user data (profile data)
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <p>Loading...</p>;
   }
 
   return (
     <main>
       <h1>Welcome to the Calorie Calculator</h1>
+      {/* Pass user profile data to CalorieCalculator */}
       <CalorieCalculator user={user} />
     </main>
   );

@@ -1,12 +1,29 @@
+//CalorieCalculator.jsx
 "use client";
 
 import { useState, useEffect } from "react";
+import axios from "axios";
 
-export default function CalorieCalculator({ user }) {
+// Helper function to calculate age from DOB
+const calculateAge = (dob) => {
+  const today = new Date();
+  const birthDate = new Date(dob);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  return age;
+};
+
+export default function CalorieCalculator() {
   const [formData, setFormData] = useState({
     age: "",
     gender: "male",
-    heightFeet: "",
     heightInches: "",
     weightLbs: "",
     activityLevel: "sedentary",
@@ -16,49 +33,61 @@ export default function CalorieCalculator({ user }) {
   });
 
   const [errors, setErrors] = useState({});
-  const [calories, setCalories] = useState(null); // Store calculated calories
-  const [weightRecommendation, setWeightRecommendation] = useState(""); // Store weight recommendation
-  const [bmi, setBmi] = useState(null); // Store BMI value
-  const [calorieGoals, setCalorieGoals] = useState({}); // Store various calorie goals
+  const [calories, setCalories] = useState(null);
+  const [weightRecommendation, setWeightRecommendation] = useState("");
+  const [bmi, setBmi] = useState(null);
+  const [calorieGoals, setCalorieGoals] = useState({});
 
-  // Populate form if the user is logged in
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        age: user.age,
-        gender: user.gender || "male",
-        weightLbs: user.weight, // assuming weight is stored in lbs in user data
-        activityLevel: user.activityLevel,
-        goal: "maintain",
-        unit: "imperial", // keeping it imperial since user enters height in feet/inches
-      });
+  // Fetch profile data using axios
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get("/api/profile/get-profile");
+      console.log("Profile API response:", response); // Log the full response
+
+      const result = response.data;
+      console.log("Profile data:", result); // Log the result data
+
+      if (result.success && result.data) {
+        const { height, weight, dob, gender, activityLevel } = result.data;
+
+        setFormData({
+          age: calculateAge(dob),
+          gender: gender || "male",
+          heightInches: height,
+          weightLbs: weight,
+          activityLevel: activityLevel || "sedentary",
+          goal: "maintain",
+          unit: "imperial",
+          formula: "mifflin",
+        });
+      } else {
+        console.error("Failed to fetch profile:", result.message);
+      }
+    } catch (error) {
+      console.error("Error fetching profile with axios:", error);
     }
-  }, [user]);
+  };
 
-  // Handle input change
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Validate form data
   const validateForm = () => {
     let errors = {};
 
-    // Validate age (15-80)
     if (!formData.age || formData.age < 15 || formData.age > 80) {
       errors.age = "Age must be between 15 and 80.";
     }
 
-    // Validate height
-    if (!formData.heightFeet || formData.heightFeet <= 0) {
-      errors.heightFeet = "Feet must be a positive number.";
-    }
-    if (!formData.heightInches || formData.heightInches < 0) {
-      errors.heightInches = " Inches must be zero or positive.";
+    if (!formData.heightInches || formData.heightInches < 12) {
+      errors.heightInches = "Height must be at least 12 inches.";
     }
 
-    // Validate weight
     if (!formData.weightLbs || formData.weightLbs <= 0) {
       errors.weightLbs = "Weight in pounds must be a positive number.";
     }
@@ -70,20 +99,12 @@ export default function CalorieCalculator({ user }) {
   const calculateCalories = () => {
     if (!validateForm()) return;
 
-    const {
-      age,
-      heightFeet,
-      heightInches,
-      weightLbs,
-      activityLevel,
-      goal,
-      gender,
-    } = formData;
+    const { age, heightInches, weightLbs, activityLevel, goal, gender } =
+      formData;
 
-    // Convert height to cm and weight to kg
-    const heightCm =
-      parseFloat(heightFeet) * 30.48 + parseFloat(heightInches) * 2.54;
-    const weightKg = parseFloat(weightLbs) * 0.453592;
+    // Convert height to cm and weight to kg for BMR calculation
+    const heightCm = heightInches * 2.54; // 1 inch = 2.54 cm
+    const weightKg = parseFloat(weightLbs) * 0.453592; // 1 lb = 0.453592 kg
 
     let bmr = 0;
 
@@ -94,7 +115,6 @@ export default function CalorieCalculator({ user }) {
       bmr = 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
     }
 
-    // Activity Multiplier
     const activityMultiplier = {
       sedentary: 1.2,
       lightly_active: 1.375,
@@ -105,12 +125,11 @@ export default function CalorieCalculator({ user }) {
 
     const maintenanceCalories = bmr * activityMultiplier;
 
-    // Adjust for goal (deficit or surplus)
     const calorieAdjustment =
       goal === "deficit" ? -500 : goal === "surplus" ? 500 : 0;
 
     const totalCalories = Math.round(maintenanceCalories + calorieAdjustment);
-    setCalories(totalCalories); // Update calories state
+    setCalories(totalCalories);
 
     // Calculate BMI
     const bmiValue = weightKg / (heightCm / 100) ** 2;
@@ -118,44 +137,23 @@ export default function CalorieCalculator({ user }) {
 
     // Weight Recommendation Logic
     if (bmiValue < 18.5) {
-      // Underweight
       setWeightRecommendation(
         "You are classified as underweight. It's advisable to gain weight for better health."
       );
     } else if (bmiValue >= 30) {
-      // Obesity
-      if (goal === "maintain") {
-        setWeightRecommendation(
-          "You are classified as obese. It's advisable to lose weight for better health."
-        );
-      } else if (goal === "deficit") {
-        setWeightRecommendation("You need to lose weight.");
-      } else if (goal === "surplus") {
-        setWeightRecommendation("You probably don't need to gain weight.");
-      }
+      setWeightRecommendation(
+        "You are classified as obese. It's advisable to consider weight loss for improved health."
+      );
     } else if (bmiValue >= 25) {
-      // Overweight
-      if (goal === "maintain") {
-        setWeightRecommendation(
-          "You are classified as overweight. It's advisable to lose weight for better health."
-        );
-      } else if (goal === "deficit") {
-        setWeightRecommendation("You need to lose weight.");
-      } else if (goal === "surplus") {
-        setWeightRecommendation("You probably don't need to gain weight.");
-      }
+      setWeightRecommendation(
+        "You are classified as overweight. Weight loss could be beneficial for your health."
+      );
     } else {
-      // Normal weight
-      if (goal === "surplus") {
-        setWeightRecommendation("You probably don't need to gain weight.");
-      } else {
-        setWeightRecommendation(
-          "You are in a healthy weight range. Maintain your current weight."
-        );
-      }
+      setWeightRecommendation(
+        "You are in a healthy weight range. Maintain your current weight."
+      );
     }
 
-    // Calorie Goals
     const calorieGoals = {
       maintain: Math.round(maintenanceCalories),
       mild_weight_loss: Math.round(maintenanceCalories - 250),
@@ -178,7 +176,6 @@ export default function CalorieCalculator({ user }) {
             onChange={handleInputChange}
             min="15"
             max="80"
-            disabled={!!user}
             style={{ color: "black" }}
           />
           {errors.age && <span style={{ color: "red" }}>{errors.age}</span>}
@@ -196,16 +193,7 @@ export default function CalorieCalculator({ user }) {
           </select>
         </div>
         <div>
-          <label>Height:</label>
-          <input
-            type="number"
-            name="heightFeet"
-            placeholder="Feet"
-            value={formData.heightFeet}
-            onChange={handleInputChange}
-            min="0"
-            style={{ color: "black" }}
-          />
+          <label>Height (inches):</label>
           <input
             type="number"
             name="heightInches"
@@ -215,9 +203,6 @@ export default function CalorieCalculator({ user }) {
             min="0"
             style={{ color: "black" }}
           />
-          {errors.heightFeet && (
-            <span style={{ color: "red" }}>{errors.heightFeet}</span>
-          )}
           {errors.heightInches && (
             <span style={{ color: "red" }}>{errors.heightInches}</span>
           )}
@@ -229,7 +214,6 @@ export default function CalorieCalculator({ user }) {
             name="weightLbs"
             value={formData.weightLbs}
             onChange={handleInputChange}
-            min="0"
             style={{ color: "black" }}
           />
           {errors.weightLbs && (
@@ -244,18 +228,18 @@ export default function CalorieCalculator({ user }) {
             onChange={handleInputChange}
             style={{ color: "black" }}
           >
-            <option value="sedentary">Sedentary: little or no exercise</option>
+            <option value="sedentary">Sedentary (Little or no exercise)</option>
             <option value="lightly_active">
-              Lightly Active: 1-3 times/week
+              Lightly Active (Exercise 1-3 days per week)
             </option>
             <option value="moderately_active">
-              Moderately Active: 4-5 times/week
+              Moderately Active (Exercise 4-5 days per week)
             </option>
             <option value="very_active">
-              Very Active: intense exercise 6-7 times/week
+              Very Active (Exercise 6-7 days per week)
             </option>
             <option value="extra_active">
-              Extra Active: very intense exercise daily, or physical job
+              Extra Active (Intense exercise daily)
             </option>
           </select>
         </div>
@@ -267,41 +251,50 @@ export default function CalorieCalculator({ user }) {
             onChange={handleInputChange}
             style={{ color: "black" }}
           >
-            <option value="maintain">Maintain</option>
-            <option value="deficit">Lose Weight</option>
-            <option value="surplus">Gain Weight</option>
+            <option value="maintain">Maintain Weight</option>
+            <option value="deficit">Lose Weight (Deficit)</option>
+            <option value="surplus">Gain Weight (Surplus)</option>
           </select>
         </div>
-
-        <button type="button" onClick={calculateCalories}>
-          Calculate Calories
-        </button>
       </form>
-      <p>
-        Daily Caloric Needs: {calories !== null ? calories : "N/A"} calories
-      </p>
-      {weightRecommendation && <p>{weightRecommendation}</p>}
-      {calories !== null && (
+      <button onClick={calculateCalories}>Calculate</button>
+
+      {calories && (
         <div>
-          <h3>Caloric Goals:</h3>
+          <h3>Results:</h3>
+          <p>Estimated Daily Calorie Needs: {calories} Calories</p>
+          <p>BMI: {bmi.toFixed(2)}</p>
+          <p>{weightRecommendation}</p>
+
+          <h4>Calorie Goals:</h4>
           <ul>
-            <li>Maintain weight: {calorieGoals.maintain} calories/day</li>
             <li>
-              Mild weight loss (0.5 lb/week): {calorieGoals.mild_weight_loss}{" "}
-              calories/day
+              <strong>Maintain weight:</strong> {calorieGoals.maintain}{" "}
+              Calories/day
             </li>
             <li>
-              Moderate weight loss (1 lb/week):{" "}
-              {calorieGoals.moderate_weight_loss} calories/day
+              <strong>Mild weight loss (0.5 lb/week):</strong>{" "}
+              {calorieGoals.mild_weight_loss} Calories/day
             </li>
             <li>
-              Extreme weight loss (2 lb/week):{" "}
-              {calorieGoals.extreme_weight_loss} calories/day
+              <strong>Moderate weight loss (1 lb/week):</strong>{" "}
+              {calorieGoals.moderate_weight_loss} Calories/day
+            </li>
+            <li>
+              <strong>Extreme weight loss (2 lb/week):</strong>{" "}
+              {calorieGoals.extreme_weight_loss} Calories/day
+              {calorieGoals.extreme_weight_loss < 1500 && (
+                <li style={{ color: "red", fontSize: "12px" }}>
+                  Please consult with a healthcare provider if you are
+                  considering losing 2 lbs or more per week, as this may require
+                  consuming fewer calories than recommended for your individual
+                  needs.
+                </li>
+              )}
             </li>
           </ul>
         </div>
       )}
-      <p>Your BMI: {bmi !== null ? bmi.toFixed(2) : "N/A"}</p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+//get-profile/route.js
 import { authenticatedUser } from "@/lib/user";
 import Profile from "@/db/models/Profile";
 
