@@ -283,7 +283,7 @@ export default function CalorieCalculator() {
             <li>
               <strong>Extreme weight loss (2 lb/week):</strong>{" "}
               {calorieGoals.extreme_weight_loss} Calories/day
-              {calorieGoals.extreme_weight_loss < 1500 && (
+              {calorieGoals.extreme_weight_loss < 2000 && (
                 <li style={{ color: "red", fontSize: "12px" }}>
                   Please consult with a healthcare provider if you are
                   considering losing 2 lbs or more per week, as this may require
