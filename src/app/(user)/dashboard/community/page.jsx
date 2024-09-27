@@ -1,11 +1,11 @@
+"use client"
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 
 const CommunityPage = () => {
   const [communities, setCommunities] = useState([]);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const router = useRouter();
+
 
   // Fetch community data from the API
   useEffect(() => {
