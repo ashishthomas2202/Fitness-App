@@ -36,12 +36,20 @@ const mealSchema = Yup.object().shape({
             Yup.object().shape({
                 name: Yup.string().required("Ingredient name is required"),
                 amount: Yup.string().required("Ingredient amount is required"),
+                unit: Yup.string().nullable(),
             })
         )
         .min(1, "At least one ingredient is required"),
+    steps: Yup.array()
+        .of(
+            Yup.object().shape({
+                description: Yup.string().required("Step description is required"),
+            })
+        )
+        .min(1, "At least one step is required"),
     preparation_time_min: Yup.number()
         .typeError("Preperation time must be a valid number")
-        .min(0, "Preperation time cannot be negative")
+        .min(1, "Preperation time cannot be less than 1 minute")
         .required("Preperation time is required"),
 });
 
@@ -57,6 +65,7 @@ const MealForm = ({
         },
         calories: 0,
         ingredients: [],
+        steps: [],
         preparation_time_min: 0,
     },
 }) => {
@@ -80,15 +89,22 @@ const MealForm = ({
     const [successMessage, setSuccessMessage] = useState("");
 
     // Ingredient state to store individual ingredient input
-    const [ingredient, setIngredient] = useState({ name: "", amount: "" });
-    const [ingredientsList, setIngredientsList] = useState([]); // List of ingredients added
+    const [ingredient, setIngredient] = useState({ name: "", amount: "", unit: "" });
+    const [ingredientsList, setIngredientsList] = useState([]);
+
+    const [step, setStep] = useState({ description: "" });
+    const [stepsList, setStepsList] = useState([]); // List of steps added
+
+
+    const units = ["g", "kg", "lbs", "ml", "cups", "tbsp", "tsp", "oz"];
 
     const addIngredient = () => {
         if (ingredient.name && ingredient.amount) {
-            const newIngredientsList = [...ingredientsList, ingredient];
-            setIngredientsList(newIngredientsList);
-            setIngredient({ name: "", amount: "" }); // Clear input fields after adding
-            setValue("ingredients", newIngredientsList); // Update ingredients in form state
+            setIngredientsList([...ingredientsList, ingredient]);
+            setIngredient({ name: "", amount: "", unit: "" });
+            setValue("ingredients", [...ingredientsList, ingredient]);
+        } else {
+            toast.error("Please fill out name and amount.");
         }
     };
 
@@ -96,11 +112,27 @@ const MealForm = ({
     const removeIngredient = (index) => {
         const newIngredientsList = ingredientsList.filter((_, i) => i !== index);
         setIngredientsList(newIngredientsList);
-        setValue("ingredients", newIngredientsList); // Update ingredients in form state
+        setValue("ingredients", newIngredientsList);
+    };
+
+    const addStep = () => {
+        if (step.description) {
+            setStepsList([...stepsList, step]);
+            setStep({ description: "" }); // Clear the step input field
+            setValue("steps", [...stepsList, step]); // Update steps in form state
+        } else {
+            toast.error("Please provide a step description.");
+        }
+    };
+
+    const removeStep = (index) => {
+        const newStepsList = stepsList.filter((_, i) => i !== index);
+        setStepsList(newStepsList);
+        setValue("steps", newStepsList); // Update steps in form state
     };
 
     const onSubmit = async (data) => {
-        console.log("data before submission", data); // Add this to inspect the form data
+        console.log("data before submission", data);
         setLoading(true);
         setServerError("");
         setSuccessMessage("");
@@ -108,10 +140,12 @@ const MealForm = ({
         // Flatten the ingredients
         const updatedData = {
             ...data,
-            ingredients: ingredientsList, // Attach ingredients from the list
+            ingredients: ingredientsList,
+            steps: stepsList, // Attach steps from the list
+
         };
 
-        console.log("Updated data for submission", updatedData); // Add this to inspect the final payload
+        console.log("Updated data for submission", updatedData);
 
 
         if (mode == "create") {
@@ -129,13 +163,28 @@ const MealForm = ({
                     toast.error("Failed to create meal");
                     return null;
                 });
-            setLoading(false);
+        } else if (mode === "edit") {
+            // Update meal logic
+            await axios.put(`/api/meals/update/${defaultValues.id}`, updatedData)
+                .then((response) => {
+                    if (response?.data?.success) {
+                        toast.success("Meal updated successfully!");
+                        router.push("/dashboard/meals");
+                    } else {
+                        toast.error("Failed to update meal");
+                    }
+                })
+                .catch((error) => {
+                    toast.error("Failed to update meal");
+                });
         }
+
+        setLoading(false);
     };
 
     useEffect(() => {
         if (defaultValues.preparation_time_min) {
-            setValue("preparation_time_min", defaultValues.name)
+            setValue("preparation_time_min", defaultValues.preparation_time_min)
         }
         if (defaultValues.category) {
             setValue("category", defaultValues.category);
@@ -149,15 +198,19 @@ const MealForm = ({
         if (defaultValues.name) {
             setValue("name", defaultValues.name);
         }
+        if (defaultValues.steps) {
+            setStepsList(defaultValues.steps);
+        }
         if (defaultValues.ingredients) {
             setIngredientsList(defaultValues.ingredients);
         }
+
     }, []);
 
 
     return (
         <div className="max-w-2xl mx-auto p-4 bg-white dark:bg-slate-700 shadow-md rounded-md">
-            <h2 className="text-2xl font-bold mb-4">Add New Meal</h2>
+            <h2 className="text-2xl font-bold mb-4">Recipe Card</h2>
 
             {serverError && <p className="text-red-500 mb-4">{serverError}</p>}
             {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
@@ -240,17 +293,29 @@ const MealForm = ({
                         <input
                             type="text"
                             placeholder="Ingredient"
-                            className="w-1/2 p-2 border rounded-md dark:bg-slate-500"
+                            className="w-1/3 p-2 border rounded-md dark:bg-slate-500"
                             value={ingredient.name}
                             onChange={(e) => setIngredient({ ...ingredient, name: e.target.value })}
                         />
                         <input
-                            type="text"
+                            type="number"
                             placeholder="Amount"
-                            className="w-1/2 p-2 border rounded-md dark:bg-slate-500"
+                            className="w-1/3 p-2 border rounded-md dark:bg-slate-500"
                             value={ingredient.amount}
                             onChange={(e) => setIngredient({ ...ingredient, amount: e.target.value })}
                         />
+                        <select
+                            className="w-1/3 p-2 border rounded-md dark:bg-slate-500"
+                            value={ingredient.unit}
+                            onChange={(e) => setIngredient({ ...ingredient, unit: e.target.value })}
+                        >
+                            <option value="">No Unit</option>
+                            {units.map((unit) => (
+                                <option key={unit} value={unit}>
+                                    {unit}
+                                </option>
+                            ))}
+                        </select>
                         <Button type="button" variant="outline" onClick={addIngredient}>
                             Add
                         </Button>
@@ -260,7 +325,7 @@ const MealForm = ({
                     <ul>
                         {ingredientsList.map((ing, index) => (
                             <li key={index} className="flex justify-between mb-2">
-                                <span>{`${ing.name} - ${ing.amount}`}</span>
+                                <span>{`${ing.name} - ${ing.amount} ${ing.unit}`}</span>
                                 <button type="button" onClick={() => removeIngredient(index)}>
                                     Remove
                                 </button>
@@ -270,7 +335,35 @@ const MealForm = ({
 
                     {errors.ingredients && <p className="text-red-500">{errors.ingredients.message}</p>}
                 </div>
+                {/* Steps */}
+                <div className="mb-4">
+                    <label className="block mb-2">Steps</label>
+                    <div className="flex gap-4 mb-2">
+                        <textarea
+                            className="w-full p-2 border rounded-md dark:bg-slate-500"
+                            placeholder="Enter cooking step"
+                            value={step.description}
+                            onChange={(e) => setStep({ description: e.target.value })}
+                        />
+                        <Button type="button" variant="outline" onClick={addStep}>
+                            Add Step
+                        </Button>
+                    </div>
 
+                    {/* Display list of steps */}
+                    <ul>
+                        {stepsList.map((step, index) => (
+                            <li key={index} className="flex justify-between mb-2">
+                                {`Step ${index + 1}: ${step.description}`}
+                                <button type="button" onClick={() => removeStep(index)}>
+                                    Remove
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+
+                    {errors.steps && <p className="text-red-500">{errors.steps.message}</p>}
+                </div>
                 {/* Preparation Time */}
                 <div className="mb-4">
                     <label className="block mb-2">Preparation Time (minutes)</label>
@@ -283,10 +376,14 @@ const MealForm = ({
                         <p className="text-red-500">{errors.preparation_time_min.message}</p>
                     )}
                 </div>
-
-                <Button type="submit" variant="primary" disabled={loading}>
-                    {loading ? "Saving..." : "Add Meal"}
-                </Button>
+                <div className="flex justify-center gap-4 w-full max-w-sm mx-auto">
+                    <Button type="submit" variant="primary" className="flex-grow" disabled={loading}>
+                        {loading ? "Saving..." : mode === "create" ? "Add Meal" : "Update Meal"}
+                    </Button>
+                    <Button type="button" variant="outline" className="flex-grow" onClick={() => router.back()}>
+                        Cancel
+                    </Button>
+                </div>
             </form>
         </div>
     );

@@ -16,9 +16,17 @@ const mealSchema = Yup.object().shape({
       Yup.object().shape({
         name: Yup.string().required("Ingredient name is required"),
         amount: Yup.string().required("Ingredient amount is required"),
+        unit: Yup.string().nullable(),
       })
     )
     .min(1, "At least one ingredient is required"),
+  steps: Yup.array()
+    .of(
+      Yup.object().shape({
+        description: Yup.string().required("Step description is required"),
+      })
+    )
+    .min(1, "At least one step is required"),
   preparation_time_min: Yup.number().required("Preparation time is required"),
 });
 
@@ -44,10 +52,7 @@ export async function POST(req) {
     console.log("Validated Data: ", validatedData); // Debugging step
 
     // Destructure the validated fields from the body
-    const { name, category, macros, calories, ingredients, preparation_time_min } = validatedData;
-
-    // Flatten the ingredients array into string format (e.g., "Chicken: 1 lb")
-    const formattedIngredients = ingredients.map(ing => `${ing.name}: ${ing.amount}`);
+    const { name, category, macros, calories, ingredients, steps, preparation_time_min } = validatedData;
 
     // Create a new meal document with flattened ingredients
     const newMeal = new Meal({
@@ -55,7 +60,8 @@ export async function POST(req) {
       category,
       macros,
       calories,
-      ingredients: formattedIngredients, // Store flattened ingredients as array of strings
+      ingredients,
+      steps,
       preparation_time_min,
     });
 

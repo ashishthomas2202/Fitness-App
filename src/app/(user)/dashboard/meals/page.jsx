@@ -4,13 +4,15 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { PencilIcon, Trash2 } from "lucide-react";
-import { Pencil2Icon } from "@radix-ui/react-icons";
 
 export default function MealsPage() {
     const [meals, setMeals] = useState([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+
 
     // Fetch meals from the server
     const fetchMeals = async () => {
@@ -47,7 +49,7 @@ export default function MealsPage() {
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <div className="flex justify-center items-center h-screen">Loading...</div>;
     }
 
     return (
@@ -73,6 +75,8 @@ export default function MealsPage() {
                             key={meal.id}
                             meal={meal}
                             onDelete={() => deleteMeal(meal.id)}
+                            onEdit={() => router.push(`/dashboard/meals/edit/${meal.id}`)} // Use router to navigate to edit page
+
                         />
                     ))
                 )}
@@ -82,7 +86,7 @@ export default function MealsPage() {
 }
 
 // Card component for meal
-const MealCard = ({ meal, onDelete }) => {
+const MealCard = ({ meal, onDelete, onEdit }) => {
     return (
         <div className="bg-neutral-50 dark:bg-slate-800 shadow-md rounded-lg p-6 flex flex-col justify-between">
             <h3 className="text-2xl font-semibold mb-2">{meal.name}</h3>
@@ -103,7 +107,7 @@ const MealCard = ({ meal, onDelete }) => {
                 <Button
                     type="button"
                     variant="outline"
-                    onClick={() => Router.push(`/dashboard/meals/edit/${meal.id}`)}
+                    onClick={onEdit}
                     className="w-10 h-10 p-0 flex items-center justify-center"
                 >
                     <PencilIcon size={20} />

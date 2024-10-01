@@ -29,9 +29,20 @@ const MealSchema = new Schema({
     required: true,
   },
   // Ingredients array now simplified to store strings
-  ingredients: { 
-    type: [String], 
-    required: true 
+  ingredients: {
+    type: [{
+      name: { type: String },
+      amount: { type: Number },
+      unit: { type: String },
+    }],
+    required: true
+  },
+  steps: {
+    type: [
+      {
+        description: { type: String, required: true },
+      }],
+    required: true,
   },
   preparation_time_min: {
     type: Number,
