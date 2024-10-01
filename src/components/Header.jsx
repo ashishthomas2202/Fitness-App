@@ -55,8 +55,8 @@ export const Header = () => {
       href: "/",
     },
     {
-      name: "Contact",
-      href: "/",
+      name: "Calorie Calculator",
+      href: "/calorie-defecit",
     },
   ];
 
