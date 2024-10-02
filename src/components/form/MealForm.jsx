@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 const mealSchema = Yup.object().shape({
     name: Yup.string().required("Meal name is required"),
     category: Yup.string().required("Category is required"),
+    diet: Yup.array().of(Yup.string()).nullable(),
     macros: Yup.object().shape({
         protein: Yup.number()
             .typeError("Protein must be a valid number")
@@ -58,6 +59,7 @@ const MealForm = ({
     defaultValues = {
         name: "",
         category: "",
+        diet: [],
         macros: {
             protein: 0,
             carbs: 0,
@@ -95,8 +97,11 @@ const MealForm = ({
     const [step, setStep] = useState({ description: "" });
     const [stepsList, setStepsList] = useState([]); // List of steps added
 
+    const categoryOptions = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
 
-    const units = ["g", "kg", "lbs", "ml", "cups", "tbsp", "tsp", "oz"];
+    const dietOptions = ["Vegan", "Gluten Free", "Vegetarian", "Dairy Free"];
+
+    const units = ["g", "kg", "lbs", "ml", "cup(s)", "tbsp", "tsp", "oz"];
 
     const addIngredient = () => {
         if (ingredient.name && ingredient.amount) {
@@ -189,6 +194,9 @@ const MealForm = ({
         if (defaultValues.category) {
             setValue("category", defaultValues.category);
         }
+        if (defaultValues.diet) {
+            setValue("diet", defaultValues.diet);
+        }
         if (defaultValues.calories) {
             setValue("calories", defaultValues.calories);
         }
@@ -227,15 +235,42 @@ const MealForm = ({
                     {errors.name && <p className="text-red-500">{errors.name.message}</p>}
                 </div>
 
-                {/* Category */}
+                {/* Category Dropdown */}
                 <div className="mb-4">
                     <label className="block mb-2">Category</label>
-                    <input
-                        type="text"
+                    <select
                         className="w-full p-2 border light:border-gray-300 rounded-md dark:bg-slate-500"
                         {...register("category")}
-                    />
+                    >
+                        <option value="">Select Category</option>
+                        {categoryOptions.map((category) => (
+                            <option key={category} value={category}>
+                                {category}
+                            </option>
+                        ))}
+                    </select>
                     {errors.category && <p className="text-red-500">{errors.category.message}</p>}
+                </div>
+
+                {/* Diet Checkboxes */}
+                <div className="mb-4">
+                    <label className="block mb-2">Diet Preferences</label>
+                    <div className="grid grid-cols-2 gap-4">
+                        {dietOptions.map((diet) => (
+                            <div key={diet}>
+                                <label className="inline-flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        {...register("diet")}
+                                        value={diet}
+                                        className="mr-2"
+                                    />
+                                    {diet}
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                    {errors.diet && <p className="text-red-500">{errors.diet.message}</p>}
                 </div>
 
                 {/* Macros */}
