@@ -5,6 +5,7 @@ import * as Yup from "yup";
 const mealSchema = Yup.object().shape({
   name: Yup.string().required("Meal name is required"),
   category: Yup.string().required("Category is required"),
+  diet: Yup.array().of(Yup.string()).nullable(),
   macros: Yup.object().shape({
     protein: Yup.number().required("Protein amount is required"),
     carbs: Yup.number().required("Carbohydrate amount is required"),
@@ -52,12 +53,13 @@ export async function POST(req) {
     console.log("Validated Data: ", validatedData); // Debugging step
 
     // Destructure the validated fields from the body
-    const { name, category, macros, calories, ingredients, steps, preparation_time_min } = validatedData;
+    const { name, category, diet, macros, calories, ingredients, steps, preparation_time_min } = validatedData;
 
     // Create a new meal document with flattened ingredients
     const newMeal = new Meal({
       name,
       category,
+      diet,
       macros,
       calories,
       ingredients,

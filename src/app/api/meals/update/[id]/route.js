@@ -7,6 +7,8 @@ import { NextResponse } from "next/server";
 const updateMealSchema = Yup.object().shape({
   name: Yup.string(),
   category: Yup.string(),
+  diet: Yup.array().of(Yup.string()).nullable(),
+
   macros: Yup.object().shape({
     protein: Yup.number(),
     carbs: Yup.number(),
@@ -17,6 +19,7 @@ const updateMealSchema = Yup.object().shape({
     Yup.object().shape({
       name: Yup.string(),
       amount: Yup.string(),
+      unit: Yup.string().nullable(),
     })
   ),
   steps: Yup.array()

@@ -10,6 +10,10 @@ const MealSchema = new Schema({
     type: String,
     required: true,
   },
+  diet: {
+    type: [String], // Store an array of diet preferences
+    default: [],
+  },
   macros: {
     protein: {
       type: Number,
