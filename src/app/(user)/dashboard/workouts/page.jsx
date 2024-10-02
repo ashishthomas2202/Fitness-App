@@ -95,6 +95,7 @@ export default function WorkoutsPage() {
 }
 
 // Card component for workout
+// Card component for workout
 const WorkoutCard = ({ workout, onDelete }) => {
   return (
     <div className="bg-neutral-50 dark:bg-slate-800 shadow-md rounded-lg p-6 flex flex-col justify-between">
@@ -105,8 +106,12 @@ const WorkoutCard = ({ workout, onDelete }) => {
       <p className="text-gray-600 dark:text-white mb-4">
         Duration: {workout.duration_min} mins
       </p>
-      <p className="text-gray-600  dark:text-white mb-4">
+      <p className="text-gray-600 dark:text-white mb-4">
         Sets: {workout.sets} | Reps: {workout.reps}
+      </p>
+      {/* New Description Paragraph */}
+      <p className="text-gray-600 dark:text-white mb-4">
+        Description: {workout.description}
       </p>
       <div className="flex justify-between">
         <Button
