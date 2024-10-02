@@ -93,6 +93,18 @@ const MealCard = ({ meal, onDelete, onEdit }) => {
             <p className="text-gray-600 dark:text-white mb-4">
                 Category: {meal.category}
             </p>
+            {meal.diet && meal.diet.length > 0 && (
+                <div className="mb-4">
+                    <p className="text-gray-600  dark:text-white mb-4">
+                        Diet Preferences:
+                    </p>
+                    <ul className="list-disc list-inside text-gray-600 dark:text-white">
+                        {meal.diet.map((preference, index) => (
+                            <li key={index}>{preference}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             <p className="text-gray-600 dark:text-white mb-4">
                 Calories: {meal.calories} kcal
             </p>
