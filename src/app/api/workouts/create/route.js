@@ -1,5 +1,7 @@
 // import { db } from "@/lib/firebase"; // Import your Firebase or DB setup here
+import connectDB from "@/db/db";
 import Workout from "@/db/models/Workout";
+import { authenticatedAdmin } from "@/lib/user";
 import * as Yup from "yup";
 
 // Define the Yup validation schema
@@ -35,6 +37,10 @@ const workoutSchema = Yup.object().shape({
 // Define the API route handler
 export async function POST(req) {
   try {
+    await connectDB();
+
+    await authenticatedAdmin();
+
     // Parse the request body
     const jsonData = await req.json();
 

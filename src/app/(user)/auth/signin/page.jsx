@@ -232,7 +232,7 @@ export default function SignIn() {
             <Brand />
           </header>
           <main className="w-full max-w-lg">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-2 text-center text-white lg:text-slate-800 lg:dark:text-white">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-2 text-center text-white lg:text-neutral-800 lg:dark:text-white">
               Welcome Back
             </h1>
             <h3 className="text-sm font-light mb-6 text-center text-white lg:text-black lg:dark:text-white">
@@ -245,14 +245,14 @@ export default function SignIn() {
             )}
             <form onSubmit={handleSubmit(onSubmit)}>
               <Input
-                className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="email"
                 {...register("email")}
                 placeholder="Enter your email"
               />
               <p className="mb-4 text-red-500">{errors?.email?.message}</p>
               <Input
-                className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="password"
                 {...register("password")}
                 placeholder="Enter your password"
@@ -272,7 +272,7 @@ export default function SignIn() {
             </form>
             <div className="flex justify-center items-center gap-5 my-5">
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />
-              <p className="text-white lg:text-slate-500 font-light text-sm">
+              <p className="text-white lg:text-neutral-500 font-light text-sm">
                 Or
               </p>
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />

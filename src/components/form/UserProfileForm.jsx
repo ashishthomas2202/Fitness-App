@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -26,6 +26,8 @@ import Image from "next/image";
 import { ProfilePictureUploader } from "../ProfilePictureUploader";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { ProfileContext } from "@/providers/ProfileProvider";
+
 const UserProfileSchema = {
   firstName: yup.string().required("First Name is required"),
   lastName: yup.string().required("Last Name is required"),
@@ -81,6 +83,7 @@ export const UserProfileForm = ({ profile }) => {
     phoneNumber: profile?.phoneNumber || null,
   };
 
+  const { updateProfile } = useContext(ProfileContext);
   const {
     register,
     handleSubmit,
@@ -103,16 +106,18 @@ export const UserProfileForm = ({ profile }) => {
   }, [getValues, errors]);
 
   const handleImageUpload = async (url) => {
-    setValue("profilePicture", url);
+    // setValue("profilePicture", url);
     await axios
       .post("/api/profile/update-profile-picture", {
         profilePicture: url,
       })
       .then((response) => {
         if (response?.data?.success) {
-          console.log("Profile picture updated successfully");
+          toast.success("Profile picture updated successfully");
+          updateProfile();
         } else {
-          console.error("Failed to update profile picture");
+          // console.error("Failed to update profile picture");
+          toast.error("Failed to update profile picture");
         }
       });
   };

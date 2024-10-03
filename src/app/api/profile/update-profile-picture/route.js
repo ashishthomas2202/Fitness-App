@@ -6,7 +6,7 @@ export async function POST(req) {
   try {
     await connectDB();
     const currentUser = await authenticatedUser();
-    console.log("currentUser:::", currentUser);
+    // console.log("currentUser:::", currentUser);
     if (!currentUser) {
       return Response.json(
         {
@@ -52,9 +52,9 @@ export async function POST(req) {
     userProfile.profilePicture = profilePicture;
     await userProfile.save();
 
-    console.log("profilePicture:::", profilePicture);
+    // console.log("profilePicture:::", profilePicture);
 
-    console.log("userProfile:::", userProfile);
+    // console.log("userProfile:::", userProfile);
 
     return Response.json(
       {
