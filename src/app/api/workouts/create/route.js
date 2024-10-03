@@ -1,5 +1,6 @@
-// import { db } from "@/lib/firebase"; // Import your Firebase or DB setup here
+import connectDB from "@/db/db";
 import Workout from "@/db/models/Workout";
+import { authenticatedAdmin } from "@/lib/user";
 import * as Yup from "yup";
 
 // Define the Yup validation schema
@@ -30,30 +31,28 @@ const workoutSchema = Yup.object().shape({
     .positive()
     .integer()
     .required("Number of reps is required"),
+  description: Yup.string(),
 });
 
 // Define the API route handler
 export async function POST(req) {
   try {
+    await connectDB();
+
+    const admin = await authenticatedAdmin();
+
+    if (!admin) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Unauthorized User",
+        }),
+        { status: 401 }
+      );
+    }
+
     // Parse the request body
     const jsonData = await req.json();
-
-    // // Validate the request body against the schema
-    // await workoutSchema.validate(body);
-
-    // // Destructure the validated fields from the body
-    // const {
-    //   name,
-    //   type,
-    //   category,
-    //   muscle_groups,
-    //   difficulty_level,
-    //   equipment,
-    //   duration_min,
-    //   calories_burned_per_min,
-    //   sets,
-    //   reps,
-    // } = body;
 
     // Validate the workout data
     const { isValid, validatedData, errors } = await validateWorkoutData(

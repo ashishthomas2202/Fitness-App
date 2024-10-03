@@ -24,7 +24,14 @@ export default function SignUp() {
     firstName: yup.string().required("First name is required"),
     lastName: yup.string().required("Last name is required"),
     email: yup.string().email("Email is invalid").required("Email is required"),
-    password: yup.string().required("Password is required"),
+    password: yup
+      .string()
+      .required("Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+      ),
     confirmPassword: yup
       .string()
       .required("Confirm password is required")
@@ -66,7 +73,7 @@ export default function SignUp() {
               if (searchParams.has("callbackUrl")) {
                 router.push(searchParams.get("callbackUrl"));
               } else {
-                router.push("/dashboard");
+                router.push("/dashboard/profile");
               }
             }
           } else {
@@ -125,7 +132,7 @@ export default function SignUp() {
               <fieldset className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1">
                   <Input
-                    className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                    className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                     type="text"
                     {...register("firstName")}
                     placeholder="Enter your First Name"
@@ -136,7 +143,7 @@ export default function SignUp() {
                 </div>
                 <div className="flex-1">
                   <Input
-                    className="bg-white lg:dark:bg-gray-700
+                    className="bg-white lg:dark:bg-neutral-800
                   lg:dark:text-white mb-1"
                     type="text"
                     {...register("lastName")}
@@ -149,14 +156,14 @@ export default function SignUp() {
               </fieldset>
 
               <Input
-                className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="email"
                 {...register("email")}
                 placeholder="Enter your email"
               />
               <p className="mb-4 text-red-500">{errors?.email?.message}</p>
               <Input
-                className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="password"
                 {...register("password")}
                 placeholder="Enter your password"
@@ -164,7 +171,7 @@ export default function SignUp() {
               <p className="mb-4 text-red-500">{errors?.password?.message}</p>
 
               <Input
-                className="bg-white lg:dark:bg-gray-700 lg:dark:text-white mb-1"
+                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="password"
                 {...register("confirmPassword")}
                 placeholder="Enter your confirm password"
@@ -184,7 +191,7 @@ export default function SignUp() {
 
             <div className="flex justify-center items-center gap-5 my-5">
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />
-              <p className="text-white lg:text-slate-500 font-light text-sm">
+              <p className="text-white lg:text-neutral-500 font-light text-sm">
                 Or
               </p>
               <hr className="flex-1 border-white lg:border-black lg:dark:border-white" />
@@ -192,6 +199,14 @@ export default function SignUp() {
             <Button
               className="w-full py-6 text-base font-light dark:bg-white dark:text-black"
               variant="outline"
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                await signIn("google", {
+                  callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+                });
+                setLoading(false);
+              }}
             >
               <span className="mr-2">
                 <FcGoogle size={20} />

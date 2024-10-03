@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useContext } from "react";
 import { Button } from "@/components/ui/button";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
@@ -18,28 +18,30 @@ import { Brand } from "@/components/Brand";
 import axios from "axios";
 import Image from "next/image";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { ProfileContext } from "@/providers/ProfileProvider";
 
 export const Header = () => {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [profile, setProfile] = useState(null);
+  const { profile } = useContext(ProfileContext);
+  // const [profile, setProfile] = useState(null);
 
-  const fetchProfile = async () => {
-    return await axios
-      .get("/api/profile/get-profile")
-      .then((response) => {
-        // console.log("Profile data:", response.data);
-        if (response?.data?.success) {
-          setProfile(response.data.data);
-          return response.data.data;
-        }
-        return null;
-      })
-      .catch((error) => {
-        // console.error("Error fetching profile:", error);
-        return null;
-      });
-  };
+  // const fetchProfile = async () => {
+  //   return await axios
+  //     .get("/api/profile/get-profile")
+  //     .then((response) => {
+  //       // console.log("Profile data:", response.data);
+  //       if (response?.data?.success) {
+  //         setProfile(response.data.data);
+  //         return response.data.data;
+  //       }
+  //       return null;
+  //     })
+  //     .catch((error) => {
+  //       // console.error("Error fetching profile:", error);
+  //       return null;
+  //     });
+  // };
 
   const menu = [
     {
@@ -60,22 +62,22 @@ export const Header = () => {
     },
   ];
 
-  useLayoutEffect(() => {
-    fetchProfile();
-  }, []);
+  // useLayoutEffect(() => {
+  //   fetchProfile();
+  // }, []);
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetchProfile();
-    }
-  }, [session]);
+  // useEffect(() => {
+  //   if (session?.user?.id) {
+  //     fetchProfile();
+  //   }
+  // }, [session]);
 
   return (
-    <header className="w-full px-2">
-      <nav className="h-16 flex justify-between items-center shadow-sm">
+    <header className="w-full px-2 shadow-sm sticky top-0 z-50 bg-white dark:bg-neutral-950 dark:shadow-2xl">
+      <nav className="h-16 flex justify-between items-center  max-w-screen-2xl mx-auto lg:px-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="dark:bg-slate-900 md:hidden">
+            <Button variant="outline" className="dark:bg-neutral-900 md:hidden">
               <HamburgerMenuIcon />
             </Button>
           </DropdownMenuTrigger>
@@ -84,6 +86,7 @@ export const Header = () => {
               <DropdownMenuItem
                 key={`${item.name}-${i}`}
                 className="text-center"
+                asChild
               >
                 <Link href={item?.href || ""}>{item.name}</Link>
               </DropdownMenuItem>
@@ -108,13 +111,15 @@ export const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="rounded-full h-10 w-10 p-0 dark:bg-gray-900 dark:hover:bg-gray-800 relative overflow-hidden"
+                className="rounded-full h-10 w-10 p-0 dark:bg-neutral-900 dark:hover:bg-neutral-800 relative overflow-hidden"
               >
-                {profile ? (
+                {session?.user && profile?.profilePicture ? (
                   <Image
                     className="object-cover"
                     src={profile?.profilePicture}
                     fill
+                    alt="Profile Picture"
+                    priority
                   />
                 ) : (
                   <AiOutlineUser size={20} />
