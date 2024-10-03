@@ -99,10 +99,10 @@ export const Footer = () => {
   return (
     <footer className="pt-12 md:pt-20 pb-5 px-2 sm:px-4 lg:px-6 bg-violet-50 dark:bg-[#0e0e0e]">
       <section className="max-w-screen-2xl mx-auto">
-        <main className="flex flex-col items-center sm:flex-row gap-2 sm:justify-between text-slate-500 dark:text-neutral-600  mb-6">
-          <article className="flex flex-col items-center sm:items-start mb-10 sm:mb-0 max-w-min">
+        <main className="flex flex-col items-center sm:flex-row gap-8 sm:gap-2 sm:justify-between sm:items-start text-slate-500 dark:text-neutral-600  mb-6">
+          <article className="flex flex-col items-center sm:items-start mb-4 sm:mb-0 max-w-min">
             <Brand noIcon />
-            <p className="text-center sm:text-left font-light mt-2 w-72 md:w-80">
+            <p className="text-center sm:text-left font-light mt-2 w-72 sm:w-60 md:w-80">
               We offer personalized workout plans and expert guidance to help
               you achieve your fitness goals. Train smarter, track your
               progress, and stay motivated anytime, anywhere.

@@ -26,25 +26,25 @@ export const ConnectedSection = () => {
           dashboard, without the hassle.
         </p>
 
-        <div className="flex justify-center lg:justify-start gap-6 mb-6">
-          <div className="bg-slate-100 dark:bg-neutral-800 p-2 flex items-center gap-2 rounded-lg dark:text-white shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6 mb-6">
+          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm">
             <img
               src="https://ik.imagekit.io/z1gqwes5lg/public/app-store.png?updatedAt=1727911323775"
               alt="Apple Watch"
-              className="h-12 w-12"
+              className="h-12 w-12 mr-2"
             />
-            <div>
+            <div className="text-left">
               <h6 className="text-[10px]">GET IT ON</h6>
               <h3 className="text-lg">App Store</h3>
             </div>
           </div>
-          <div className="bg-slate-100 dark:bg-neutral-800 p-2 flex items-center gap-2 rounded-lg dark:text-white shadow-sm">
+          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm">
             <img
               src="https://ik.imagekit.io/z1gqwes5lg/public/app.png?updatedAt=1727911323824"
               alt="Google Fit"
               className="h-12 w-12"
             />
-            <div>
+            <div className="text-left">
               <h6 className="text-[10px]">GET IT ON</h6>
               <h3 className="text-lg">Google Play</h3>
             </div>

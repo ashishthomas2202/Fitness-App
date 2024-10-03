@@ -24,7 +24,14 @@ export default function SignUp() {
     firstName: yup.string().required("First name is required"),
     lastName: yup.string().required("Last name is required"),
     email: yup.string().email("Email is invalid").required("Email is required"),
-    password: yup.string().required("Password is required"),
+    password: yup
+      .string()
+      .required("Password is required")
+      .min(8, "Password must be at least 8 characters")
+      .matches(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
+      ),
     confirmPassword: yup
       .string()
       .required("Confirm password is required")

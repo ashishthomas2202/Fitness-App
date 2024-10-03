@@ -1,6 +1,6 @@
 "use client";
 import React, { useContext, useLayoutEffect, useState } from "react";
-import { Brand } from "@/components/Brand";
+import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
   DropdownMenu,
@@ -21,7 +21,7 @@ import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 
 export const Header = ({ handleSidebar = () => {} }) => {
   const [greeting, setGreeting] = useState(getGreeting());
-
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { profile } = useContext(ProfileContext);
   //   const greeting = `${getGreeting()}, ${session?.user?.firstName}`;

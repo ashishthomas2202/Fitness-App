@@ -73,7 +73,7 @@ export const Header = () => {
   // }, [session]);
 
   return (
-    <header className="w-full px-2 shadow-sm mb-10 sticky top-0 z-50 bg-white dark:bg-neutral-950 dark:shadow-2xl">
+    <header className="w-full px-2 shadow-sm sticky top-0 z-50 bg-white dark:bg-neutral-950 dark:shadow-2xl">
       <nav className="h-16 flex justify-between items-center  max-w-screen-2xl mx-auto lg:px-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

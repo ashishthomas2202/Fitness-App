@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export const HeroSection = () => {
   return (
-    <section className="w-full lg:flex lg:flex-row-reverse max-w-screen-2xl mx-auto lg:px-4">
+    <section className="w-full lg:flex lg:flex-row-reverse max-w-screen-2xl mx-auto lg:px-4 lg:mt-10">
       <article className="hidden lg:block sm:flex-1">
         <main className="relatiive h-full w-full overflow-hidden sm:rounded-3xl">
           <Image
