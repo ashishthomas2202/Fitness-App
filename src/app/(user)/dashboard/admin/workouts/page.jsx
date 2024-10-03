@@ -116,7 +116,7 @@ const WorkoutCard = ({ workout, onUpdate = () => {}, onDelete = () => {} }) => {
           type="button"
           variant="outline"
           onClick={onUpdate}
-          className="w-10 h-10 p-0 flex items-center justify-center dark:hover:bg-neutral-900"
+          className="w-10 h-10 p-0 flex items-center justify-center dark:bg-neutral-950 dark:hover:bg-neutral-900"
         >
           <PencilIcon size={20} />
         </Button>
