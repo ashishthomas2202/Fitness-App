@@ -60,6 +60,10 @@ const WorkoutSchema = new Schema(
       min: [1, "Number of reps must be a positive integer"],
       required: [true, "Number of reps is required"],
     },
+    description: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt timestamps
