@@ -124,17 +124,13 @@ export const UserProfileForm = ({ profile }) => {
 
   const onSubmit = async (data) => {
     console.log(data);
-    await axios
-      .post("/api/profile/update-user-profile", data)
-      .then((response) => {
-        if (response?.data?.success) {
-          console.log("Profile updated successfully");
-          toast.success("Profile updated successfully");
-        } else {
-          console.error("Failed to update profile");
-          toast.error("Failed to update profile");
-        }
-      });
+    await axios.post("/api/profile/update-profile", data).then((response) => {
+      if (response?.data?.success) {
+        toast.success("Profile updated successfully");
+      } else {
+        toast.error("Failed to update profile");
+      }
+    });
   };
   return (
     <>

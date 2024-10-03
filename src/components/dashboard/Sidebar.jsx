@@ -35,7 +35,7 @@ export const Sidebar = ({ menu = [], open = true }) => {
               <Button
                 variant="ghost"
                 className={cn(
-                  "flex items-center justify-center hover:bg-violet-100 dark:hover:bg-neutral-800 transition-all duration-100 ease-in-out w-10",
+                  "flex items-center justify-center hover:bg-violet-100 dark:hover:bg-neutral-800  dark:hover:text-neutral-400 transition-all duration-100 ease-in-out w-10",
                   open && "sm:w-36 sm:px-2 sm:justify-start",
                   pathname === item.href && "bg-violet-100 dark:bg-neutral-800"
                 )}

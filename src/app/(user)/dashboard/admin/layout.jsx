@@ -109,7 +109,7 @@ export default function layout({ children }) {
         )}
       >
         <Header handleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 rounded-xl overflow-y-auto">{children}</main>
+        <main className="rounded-xl overflow-y-auto">{children}</main>
       </article>
     </section>
   );

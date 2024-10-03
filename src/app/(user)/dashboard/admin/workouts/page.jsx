@@ -7,8 +7,10 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { PencilIcon, PencilLineIcon, Trash2 } from "lucide-react";
 import { Pencil2Icon } from "@radix-ui/react-icons";
+import { useRouter } from "next/navigation";
 
 export default function WorkoutsPage() {
+  const router = useRouter();
   const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,6 +80,9 @@ export default function WorkoutsPage() {
             <WorkoutCard
               key={workout.id}
               workout={workout}
+              onUpdate={() =>
+                router.push(`/dashboard/admin/workouts/update/${workout.id}`)
+              }
               onDelete={() => deleteWorkout(workout.id)}
             />
           ))
@@ -89,9 +94,9 @@ export default function WorkoutsPage() {
 
 // Card component for workout
 // Card component for workout
-const WorkoutCard = ({ workout, onDelete }) => {
+const WorkoutCard = ({ workout, onUpdate = () => {}, onDelete = () => {} }) => {
   return (
-    <div className="bg-neutral-50 dark:bg-slate-800 shadow-md rounded-lg p-6 flex flex-col justify-between">
+    <div className="bg-neutral-50 dark:bg-neutral-800 shadow-md rounded-lg p-6 flex flex-col justify-between">
       <h3 className="text-2xl font-semibold mb-2">{workout.name}</h3>
       <p className="text-gray-600 dark:text-white mb-4">
         Difficulty: {workout.difficulty_level}
@@ -110,10 +115,8 @@ const WorkoutCard = ({ workout, onDelete }) => {
         <Button
           type="button"
           variant="outline"
-          onClick={() =>
-            Router.push(`/dashboard/admin/workouts/edit/${workout.id}`)
-          }
-          className="w-10 h-10 p-0 flex items-center justify-center"
+          onClick={onUpdate}
+          className="w-10 h-10 p-0 flex items-center justify-center dark:hover:bg-neutral-900"
         >
           <PencilIcon size={20} />
         </Button>

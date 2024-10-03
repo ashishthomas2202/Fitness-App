@@ -35,18 +35,19 @@ const workoutSchema = Yup.object().shape({
 });
 
 // Define the API route handler
-export async function POST(req) {
+export async function PUT(req, { params }) {
+  const { workoutId } = params;
+
   try {
     await connectDB();
-
     const admin = await authenticatedAdmin();
 
     if (!admin) {
-      return new Response(
-        JSON.stringify({
+      return Response.json(
+        {
           success: false,
           message: "Unauthorized User",
-        }),
+        },
         { status: 401 }
       );
     }
@@ -70,42 +71,31 @@ export async function POST(req) {
       );
     }
 
-    const {
-      name,
-      type,
-      category,
-      muscle_groups,
-      difficulty_level,
-      equipment,
-      duration_min,
-      calories_burned_per_min,
-      sets,
-      reps,
-    } = validatedData;
-
-    // Create the workout object
-    const newWorkout = Workout({
-      name,
-      type,
-      category,
-      muscle_groups,
-      difficulty_level,
-      equipment,
-      duration_min,
-      calories_burned_per_min,
-      sets,
-      reps,
+    // Find the workout in the database
+    const workout = await Workout.findOne({
+      _id: workoutId,
     });
 
-    // Save the new workout to the database
-    await newWorkout.save();
+    if (!workout) {
+      return Response.json(
+        {
+          success: false,
+          message: "Workout not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Update the workout with the validated data
+    Object.assign(workout, validatedData);
+    await workout.save();
 
     // Return a success response
     return Response.json(
       {
         success: true,
-        message: "Workout added successfully",
-        data: newWorkout,
+        message: "Workout updated successfully",
+        data: workout,
       },
       { status: 200 }
     );
