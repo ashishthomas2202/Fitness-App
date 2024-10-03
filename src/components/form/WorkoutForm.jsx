@@ -115,7 +115,7 @@ const WorkoutForm = ({
         .then((response) => {
           if (response?.data?.success) {
             toast.success("Workout created successfully!");
-            router.push("/dashboard/workouts");
+            router.push("/dashboard/admin/workouts");
             return response?.data?.data;
           }
           toast.error("Failed to create workout");

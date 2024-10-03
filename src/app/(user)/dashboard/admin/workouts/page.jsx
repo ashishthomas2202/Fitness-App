@@ -26,16 +26,9 @@ export default function WorkoutsPage() {
         return null;
       })
       .catch((error) => {
-        // console.error("Error fetching workouts:", error);
         return null;
       });
     setLoading(false);
-    //   setWorkouts(response.data.data);
-    // } catch (error) {
-    //   toast.error("Failed to fetch workouts.");
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   // Delete a workout
@@ -70,7 +63,7 @@ export default function WorkoutsPage() {
           asChild
           //   className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
         >
-          <Link href="/dashboard/workouts/add">Add New Workout</Link>
+          <Link href="/dashboard/admin/workouts/add">Add New Workout</Link>
         </Button>
       </div>
 
@@ -112,7 +105,9 @@ const WorkoutCard = ({ workout, onDelete }) => {
         <Button
           type="button"
           variant="outline"
-          onClick={() => Router.push(`/dashboard/workouts/edit/${workout.id}`)}
+          onClick={() =>
+            Router.push(`/dashboard/admin/workouts/edit/${workout.id}`)
+          }
           className="w-10 h-10 p-0 flex items-center justify-center"
         >
           <PencilIcon size={20} />

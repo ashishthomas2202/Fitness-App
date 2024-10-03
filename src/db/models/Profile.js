@@ -36,7 +36,7 @@ const ProfileSchema = new Schema({
   },
   profilePicture: {
     type: String,
-    default: "",
+    default: null,
   },
 });
 
