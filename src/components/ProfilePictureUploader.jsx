@@ -28,7 +28,6 @@ export const ProfilePictureUploader = ({ defaultURL, onImageUpload }) => {
         throw new Error("Failed to authenticate with ImageKit");
       }
     } catch (error) {
-      // console.error("Authentication error:", error);
       setUploadError("Authentication failed.");
     }
   };
@@ -44,14 +43,12 @@ export const ProfilePictureUploader = ({ defaultURL, onImageUpload }) => {
 
   // Callback for upload errors
   const onError = (err) => {
-    // console.log("Error", err);
     setUploadError("Image upload failed. Please try again.");
     setIsUploading(false);
   };
 
-  // Callback for successful upload
   const onSuccess = async (res) => {
-    // delete the previous image
+    // Delete the previous image
     if (previousUrl?.includes("imagekit")) {
       const fileName = previousUrl.split("/").pop(); // Extract the file ID from the URL
 
@@ -61,6 +58,10 @@ export const ProfilePictureUploader = ({ defaultURL, onImageUpload }) => {
           return null;
         });
     }
+
+    // Update the previousUrl to the newly uploaded image's URL
+    setPreviousUrl(res?.url);
+
     setIsUploading(false);
     setImagePreview(res?.url); // Show the uploaded image
 
@@ -90,7 +91,9 @@ export const ProfilePictureUploader = ({ defaultURL, onImageUpload }) => {
           id="ik-upload"
           file={selectedFile}
           folder="/profile-pictures" // Folder to store the uploaded image
-          fileName={selectedFile?.name || "profile-picture.jpg"} // File name from the selected file
+          fileName={`${new Date()}-${
+            selectedFile?.name || "profile-picture.jpg"
+          }`} // File name from the selected file
           onUploadStart={() => setIsUploading(true)}
           onError={onError}
           onSuccess={onSuccess}

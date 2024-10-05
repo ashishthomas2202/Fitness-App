@@ -98,31 +98,24 @@ export const UserProfileForm = ({ profile }) => {
     defaultValues: defaultValues,
   });
 
-  useEffect(() => {
-    // console.log("profile::", profile);
-    // console.log(defaultValues);
-    // console.log(getValues());
-    console.log("Values:", getValues());
-    console.log("Errors:", errors);
-  }, [getValues, errors]);
-
   const handleImageUpload = async (url) => {
     // setValue("profilePicture", url);
     await axios
       .post("/api/profile/update-profile-picture", {
         profilePicture: url,
       })
-      .then((response) => {
+      .then(async (response) => {
         if (response?.data?.success) {
           toast.success("Profile picture updated successfully");
           // updateProfile();
-          // Update the session with the new profile data
-          // await update();
         } else {
           // console.error("Failed to update profile picture");
           toast.error("Failed to update profile picture");
         }
       });
+
+    // Update the session with the new profile data
+    await update();
   };
 
   const onSubmit = async (data) => {
@@ -135,8 +128,6 @@ export const UserProfileForm = ({ profile }) => {
           // updateProfile();
           // Update the session with the new profile data
           await update();
-
-          update();
         } else {
           toast.error("Failed to update profile");
         }
@@ -147,9 +138,6 @@ export const UserProfileForm = ({ profile }) => {
       });
   };
 
-  useEffect(() => {
-    console.log("sessoion:", session?.user);
-  }, [session]);
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -183,7 +171,7 @@ export const UserProfileForm = ({ profile }) => {
               First Name<sup className="text-red-500">*</sup>
             </Label>
             <Input
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               type="text"
               {...register("firstName")}
               placeholder="Enter your first name"
@@ -195,7 +183,7 @@ export const UserProfileForm = ({ profile }) => {
               Last Name<sup className="text-red-500">*</sup>
             </Label>
             <Input
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               type="text"
               {...register("lastName")}
               placeholder="Enter your last name"
@@ -216,7 +204,7 @@ export const UserProfileForm = ({ profile }) => {
                 trigger("gender");
               }} // Manually update the value
             >
-              <SelectTrigger className="py-6 dark:bg-slate-700 text-base font-light">
+              <SelectTrigger className="py-6 focus:ring-0 focus-visible:ring-0  dark:bg-neutral-800 text-base font-light">
                 <SelectValue placeholder="Select Gender" />
               </SelectTrigger>
               <SelectContent>
@@ -236,7 +224,7 @@ export const UserProfileForm = ({ profile }) => {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="dark:bg-slate-700 dark:hover:bg-slate-700 w-full font-light text-base py-6"
+                  className="dark:bg-neutral-800 dark:hover:bg-neutral-800 w-full font-light text-base py-6"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {watch("dob")?.toLocaleDateString() || "Select Date"}
@@ -253,14 +241,14 @@ export const UserProfileForm = ({ profile }) => {
             </Popover> */}
             {/* <Input
               type="date"
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               {...register("dob")}
               defaultValues={defaultValues?.dob}
             /> */}
 
             <Input
               type="date"
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               {...register("dob")}
               max={moment().format("YYYY-MM-DD")}
             />
@@ -274,7 +262,7 @@ export const UserProfileForm = ({ profile }) => {
             </Label>
             <Input
               type="number"
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               {...register("height")}
               placeholder="Enter your height in inches"
             />
@@ -286,7 +274,7 @@ export const UserProfileForm = ({ profile }) => {
             </Label>
             <Input
               type="number"
-              className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+              className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
               {...register("weight")}
               placeholder="Enter your weight in Lbs"
             />
@@ -297,7 +285,7 @@ export const UserProfileForm = ({ profile }) => {
           <Label className="font-light mb-2 text-base">Phone Number</Label>
           <Input
             type="tel"
-            className="dark:bg-slate-700 dark:focus:outline-slate-600 dark:focus:ring-slate-600 dark:text-white"
+            className="dark:bg-neutral-800 dark:border-none dark:focus:outline-neutral-600 dark:focus:ring-slate-600 dark:text-white"
             {...register("phoneNumber")}
             placeholder="Enter your phone number"
           />

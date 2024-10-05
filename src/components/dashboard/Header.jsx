@@ -32,8 +32,8 @@ export const Header = ({ handleSidebar = () => {} }) => {
     setGreeting(`${getGreeting()}, ${session?.user?.firstName || ""}`);
   }, [session]);
   return (
-    <header className="sticky top-0">
-      <nav className=" py-3 px-0 sm:px-2 flex flex-col justify-between items-center">
+    <header className="sticky top-0 bg-slate-100 dark:bg-neutral-950 z-50">
+      <nav className=" py-3 px-0 sm:px-2 flex flex-col justify-between items-center ">
         <div className="w-full flex justify-between gap-4">
           <Button variant="primary" onClick={handleSidebar}>
             <HamburgerMenuIcon size={20} />

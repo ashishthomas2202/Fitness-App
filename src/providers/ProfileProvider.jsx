@@ -16,24 +16,21 @@ export const ProfileProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const getProfile = async () => {
-    if (!session?.user || profile) {
-      // Avoid fetching profile if session is not available or profile already exists
+    if (!session?.user) {
+      // Avoid fetching profile if session is not available
       return profile;
     }
 
     setLoading(true);
-    console.log("context:getProfile");
 
     try {
       const response = await axios.get("/api/profile/get-profile");
-      console.log("Profile data:", response.data);
 
       if (response?.data?.success) {
         setProfile(response.data.data);
         return response.data.data;
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
       return null;
     } finally {
       setLoading(false);
@@ -41,7 +38,7 @@ export const ProfileProvider = ({ children }) => {
   };
 
   useLayoutEffect(() => {
-    if (session?.user && !profile) {
+    if (session?.user) {
       // Fetch profile only if session is available and profile doesn't exist
       getProfile();
     }
