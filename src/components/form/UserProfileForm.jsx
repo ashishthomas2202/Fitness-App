@@ -83,7 +83,8 @@ export const UserProfileForm = ({ profile }) => {
     phoneNumber: profile?.phoneNumber || null,
   };
 
-  const { updateProfile } = useContext(ProfileContext);
+  // const { updateProfile } = useContext(ProfileContext);
+  const { data: session, update } = useSession();
   const {
     register,
     handleSubmit,
@@ -114,7 +115,9 @@ export const UserProfileForm = ({ profile }) => {
       .then((response) => {
         if (response?.data?.success) {
           toast.success("Profile picture updated successfully");
-          updateProfile();
+          // updateProfile();
+          // Update the session with the new profile data
+          // await update();
         } else {
           // console.error("Failed to update profile picture");
           toast.error("Failed to update profile picture");
@@ -124,14 +127,29 @@ export const UserProfileForm = ({ profile }) => {
 
   const onSubmit = async (data) => {
     console.log(data);
-    await axios.post("/api/profile/update-profile", data).then((response) => {
-      if (response?.data?.success) {
-        toast.success("Profile updated successfully");
-      } else {
+    await axios
+      .post("/api/profile/update-profile", data)
+      .then(async (response) => {
+        if (response?.data?.success) {
+          toast.success("Profile updated successfully");
+          // updateProfile();
+          // Update the session with the new profile data
+          await update();
+
+          update();
+        } else {
+          toast.error("Failed to update profile");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating profile:", error);
         toast.error("Failed to update profile");
-      }
-    });
+      });
   };
+
+  useEffect(() => {
+    console.log("sessoion:", session?.user);
+  }, [session]);
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>

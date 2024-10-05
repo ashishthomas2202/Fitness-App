@@ -3,7 +3,6 @@ import Profile from "@/db/models/Profile";
 import * as yup from "yup";
 import { authenticatedUser } from "@/lib/user";
 
-
 const profileSchema = yup.object().shape({
   firstName: yup.string().required("First Name is required"),
   lastName: yup.string().required("Last Name is required"),
@@ -70,7 +69,6 @@ export async function POST(req) {
     await connectDB();
 
     const { firstName, lastName, ...profileData } = validatedData;
-    console.log("jsonData:::", jsonData);
     const currentUser = await authenticatedUser();
 
     if (!currentUser) {
@@ -106,6 +104,10 @@ export async function POST(req) {
 
     await profile.save();
 
+    currentUser.firstName = firstName;
+    currentUser.lastName = lastName;
+    await currentUser.save();
+
     return Response.json(
       {
         success: true,
@@ -113,7 +115,6 @@ export async function POST(req) {
       },
       { status: 200 }
     );
-    
   } catch (error) {
     console.error("Error updating profile:", error);
     return Response.json(

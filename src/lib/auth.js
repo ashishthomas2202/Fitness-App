@@ -1,7 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getServerSession } from "next-auth";
-import { authenticate, linkGoogleAuth } from "@/lib/user";
+import { authenticate, authenticatedUser, linkGoogleAuth } from "@/lib/user";
 
 export const authOptions = {
   session: {
@@ -69,14 +69,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    // async jwt({ token, user }) {
-    //   if (user) {
-    //     token.user = user;
-    //   }
-    //   return token;
-    // },
-    async jwt({ token, account, user }) {
-      // This gets called when the user logs in
+    async jwt({ token, account, user, trigger }) {
       if (user) {
         token.user = {
           ...user, // Add all user properties to the token
@@ -86,17 +79,23 @@ export const authOptions = {
           picture: user.picture,
         };
       }
+
+      if (trigger == "update") {
+        const currentUser = await authenticatedUser();
+        if (currentUser) {
+          const jsonData = currentUser.toJSON();
+          token.user = {
+            ...jsonData,
+          };
+        }
+      }
       return token;
     },
     async session({ session, token }) {
-      // console.log("Session(before):", token);
       if (token.user) {
         session.user = token.user;
       }
 
-      // console.log("Session(after):", session);
-
-      
       return session;
     },
   },

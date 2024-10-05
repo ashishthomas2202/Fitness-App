@@ -174,7 +174,7 @@ export default function SignUp() {
                 className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="password"
                 {...register("confirmPassword")}
-                placeholder="Enter your confirm password"
+                placeholder="Enter your password again"
               />
               <p className="mb-4 text-red-500">
                 {errors?.confirmPassword?.message}

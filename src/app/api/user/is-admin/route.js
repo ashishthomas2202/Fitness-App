@@ -1,6 +1,7 @@
 import connectDB from "@/db/db";
 import { authenticatedAdmin } from "@/lib/user";
 
+export const revalidate = 60;
 export async function GET() {
   try {
     await connectDB();
