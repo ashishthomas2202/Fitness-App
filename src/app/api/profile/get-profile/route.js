@@ -1,6 +1,9 @@
+//get-profile/route.js
 import { authenticatedUser } from "@/lib/user";
 import Profile from "@/db/models/Profile";
+import { first } from "lodash";
 
+export const revalidate = 60;
 export async function GET(req) {
   try {
     const currentUser = await authenticatedUser();
@@ -27,11 +30,18 @@ export async function GET(req) {
       );
     }
 
-    // console.log("Profile found:", profile);
+    const profileData = profile.toJSON();
+    const userData = currentUser?.toJSON();
+
+    const data = {
+      ...profileData,
+      firstName: userData?.firstName,
+      lastName: userData?.lastName,
+    };
     return Response.json(
       {
         success: true,
-        data: profile,
+        data,
       },
       { status: 200 }
     );

@@ -11,7 +11,7 @@ export const DarkModeToggle = () => {
       <Button
         variant="ghost"
         onClick={() => toggleTheme()}
-        className="rounded-full h-10 w-10 p-0 font-bold border border-slate-50 dark:border-gray-800 dark:hover:border-gray-800"
+        className="rounded-full h-10 w-10 p-0 font-bold border border-neutral-50 dark:border-neutral-800 dark:hover:border-neutral-800"
       >
         {theme === "light" ? (
           <MdOutlineLightMode size={20} />

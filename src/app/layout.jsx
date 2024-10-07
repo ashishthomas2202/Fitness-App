@@ -1,11 +1,21 @@
 import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { getServerAuthSession } from "@/lib/auth";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { ProfileProvider } from "@/providers/ProfileProvider";
 const inter = Inter({ subsets: ["latin"] });
+const poppins = Poppins({
+  subsets: ["latin"],
+  style: "normal",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+  fallback: "arial, sans-serif",
+  variable: "--font-poppins",
+});
 
 export const metadata = {
   title: "FlexFit",
@@ -15,14 +25,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const session = getServerAuthSession();
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <body
         className={cn(
           inter.className,
-          "min-w-80 min-h-screen dark:bg-gray-900"
+          poppins.className,
+          "min-w-76 min-h-screen dark:bg-neutral-950 text-black dark:text-white"
         )}
       >
-        <AuthProvider session={session}>{children}</AuthProvider>
+        <AuthProvider session={session}>
+          <ProfileProvider>{children}</ProfileProvider>
+        </AuthProvider>
         <ToastContainer position="top-center" />
       </body>
     </html>

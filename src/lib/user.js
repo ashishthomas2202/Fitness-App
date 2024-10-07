@@ -135,12 +135,48 @@ export async function authenticatedUser() {
   await connectDB();
   const session = await getServerAuthSession();
 
-  console.log("Session:", session);
+  // console.log("Session:", session);
 
   if (!session || !session?.user?.id) {
     return null;
   }
   return await User.findOne({ _id: session?.user?.id });
+}
+
+export async function authenticatedAdmin() {
+  await connectDB();
+  const session = await getServerAuthSession();
+
+  // console.log("Session:", session);
+
+  if (!session || !session?.user?.id) {
+    return null;
+  }
+
+  const user = await User.findOne({ _id: session?.user?.id });
+  if (!user) {
+    return null;
+  }
+
+  return user?.userRole === "admin" ? user : null;
+}
+
+export async function authenticatedTrainer() {
+  await connectDB();
+  const session = await getServerAuthSession();
+
+  // console.log("Session:", session);
+
+  if (!session || !session?.user?.id) {
+    return null;
+  }
+
+  const user = await User.findOne({ _id: session?.user?.id });
+  if (!user) {
+    return null;
+  }
+
+  return user?.userRole === "trainer" ? user : null;
 }
 
 // export function authenticatedUser() {
