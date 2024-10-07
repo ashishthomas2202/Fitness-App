@@ -6,6 +6,7 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
 });
 
+export const revalidate = 60;
 export async function GET(req) {
   const authenticationParameters = imagekit.getAuthenticationParameters();
   return Response.json(

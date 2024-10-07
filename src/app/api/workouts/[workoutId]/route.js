@@ -1,6 +1,7 @@
 import connectDB from "@/db/db";
 import Workout from "@/db/models/Workout";
 
+export const revalidate = 60;
 export async function GET(req, { params }) {
   const { workoutId } = params;
 
