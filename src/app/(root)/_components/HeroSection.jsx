@@ -39,7 +39,7 @@ export const HeroSection = () => {
           </h1>
           <p className="text-white lg:text-black dark:lg:text-white font-light text-xl max-w-xl mx-auto sm:mx-0 mt-8">
             Unlock your potential with personalized plans, expert trainers, and
-            cutting-edge tools. Whether you're aiming to lose weight, build
+            cutting-edge tools. Whether you&apos;re aiming to lose weight, build
             muscle, or stay healthy, FlexFit is your all-in-one fitness
             companion.
           </p>

@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
-export default function layout({ children }) {
+export default function UserDashboardLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
