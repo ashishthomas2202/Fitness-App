@@ -24,7 +24,7 @@ export default function layout({ children }) {
     {
       title: "Dashboard",
       icon: <LuLayoutDashboard size={20} />,
-      href: "/dashboard",
+      href: "/dashboard/admin",
     },
 
     {
