@@ -160,7 +160,7 @@ export default function SignIn() {
           </main>
           <footer>
             <p className="text-white lg:text-black text-lg font-light lg:dark:text-white">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href={`/auth/signup${
                   searchParams.has("callbackUrl")
