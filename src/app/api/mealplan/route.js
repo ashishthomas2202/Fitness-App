@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth"; // Import your session handler
+import { getServerAuthSession } from "@/lib/auth"; 
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
 

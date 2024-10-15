@@ -14,14 +14,13 @@ export async function POST(req) {
             });
         }
 
-        // Ensure the mealId is a valid ObjectId
+        // Ensure the mealId is valid ObjectId
         if (!mongoose.Types.ObjectId.isValid(mealId)) {
             return new Response(JSON.stringify({ success: false, message: "Invalid mealId format" }), {
                 status: 400,
             });
         }
 
-        // Get start of the week date (Monday)
         const startOfWeek = new Date(date);
         startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
         startOfWeek.setHours(0, 0, 0, 0);

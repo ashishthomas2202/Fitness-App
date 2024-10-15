@@ -8,13 +8,13 @@ export default function MealPlans() {
   const [mealPlan, setMealPlan] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [meals, setMeals] = useState([]);
-  const [mealType, setMealType] = useState("Dinner"); // Set default meal type
+  const [mealType, setMealType] = useState("Dinner");
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [error, setError] = useState(null);
 
-  // Fetch all meals from the database
+  // Fetch all meals 
   useEffect(() => {
     const fetchMeals = async () => {
       try {
@@ -63,7 +63,7 @@ export default function MealPlans() {
   const addToMealPlan = async () => {
     if (selectedMeal) {
       try {
-        console.log("Selected Meal:", selectedMeal); // Debugging
+        console.log("Selected Meal:", selectedMeal);
 
         const newMealEntry = {
           meal: {
@@ -79,17 +79,15 @@ export default function MealPlans() {
           date: new Date(),
         };
 
-        // Optimistically update the state before the API response
         setMealPlan((prevMealPlan) => [...prevMealPlan, newMealEntry]);
 
-        // Make the API call
         const response = await axios.post(
           "/api/mealplan/add",
           {
-            mealId: selectedMeal.id, // Using the meal's `id`
+            mealId: selectedMeal.id,
             date: new Date(),
             mealType,
-            userId: session?.user.id, // Pass the user ID from session
+            userId: session?.user.id,
           },
           {
             headers: {
@@ -100,7 +98,6 @@ export default function MealPlans() {
 
         if (!response.data.success) {
           setError("Error adding meal to the plan.");
-          // Optionally revert the optimistic update if there's an error
           setMealPlan((prevMealPlan) => prevMealPlan.filter((meal) => meal !== newMealEntry));
         }
 
@@ -112,7 +109,6 @@ export default function MealPlans() {
       } catch (error) {
         setError("Error adding meal to the plan.");
         console.error("Error adding meal to the plan:", error);
-        // Optionally revert the optimistic update on error
         setMealPlan((prevMealPlan) => prevMealPlan.filter((meal) => meal !== newMealEntry));
       }
     }
@@ -122,16 +118,15 @@ export default function MealPlans() {
     if (!mealId) return;
 
     try {
-      console.log("Removing Meal with ID:", mealId); // Debugging
+      console.log("Removing Meal with ID:", mealId);
 
-      // Optimistically update the UI before sending the request
       setMealPlan((prevMealPlan) => prevMealPlan.filter((meal) => meal.meal.id !== mealId));
 
       const response = await axios.post(
         "/api/mealplan/delete",
         {
           mealId,
-          date: new Date(), // Use the current date to determine the week
+          date: new Date(),
           userId: session?.user.id,
         },
         {
@@ -142,17 +137,14 @@ export default function MealPlans() {
       );
 
       if (!response.data.success) {
-        // If the request fails, revert the optimistic update
         console.error("Error response from server", response.data.message);
         setError("Error removing meal from the plan.");
-        // Optionally, refetch the meal plan to revert the state
-        fetchMealPlan(); // Re-fetch to ensure UI consistency
+        fetchMealPlan();
       }
     } catch (error) {
       setError("Error removing meal from the plan.");
       console.error("Error removing meal from the plan:", error);
 
-      // Revert the optimistic UI update if an error occurs
       fetchMealPlan();
     }
   };
@@ -173,7 +165,7 @@ export default function MealPlans() {
   };
 
   const handleMealSelect = (meal) => {
-    console.log("Meal selected:", meal); // Log the selected meal to check if it has the correct data
+    console.log("Meal selected:", meal);
     setSelectedMeal(meal);
     setSearchTerm(meal.name);
     setFilteredMeals([]);
@@ -181,7 +173,7 @@ export default function MealPlans() {
 
   const handleSearchBlur = () => {
     setTimeout(() => {
-      setFilteredMeals([]); // Clear suggestions when focus is lost
+      setFilteredMeals([]);
     }, 200);
   };
 
@@ -214,7 +206,7 @@ export default function MealPlans() {
                   <li
                     key={meal.id}
                     className="p-2 cursor-pointer hover:bg-purple-100 dark:hover:bg-gray-700 px-4 py-2"
-                    onMouseDown={() => handleMealSelect(meal)} // Use onMouseDown to handle the selection before blur
+                    onMouseDown={() => handleMealSelect(meal)}
                   >
                     {meal.name}
                   </li>

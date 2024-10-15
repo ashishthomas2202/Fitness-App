@@ -8,8 +8,8 @@ export async function POST(req) {
         await connectDB();
 
         const { mealId, date, mealType, userId } = await req.json();
-        console.log("Incoming Meal ID:", mealId); // Debug the incoming mealId
-        console.log("Incoming data:", { mealId, date, mealType, userId }); // Check all incoming data
+        console.log("Incoming Meal ID:", mealId);
+        console.log("Incoming data:", { mealId, date, mealType, userId });
 
         if (!mealId || !mealType || !date || !userId) {
             return new Response(JSON.stringify({ success: false, message: "Invalid meal selection or missing data" }), {
@@ -48,7 +48,7 @@ export async function POST(req) {
 
         // Add the mealId and other meal plan details to the meal plan
         mealPlan.meals.push({
-            meal: meal._id, // Reference the meal by its ObjectId
+            meal: meal._id,
             mealType,
             date,
         });
