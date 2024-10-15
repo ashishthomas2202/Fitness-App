@@ -37,15 +37,26 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
-  useLayoutEffect(() => {
+  // useLayoutEffect(() => {
+  //   if (session?.user) {
+  //     // Fetch profile only if session is available and profile doesn't exist
+  //     getProfile();
+  //   }
+  // }, [session]);
+
+  // useEffect(() => {
+  //   if (!session?.user) {
+  //     setProfile(null); // Clear profile if user logs out
+  //   }
+  // }, [session]);
+
+  useLayoutEffect(() => {}, [session]);
+
+  useEffect(() => {
     if (session?.user) {
       // Fetch profile only if session is available and profile doesn't exist
       getProfile();
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (!session?.user) {
+    } else {
       setProfile(null); // Clear profile if user logs out
     }
   }, [session]);
