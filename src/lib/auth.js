@@ -99,7 +99,6 @@ export const authOptions = {
       //   session.user = token.user;
       // }
 
-      console.log("token:", token);
       session.user = token?.user;
       session.expires = token?.expires;
 

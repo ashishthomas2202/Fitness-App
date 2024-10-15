@@ -1,6 +1,6 @@
 "use client";
 import { signIn } from "next-auth/react";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -13,10 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import _ from "lodash";
-import { ProfileContext } from "@/providers/ProfileProvider";
 export default function SignUp() {
-  const { getProfile } = useContext(ProfileContext);
-
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -72,7 +69,6 @@ export default function SignUp() {
               password,
             });
             if (result?.ok) {
-              getProfile();
               if (searchParams.has("callbackUrl")) {
                 router.push(searchParams.get("callbackUrl"));
               } else {
@@ -207,7 +203,7 @@ export default function SignUp() {
                 setLoading(true);
                 await signIn("google", {
                   callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
-                }).then(() => getProfile());
+                });
                 setLoading(false);
               }}
             >

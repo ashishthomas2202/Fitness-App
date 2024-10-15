@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -12,11 +12,8 @@ import { Brand } from "@/components/Brand";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
-import { ProfileContext } from "@/providers/ProfileProvider";
-
 export default function SignIn() {
   const searchParams = useSearchParams();
-  const { getProfile } = useContext(ProfileContext);
   const router = useRouter();
 
   const [error, setError] = useState("");
@@ -57,7 +54,6 @@ export default function SignIn() {
     }
 
     if (result?.ok) {
-      getProfile();
       if (searchParams.has("callbackUrl")) {
         router.push(searchParams.get("callbackUrl"));
       } else {
@@ -151,7 +147,7 @@ export default function SignIn() {
               onClick={() =>
                 signIn("google", {
                   callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
-                }).then(() => getProfile())
+                })
               }
               type="button"
             >

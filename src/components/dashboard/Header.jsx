@@ -1,5 +1,5 @@
 "use client";
-import React, { useContext, useLayoutEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import {
@@ -14,7 +14,7 @@ import { AiOutlineUser } from "react-icons/ai";
 import Image from "next/image";
 import { ProfileContext } from "@/providers/ProfileProvider";
 import { Button } from "@/components/ui/button";
-import { get } from "lodash";
+
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import Link from "next/link";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
@@ -28,7 +28,7 @@ export const Header = ({ handleSidebar = () => {} }) => {
   //   const greeting = "Hello, User";
   //   const greeting = getGreeting();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     setGreeting(`${getGreeting()}, ${session?.user?.firstName || ""}`);
   }, [session]);
   return (
