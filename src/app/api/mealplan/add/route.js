@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
 import Meal from "@/db/models/Meal";
@@ -6,19 +5,13 @@ import mongoose from "mongoose";
 
 export async function POST(req) {
     try {
-        
-        const session = await getServerSession(req);
+        await connectDB();
 
-        if (!session || !session.user) {
-            return new Response(JSON.stringify({ success: false, message: "Unauthorized" }), {
-                status: 401,
-            });
-        }
+        const { mealId, date, mealType, userId } = await req.json();
+        console.log("Incoming Meal ID:", mealId); // Debug the incoming mealId
+        console.log("Incoming data:", { mealId, date, mealType, userId }); // Check all incoming data
 
-        const { mealId, date, mealType } = await req.json();
-
-        // Validate mealId, mealType, and date
-        if (!mealId || !mealType || !date) {
+        if (!mealId || !mealType || !date || !userId) {
             return new Response(JSON.stringify({ success: false, message: "Invalid meal selection or missing data" }), {
                 status: 400,
             });
@@ -26,10 +19,12 @@ export async function POST(req) {
 
         // Ensure the mealId is a valid ObjectId
         if (!mongoose.Types.ObjectId.isValid(mealId)) {
-            return new Response(JSON.stringify({ success: false, message: "Invalid mealId format" }), {
-                status: 400,
-            });
+            return new Response(
+                JSON.stringify({ success: false, message: "Invalid mealId format" }),
+                { status: 400 }
+            );
         }
+
 
         // Find the meal by its ID in the database
         const meal = await Meal.findById(mealId);
@@ -39,9 +34,6 @@ export async function POST(req) {
             });
         }
 
-        // Get userId from session
-        const userId = new mongoose.Types.ObjectId(session.user.id);
-
         // Get start of the week date (Monday)
         const startOfWeek = new Date(date);
         startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
@@ -49,13 +41,18 @@ export async function POST(req) {
 
         // Find or create the meal plan for the week
         const mealPlan = await MealPlan.findOneAndUpdate(
-            { userId, weekStartDate: startOfWeek },
-            { $setOnInsert: { userId, weekStartDate: startOfWeek, meals: [] } },
+            { userId: new mongoose.Types.ObjectId(userId), weekStartDate: startOfWeek },
+            { $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), weekStartDate: startOfWeek, meals: [] } },
             { upsert: true, new: true }
         );
 
-        // Add meal to the meal plan
-        mealPlan.meals.push({ meal: meal._id, mealType, date });
+        // Add the mealId and other meal plan details to the meal plan
+        mealPlan.meals.push({
+            meal: meal._id, // Reference the meal by its ObjectId
+            mealType,
+            date,
+        });
+
         await mealPlan.save();
 
         return new Response(
