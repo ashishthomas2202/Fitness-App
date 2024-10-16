@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import MealCalendar from "@/components/MealCalendar";
+
 
 export default function MealPlans() {
   const { data: session } = useSession();
@@ -260,6 +262,7 @@ export default function MealPlans() {
         Add to Meal Plan
       </button>
 
+
       {/* Meal Plan Display */}
       <div className="mt-6">
         <h2 className="text-xl font-semibold mb-4">Your Meal Plan</h2>
@@ -317,6 +320,11 @@ export default function MealPlans() {
             <p>No meals in your plan yet.</p>
           )}
         </div>
+      </div>
+      {/* Calendar View */}
+      <div className="mt-6">
+        <h2 className="text-xl font-semibold mb-4">Your Meal Calendar</h2>
+        <MealCalendar mealPlan={mealPlan} />
       </div>
     </div>
   );
