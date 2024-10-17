@@ -1,17 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Calendar from "react-calendar";
+import React, { useState } from "react";
+import { Calendar, momentLocalizer } from "react-big-calendar";
+import moment from "moment";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { useDrag, useDrop } from "react-dnd";
+import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import "tailwindcss/tailwind.css";
-import "react-calendar/dist/Calendar.css";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { v4 as uuidv4 } from "uuid";
 import { FiEdit } from "react-icons/fi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
+const localizer = momentLocalizer(moment);
 
 const initialDays = {};
 
@@ -41,18 +45,79 @@ export default function WorkoutPlanner() {
     color: colors[Math.floor(Math.random() * colors.length)],
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [error, setError] = useState({});
   const [repeatOption, setRepeatOption] = useState("None");
+  const [view, setView] = useState("month");
+  const [date, setDate] = useState(new Date());
 
-  const handleDateClick = (date) => {
-    setSelectedDate(date);
+  const getEvents = () => {
+    const events = [];
+    Object.entries(workouts).forEach(([dateKey, dayWorkouts]) => {
+      dayWorkouts.forEach((workout) => {
+        events.push({
+          id: workout.id,
+          title: workout.name,
+          allDay: true,
+          start: new Date(`${dateKey}T00:00:00`),
+          end: new Date(`${dateKey}T23:59:59`),
+          workout: workout,
+          color: workout.color.replace("bg-", ""),
+        });
+      });
+    });
+    return events;
+  };
+
+  const dayPropGetter = (date) => {
+    if (
+      date.toISOString().split("T")[0] ===
+      selectedDate.toISOString().split("T")[0]
+    ) {
+      return {
+        style: {
+          backgroundColor: "#fef9c3",
+        },
+      };
+    }
+    return {};
+  };
+
+  const eventStyleGetter = (event) => {
+    const style = {
+      backgroundColor: `var(--${event.color})`,
+      borderRadius: "5px",
+      opacity: 0.8,
+      color: "black",
+      border: "none",
+      display: "block",
+    };
+    return {
+      style,
+    };
+  };
+
+  // Handle calendar navigation and view changes
+  const handleNavigate = (newDate) => {
+    setDate(newDate);
+    setSelectedDate(newDate);
+  };
+
+  const handleViewChange = (newView) => {
+    setView(newView);
+  };
+
+  // Handle slot selection
+  const handleSelectSlot = (slotInfo) => {
+    setSelectedDate(slotInfo.start);
   };
 
   const handleAddWorkout = () => {
-    setError({});
+    setError({}); // Reset the error state
+    const newError = {}; // Object to track errors
 
-    const newError = {};
-
+    // Validate workout form fields
     if (!newWorkout.name) {
       newError.name = "Workout name is required.";
     }
@@ -62,6 +127,8 @@ export default function WorkoutPlanner() {
     if (!newWorkout.equipment) {
       newError.equipment = "Equipment is required.";
     }
+
+    // Strength-specific validation
     if (newWorkout.categories.includes("Strength")) {
       if (newWorkout.sets < 1 || newWorkout.sets === "") {
         newError.sets = "Sets must be at least 1 and not negative.";
@@ -70,6 +137,8 @@ export default function WorkoutPlanner() {
         newError.reps = "Reps must be at least 1 and not negative.";
       }
     }
+
+    // Cardio and Flexibility-specific validation
     if (
       (newWorkout.categories.includes("Cardio") ||
         newWorkout.categories.includes("Flexibility")) &&
@@ -78,16 +147,34 @@ export default function WorkoutPlanner() {
       newError.duration = "Duration must be at least 1 minute.";
     }
 
+    // Date range validation
+    if (repeatOption !== "None") {
+      if (!startDate) {
+        newError.dateRange = "Start date is required.";
+      } else if (endDate && endDate < startDate) {
+        newError.dateRange = "End date cannot be before the start date.";
+      }
+    } else if (!selectedDate) {
+      newError.dateRange = "Please select a date for the workout.";
+    }
+
+    // If any errors are found, update the error state and stop the function
     if (Object.keys(newError).length > 0) {
       setError(newError);
       return;
     }
 
-    const dateKey = selectedDate.toISOString().split("T")[0];
-    const workoutWithId = { ...newWorkout, id: uuidv4() };
+    // If validation passes, proceed with adding the workout
+    const workoutWithId = {
+      ...newWorkout,
+      id: uuidv4(),
+      startDate: startDate ? startDate.toISOString() : null,
+      endDate: endDate ? endDate.toISOString() : null,
+    };
 
+    // Helper function to add the workout to a specific date
     const addWorkoutToDate = (date) => {
-      const dateKey = date.toISOString().split("T")[0];
+      const dateKey = moment(date).format("YYYY-MM-DD");
       setWorkouts((prevWorkouts) => ({
         ...prevWorkouts,
         [dateKey]: prevWorkouts[dateKey]
@@ -96,28 +183,40 @@ export default function WorkoutPlanner() {
       }));
     };
 
-    addWorkoutToDate(selectedDate);
-
+    // Handle recurrence based on repeatOption
     if (repeatOption === "Daily") {
-      for (let i = 1; i <= 6; i++) {
-        const futureDate = new Date(selectedDate);
-        futureDate.setDate(selectedDate.getDate() + i);
-        addWorkoutToDate(futureDate);
-      }
-    } else if (repeatOption === "Weekly") {
-      for (let i = 1; i <= 4; i++) {
-        const futureDate = new Date(selectedDate);
-        futureDate.setDate(selectedDate.getDate() + i * 7);
-        addWorkoutToDate(futureDate);
-      }
-    } else if (repeatOption === "Monthly") {
-      for (let i = 1; i <= 3; i++) {
-        const futureDate = new Date(selectedDate);
-        futureDate.setMonth(selectedDate.getMonth() + i);
-        addWorkoutToDate(futureDate);
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        addWorkoutToDate(currentDate);
+        currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
       }
     }
 
+    if (repeatOption === "Every Other Day") {
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        addWorkoutToDate(currentDate);
+        currentDate.setDate(currentDate.getDate() + 2);
+      }
+    }
+
+    if (repeatOption === "Weekly") {
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        addWorkoutToDate(currentDate);
+        currentDate.setDate(currentDate.getDate() + 7); // Move by 1 week
+      }
+    }
+
+    if (repeatOption === "Monthly") {
+      let currentDate = new Date(startDate);
+      while (currentDate <= endDate) {
+        addWorkoutToDate(currentDate);
+        currentDate.setMonth(currentDate.getMonth() + 1); // Move by 1 month
+      }
+    }
+
+    // Reset workout form fields after adding the workout
     setNewWorkout({
       name: "",
       categories: [],
@@ -128,7 +227,9 @@ export default function WorkoutPlanner() {
       description: "",
       color: colors[Math.floor(Math.random() * colors.length)],
     });
-    setRepeatOption("None");
+    setRepeatOption("None"); // Reset the repeat option
+    setStartDate(null); // Reset start date
+    setEndDate(null); // Reset end date
   };
 
   const handleDeleteWorkout = (dateKey, workoutId) => {
@@ -193,14 +294,39 @@ export default function WorkoutPlanner() {
       <div className="p-6 text-black">
         <h1 className="text-2xl font-semibold mb-6">Workout Planner</h1>
 
-        <Calendar
-          onChange={handleDateClick}
-          value={selectedDate}
-          className="mb-6 bg-gray-50 border border-gray-300 rounded-lg"
-          tileClassName={({ date, view }) => {
-            return "text-gray-800 hover:bg-gray-200";
-          }}
-        />
+        <div className="mb-6 bg-white border border-gray-300 rounded-lg">
+          <Calendar
+            localizer={localizer}
+            events={getEvents()}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 500 }}
+            onSelectSlot={handleSelectSlot}
+            onNavigate={handleNavigate}
+            onView={handleViewChange}
+            view={view}
+            date={date}
+            selectable={true}
+            eventPropGetter={eventStyleGetter}
+            dayPropGetter={dayPropGetter}
+            popup
+            views={["month", "week", "day"]}
+            defaultView="month"
+            tooltipAccessor={null}
+            formats={{
+              timeGutterFormat: () => "", // Hide time gutter labels
+              dayFormat: "ddd M/D", // Simplified day format
+            }}
+            components={{
+              timeSlotWrapper: () => null, // Remove time slots
+              timeGutterHeader: () => null, // Remove time gutter header
+            }}
+            min={new Date(0, 0, 0, 0, 0)} // Start of day
+            max={new Date(0, 0, 0, 23, 59)} // End of day
+            timeslots={1} // Show only one slot per hour
+            step={1440} // One day steps (in minutes)
+          />
+        </div>
 
         <div className="border rounded-lg shadow-md p-4 bg-white">
           <h2 className="font-semibold text-lg mb-2">
@@ -354,10 +480,46 @@ export default function WorkoutPlanner() {
               className="p-2 border border-gray-300 rounded-md"
             >
               <option value="None">None</option>
-              <option value="Daily">Daily (for 7 days)</option>
-              <option value="Weekly">Weekly (for 4 weeks)</option>
-              <option value="Monthly">Monthly (for 3 months)</option>
+              <option value="Daily">Daily</option>
+              <option value="Every Other Day">Every Other Day</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
             </select>
+            {/* Date Pickers for Repeat Workouts */}
+            {repeatOption !== "None" && (
+              <div>
+                <div className="flex space-x-4">
+                  <div>
+                    <label className="block text-gray-600 font-bold">
+                      Start Date:
+                    </label>
+                    <DatePicker
+                      selected={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-600 font-bold">
+                      End Date:
+                    </label>
+                    <DatePicker
+                      selected={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      isClearable
+                      placeholderText="Optional"
+                    />
+                  </div>
+                </div>
+
+                {/* Display Date Range Error */}
+                {error.dateRange && (
+                  <p className="text-red-500 text-sm mt-2">{error.dateRange}</p>
+                )}
+              </div>
+            )}
+
             <div className="mt-4">
               <Button onClick={handleAddWorkout}>Add Workout</Button>
             </div>
@@ -405,6 +567,7 @@ function WorkoutCard({
   const [repsError, setRepsError] = useState("");
   const [durationError, setDurationError] = useState("");
   const [categoryError, setCategoryError] = useState("");
+  const [dateRangeError, setDateRangeError] = useState("");
 
   const categories = ["Strength", "Cardio", "Flexibility"];
   const colors = [
@@ -435,6 +598,7 @@ function WorkoutCard({
     setRepsError("");
     setDurationError("");
     setCategoryError("");
+    setDateRangeError("");
 
     let hasError = false;
 
@@ -468,6 +632,15 @@ function WorkoutCard({
     ) {
       setDurationError("Duration must be at least 1 minute.");
       hasError = true;
+    }
+    if (repeatFrequency !== "None") {
+      if (!startDate) {
+        setDateRangeError("Start date is required for a repeating workout.");
+        hasError = true;
+      } else if (endDate && startDate > endDate) {
+        setDateRangeError("End date cannot be earlier than start date.");
+        hasError = true;
+      }
     }
 
     if (hasError) {
@@ -680,36 +853,44 @@ function WorkoutCard({
             >
               <option value="None">None</option>
               <option value="Daily">Daily</option>
+              <option value="Every Other Day">Every Other Day</option>
               <option value="Weekly">Weekly</option>
               <option value="Monthly">Monthly</option>
             </select>
           </div>
 
-          {/* Start and End Date Pickers */}
+          {/* Start and End Date Pickers with Date Range Validation */}
           {repeatFrequency !== "None" && (
-            <div className="flex space-x-4">
-              <div>
-                <label className="block text-gray-600 font-bold">
-                  Start Date:
-                </label>
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date) => setStartDate(date)}
-                  className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            <div>
+              <div className="flex space-x-4">
+                <div>
+                  <label className="block text-gray-600 font-bold">
+                    Start Date:
+                  </label>
+                  <DatePicker
+                    selected={startDate}
+                    onChange={(date) => setStartDate(date)}
+                    className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-600 font-bold">
+                    End Date:
+                  </label>
+                  <DatePicker
+                    selected={endDate}
+                    onChange={(date) => setEndDate(date)}
+                    className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    isClearable
+                    placeholderText="Optional"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-gray-600 font-bold">
-                  End Date:
-                </label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date) => setEndDate(date)}
-                  className="bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  isClearable
-                  placeholderText="Optional"
-                />
-              </div>
+
+              {/* Display Date Range Error */}
+              {dateRangeError && (
+                <p className="text-red-500 text-sm mt-2">{dateRangeError}</p>
+              )}
             </div>
           )}
 
