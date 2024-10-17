@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Select from "react-select";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,12 @@ const ItemType = {
 };
 
 export default function WorkoutPlanner() {
+  const categoriesOptions = [
+    { value: "Weight Training", label: "Weight Training" },
+    { value: "Calisthenics", label: "Calisthenics" },
+    { value: "Yoga", label: "Yoga" },
+    { value: "HIIT", label: "HIIT" },
+  ];
   const [workouts, setWorkouts] = useState(initialDays);
   const [newWorkout, setNewWorkout] = useState({
     name: "",
@@ -102,6 +109,16 @@ export default function WorkoutPlanner() {
   const handleNavigate = (newDate) => {
     setDate(newDate);
     setSelectedDate(newDate);
+  };
+
+  const handleCategoryChange = (selectedOptions) => {
+    const selectedCategories = selectedOptions
+      ? selectedOptions.map((option) => option.value)
+      : [];
+    setNewWorkout((prevWorkout) => ({
+      ...prevWorkout,
+      categories: selectedCategories, // Update categories in the workout
+    }));
   };
 
   const handleViewChange = (newView) => {
@@ -184,6 +201,11 @@ export default function WorkoutPlanner() {
     };
 
     // Handle recurrence based on repeatOption
+    if (repeatOption === "None") {
+      const dateKey = moment(startDate).format("YYYY-MM-DD"); // Format the selected date
+      addWorkoutToDate(moment(startDate).toDate()); // Add the workout only to the selected date
+    }
+
     if (repeatOption === "Daily") {
       let currentDate = new Date(startDate);
       while (currentDate <= endDate) {
@@ -391,6 +413,20 @@ export default function WorkoutPlanner() {
             {error.categories && (
               <p className="text-red-500 text-sm">{error.categories}</p>
             )}
+            {/* New Multi-Select Dropdown for Additional Categories */}
+            <div className="flex flex-col mt-4">
+              <label className="font-semibold">Categories:</label>
+              <Select
+                isMulti
+                options={categoriesOptions}
+                onChange={handleCategoryChange}
+                value={categoriesOptions.filter((option) =>
+                  newWorkout.categories.includes(option.value)
+                )}
+                placeholder="Select categories"
+                className="mt-2"
+              />
+            </div>
             <Input
               label="Equipment"
               placeholder="Equipment"
