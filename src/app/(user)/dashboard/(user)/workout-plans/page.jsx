@@ -34,15 +34,18 @@ const ItemType = {
 };
 
 export default function WorkoutPlanner() {
+  const workoutTypeOptions = ["Strength", "Cardio", "Flexibility"];
   const categoriesOptions = [
     { value: "Weight Training", label: "Weight Training" },
     { value: "Calisthenics", label: "Calisthenics" },
     { value: "Yoga", label: "Yoga" },
     { value: "HIIT", label: "HIIT" },
+    { value: "Full Body", label: "Full Body" },
   ];
   const [workouts, setWorkouts] = useState(initialDays);
   const [newWorkout, setNewWorkout] = useState({
     name: "",
+    workoutTypes: [],
     categories: [],
     equipment: "",
     sets: "",
@@ -117,8 +120,18 @@ export default function WorkoutPlanner() {
       : [];
     setNewWorkout((prevWorkout) => ({
       ...prevWorkout,
-      categories: selectedCategories, // Update categories in the workout
+      categories: selectedCategories,
     }));
+  };
+
+  const handleWorkoutTypeChange = (event) => {
+    const selectedType = event.target.value;
+    setNewWorkout((prevWorkout) => {
+      const workoutTypes = prevWorkout.workoutTypes.includes(selectedType)
+        ? prevWorkout.workoutTypes.filter((type) => type !== selectedType) // Remove if unchecked
+        : [...prevWorkout.workoutTypes, selectedType]; // Add if checked
+      return { ...prevWorkout, workoutTypes };
+    });
   };
 
   const handleViewChange = (newView) => {
@@ -138,15 +151,18 @@ export default function WorkoutPlanner() {
     if (!newWorkout.name) {
       newError.name = "Workout name is required.";
     }
-    if (newWorkout.categories.length === 0) {
-      newError.categories = "At least one workout type must be selected.";
+    if (!newWorkout.workoutTypes || newWorkout.workoutTypes.length === 0) {
+      newError.workoutTypes = "At least one workout type must be selected."; // Changed from categories to workoutTypes
     }
     if (!newWorkout.equipment) {
       newError.equipment = "Equipment is required.";
     }
+    if (!newWorkout.categories || newWorkout.categories.length === 0) {
+      newError.categories = "Please select at least one category";
+    }
 
     // Strength-specific validation
-    if (newWorkout.categories.includes("Strength")) {
+    if (newWorkout.workoutTypes?.includes("Strength")) {
       if (newWorkout.sets < 1 || newWorkout.sets === "") {
         newError.sets = "Sets must be at least 1 and not negative.";
       }
@@ -157,8 +173,8 @@ export default function WorkoutPlanner() {
 
     // Cardio and Flexibility-specific validation
     if (
-      (newWorkout.categories.includes("Cardio") ||
-        newWorkout.categories.includes("Flexibility")) &&
+      (newWorkout.workoutTypes.includes("Cardio") ||
+        newWorkout.workoutTypes.includes("Flexibility")) &&
       newWorkout.duration < 1
     ) {
       newError.duration = "Duration must be at least 1 minute.";
@@ -200,10 +216,9 @@ export default function WorkoutPlanner() {
       }));
     };
 
-    // Handle recurrence based on repeatOption
     if (repeatOption === "None") {
-      const dateKey = moment(startDate).format("YYYY-MM-DD"); // Format the selected date
-      addWorkoutToDate(moment(startDate).toDate()); // Add the workout only to the selected date
+      const dateKey = moment(selectedDate).format("YYYY-MM-DD");
+      addWorkoutToDate(selectedDate);
     }
 
     if (repeatOption === "Daily") {
@@ -390,29 +405,31 @@ export default function WorkoutPlanner() {
             {error.name && <p className="text-red-500 text-sm">{error.name}</p>}
             <div className="flex flex-col">
               <label className="font-semibold">Workout Types:</label>
-              {["Strength", "Cardio", "Flexibility"].map((category) => (
-                <div key={category} className="flex items-center">
+              {["Strength", "Cardio", "Flexibility"].map((type) => (
+                <div key={type} className="flex items-center">
                   <input
                     type="checkbox"
-                    value={category}
-                    checked={newWorkout.categories.includes(category)}
-                    onChange={() => {
+                    value={type}
+                    checked={newWorkout.workoutTypes?.includes(type) || false}
+                    onChange={(e) => {
                       setNewWorkout((prev) => {
-                        const categories = prev.categories.includes(category)
-                          ? prev.categories.filter((cat) => cat !== category)
-                          : [...prev.categories, category];
-                        return { ...prev, categories };
+                        const workoutTypes = prev.workoutTypes?.includes(type)
+                          ? prev.workoutTypes.filter((t) => t !== type)
+                          : [...(prev.workoutTypes || []), type];
+                        return { ...prev, workoutTypes };
                       });
                     }}
                     className="mr-2"
                   />
-                  <label>{category}</label>
+                  <label>{type}</label>
                 </div>
               ))}
+              {error.workoutTypes && (
+                <p className="text-red-500 text-sm mt-1">
+                  {error.workoutTypes}
+                </p>
+              )}
             </div>
-            {error.categories && (
-              <p className="text-red-500 text-sm">{error.categories}</p>
-            )}
             {/* New Multi-Select Dropdown for Additional Categories */}
             <div className="flex flex-col mt-4">
               <label className="font-semibold">Categories:</label>
@@ -424,8 +441,11 @@ export default function WorkoutPlanner() {
                   newWorkout.categories.includes(option.value)
                 )}
                 placeholder="Select categories"
-                className="mt-2"
+                className={`mt-2 ${error.categories ? "border-red-500" : ""}`}
               />
+              {error.categories && (
+                <p className="text-red-500 text-sm mt-1">{error.categories}</p>
+              )}
             </div>
             <Input
               label="Equipment"
@@ -438,8 +458,8 @@ export default function WorkoutPlanner() {
             {error.equipment && (
               <p className="text-red-500 text-sm">{error.equipment}</p>
             )}
-            {newWorkout.categories.includes("Cardio") ||
-            newWorkout.categories.includes("Flexibility") ? (
+            {newWorkout.workoutTypes?.includes("Cardio") ||
+            newWorkout.workoutTypes?.includes("Flexibility") ? (
               <>
                 <Input
                   label="Duration (in minutes)"
@@ -459,7 +479,7 @@ export default function WorkoutPlanner() {
                 )}
               </>
             ) : null}
-            {newWorkout.categories.includes("Strength") && (
+            {newWorkout.workoutTypes?.includes("Strength") && (
               <>
                 <Input
                   label="Sets"
@@ -603,9 +623,17 @@ function WorkoutCard({
   const [repsError, setRepsError] = useState("");
   const [durationError, setDurationError] = useState("");
   const [categoryError, setCategoryError] = useState("");
+  const [categoriesError, setCategoriesError] = useState("");
   const [dateRangeError, setDateRangeError] = useState("");
 
-  const categories = ["Strength", "Cardio", "Flexibility"];
+  const workoutTypes = ["Strength", "Cardio", "Flexibility"];
+  const categories = [
+    "Weight Training",
+    "Calisthenics",
+    "Yoga",
+    "HIIT",
+    "Full Body",
+  ];
   const colors = [
     "bg-red-300",
     "bg-blue-300",
@@ -634,6 +662,7 @@ function WorkoutCard({
     setRepsError("");
     setDurationError("");
     setCategoryError("");
+    setCategoriesError("");
     setDateRangeError("");
 
     let hasError = false;
@@ -643,15 +672,19 @@ function WorkoutCard({
       setNameError("Workout name is required.");
       hasError = true;
     }
+    if (!editedWorkout.categories || editedWorkout.categories.length === 0) {
+      setCategoriesError("Please select at least one category");
+      hasError = true;
+    }
     if (!editedWorkout.equipment) {
       setEquipmentError("Equipment is required.");
       hasError = true;
     }
-    if (editedWorkout.categories.length === 0) {
+    if (editedWorkout.workoutTypes.length === 0) {
       setCategoryError("At least one workout type must be selected.");
       hasError = true;
     }
-    if (editedWorkout.categories.includes("Strength")) {
+    if (editedWorkout.workoutTypes.includes("Strength")) {
       if (editedWorkout.sets < 1 || editedWorkout.sets === "") {
         setSetsError("Sets must be at least 1.");
         hasError = true;
@@ -662,8 +695,8 @@ function WorkoutCard({
       }
     }
     if (
-      (editedWorkout.categories.includes("Cardio") ||
-        editedWorkout.categories.includes("Flexibility")) &&
+      (editedWorkout.workoutTypes.includes("Cardio") ||
+        editedWorkout.workoutTypes.includes("Flexibility")) &&
       editedWorkout.duration < 1
     ) {
       setDurationError("Duration must be at least 1 minute.");
@@ -709,9 +742,23 @@ function WorkoutCard({
     setRepsError("");
     setDurationError("");
     setCategoryError("");
+    setCategoriesError("");
   };
 
-  // Handle checkbox change for categories
+  // Handle checkbox change for workout types
+  const handleWorkoutTypeChange = (type) => {
+    const currentIndex = editedWorkout.workoutTypes.indexOf(type);
+    const newTypes = [...editedWorkout.workoutTypes];
+
+    if (currentIndex === -1) {
+      newTypes.push(type);
+    } else {
+      newTypes.splice(currentIndex, 1);
+    }
+
+    setEditedWorkout({ ...editedWorkout, workoutTypes: newTypes });
+  };
+
   const handleCategoryChange = (category) => {
     const currentIndex = editedWorkout.categories.indexOf(category);
     const newCategories = [...editedWorkout.categories];
@@ -781,7 +828,7 @@ function WorkoutCard({
           </div>
 
           {/* Sets input */}
-          {editedWorkout.categories.includes("Strength") && (
+          {editedWorkout.workoutTypes.includes("Strength") && (
             <div>
               <label className="block text-gray-600 font-bold">Sets:</label>
               <input
@@ -797,7 +844,7 @@ function WorkoutCard({
           )}
 
           {/* Reps input */}
-          {editedWorkout.categories.includes("Strength") && (
+          {editedWorkout.workoutTypes.includes("Strength") && (
             <div>
               <label className="block text-gray-600 font-bold">Reps:</label>
               <input
@@ -813,8 +860,8 @@ function WorkoutCard({
           )}
 
           {/* Duration input */}
-          {(editedWorkout.categories.includes("Cardio") ||
-            editedWorkout.categories.includes("Flexibility")) && (
+          {(editedWorkout.workoutTypes.includes("Cardio") ||
+            editedWorkout.workoutTypes.includes("Flexibility")) && (
             <div>
               <label className="block text-gray-600 font-bold">
                 Duration (minutes):
@@ -854,11 +901,31 @@ function WorkoutCard({
             />
           </div>
 
-          {/* Workout Categories */}
+          {/* Workout Types */}
           <div>
             <label className="block text-gray-600 font-bold">
               Workout Type:
             </label>
+            <div className="flex flex-col space-y-2">
+              {workoutTypes.map((type) => (
+                <div key={type} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={editedWorkout.workoutTypes.includes(type)}
+                    onChange={() => handleWorkoutTypeChange(type)}
+                    className="mr-2"
+                  />
+                  <label className="text-gray-600">{type}</label>
+                </div>
+              ))}
+            </div>
+            {categoryError && (
+              <p className="text-red-500 text-sm">{categoryError}</p>
+            )}
+          </div>
+          {/* Categories Types */}
+          <div>
+            <label className="block text-gray-600 font-bold">Categories:</label>
             <div className="flex flex-col space-y-2">
               {categories.map((category) => (
                 <div key={category} className="flex items-center">
@@ -872,8 +939,8 @@ function WorkoutCard({
                 </div>
               ))}
             </div>
-            {categoryError && (
-              <p className="text-red-500 text-sm">{categoryError}</p>
+            {categoriesError && (
+              <p className="text-red-500 text-sm">{categoriesError}</p>
             )}
           </div>
 
@@ -981,7 +1048,8 @@ function WorkoutCard({
               </button>
             </div>
           </div>
-          <p>Categories: {workout.categories.join(", ")}</p>
+          <p>Workout Type(s): {workout.workoutTypes.join(", ")}</p>
+          <p>Category(-ies): {workout.categories.join(", ")}</p>
           <p>Equipment: {workout.equipment}</p>
           {workout.sets && workout.reps && (
             <p>
