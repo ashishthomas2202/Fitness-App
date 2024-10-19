@@ -1,6 +1,5 @@
 export async function handler(req, res) {
     const client = await clientPromise;
-    const db = client.db("yourDatabase");
   
     if (req.method === 'POST') {
       const { name, description } = req.body;
