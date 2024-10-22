@@ -38,56 +38,37 @@ export default function DashboardPage() {
       goal: 200,
     },
     weight: [
-      {
-        date: "2024-01-01",
-        weight: 190,
-        goal: 180,
-      },
-      {
-        date: "2024-01-02",
-        weight: 189,
-        goal: 180,
-      },
-      {
-        date: "2024-01-03",
-        weight: 188,
-        goal: 180,
-      },
-      {
-        date: "2024-01-04",
-        weight: 187,
-        goal: 180,
-      },
-      {
-        date: "2024-01-05",
-        weight: 186,
-        goal: 180,
-      },
-      {
-        date: "2024-01-06",
-        weight: 185,
-        goal: 180,
-      },
-      {
-        date: "2024-01-07",
-        weight: 184,
-        goal: 180,
-      },
-      {
-        date: "2024-01-08",
-        weight: 183,
-        goal: 180,
-      },
-      {
-        date: "2024-01-09",
-        weight: 182,
-        goal: 180,
-      },
-      {
-        date: "2024-01-10",
-        weight: 181,
-        goal: 180,
-      },
+      { date: "2024-10-01", weight: 192, goal: 180 },
+      { date: "2024-10-02", weight: 191, goal: 180 },
+      { date: "2024-10-03", weight: 190, goal: 180 },
+      { date: "2024-10-04", weight: 190, goal: 180 },
+      { date: "2024-10-05", weight: 191, goal: 180 },
+      { date: "2024-10-06", weight: 192, goal: 180 },
+      { date: "2024-10-07", weight: 193, goal: 180 },
+      { date: "2024-10-08", weight: 192, goal: 180 },
+      { date: "2024-10-09", weight: 191, goal: 180 },
+      { date: "2024-10-10", weight: 194, goal: 180 },
+      { date: "2024-10-11", weight: 189, goal: 180 },
+      { date: "2024-10-12", weight: 188, goal: 180 },
+      { date: "2024-10-13", weight: 187, goal: 180 },
+      { date: "2024-10-14", weight: 186, goal: 180 },
+      { date: "2024-10-15", weight: 185, goal: 180 },
+      { date: "2024-10-16", weight: 184, goal: 180 },
+      { date: "2024-10-17", weight: 186, goal: 180 },
+      { date: "2024-10-18", weight: 182, goal: 180 },
+      { date: "2024-10-19", weight: 181, goal: 180 },
+      { date: "2024-10-20", weight: 184, goal: 180 },
+      { date: "2024-10-21", weight: 184, goal: 180 },
+      { date: "2024-10-22", weight: 182, goal: 180 },
+      { date: "2024-10-23", weight: 183, goal: 180 },
+      { date: "2024-10-24", weight: 184, goal: 180 },
+      { date: "2024-10-25", weight: 185, goal: 180 },
+      { date: "2024-10-26", weight: 184, goal: 180 },
+      { date: "2024-10-27", weight: 183, goal: 180 },
+      { date: "2024-10-28", weight: 182, goal: 180 },
+      { date: "2024-10-29", weight: 184, goal: 180 },
+      { date: "2024-10-30", weight: 183, goal: 180 },
+      { date: "2024-10-31", weight: 180, goal: 180 },
     ],
   };
   // console.log(session);
@@ -115,7 +96,7 @@ export default function DashboardPage() {
           consumed={stats.water.consumed}
           goal={stats.water.goal}
         />
-        <WeightProgressTracker data={stats.weight} />
+        <WeightProgressTracker className="sm:col-span-2" data={stats.weight} />
       </div>
     </Page>
   );
