@@ -152,7 +152,7 @@ export default function WorkoutPlanner() {
       newError.name = "Workout name is required.";
     }
     if (!newWorkout.workoutTypes || newWorkout.workoutTypes.length === 0) {
-      newError.workoutTypes = "At least one workout type must be selected."; // Changed from categories to workoutTypes
+      newError.workoutTypes = "At least one workout type must be selected.";
     }
     if (!newWorkout.equipment) {
       newError.equipment = "Equipment is required.";
