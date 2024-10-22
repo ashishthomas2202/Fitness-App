@@ -1,4 +1,4 @@
-import { getServerAuthSession } from "@/lib/auth"; 
+import { getServerAuthSession } from "@/lib/auth";
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
 
@@ -19,14 +19,25 @@ export async function GET(req, res) {
         }
 
         const userId = session.user.id;
+        const dateParam = new URL(req.url).searchParams.get('date');
+        const selectedDate = new Date(dateParam);
 
-        console.log("Querying meal plan for userId:", userId);
-        const mealPlan = await MealPlan.find({ userId }).populate("meals.meal");
+        console.log("Querying meal plan for userId:", userId, "on date:", selectedDate);
 
-        if (!mealPlan) {
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const mealPlan = await MealPlan.find({
+            userId,
+            "meals.date": { $gte: startOfDay, $lte: endOfDay },
+        }).populate("meals.meal");
+
+        if (!mealPlan || mealPlan.length === 0) {
             return new Response(
-                JSON.stringify({ success: false, message: "Meal plan not found" }),
-                { status: 404 }
+                JSON.stringify({ success: true, data: [] }),
+                { status: 200 }
             );
         }
 

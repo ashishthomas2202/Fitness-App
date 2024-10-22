@@ -25,7 +25,6 @@ export async function POST(req) {
             );
         }
 
-
         // Find the meal by its ID in the database
         const meal = await Meal.findById(mealId);
         if (!meal) {
@@ -36,7 +35,9 @@ export async function POST(req) {
 
         // Get start of the week date (Monday)
         const startOfWeek = new Date(date);
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
+        const dayOfWeek = startOfWeek.getDay();
+        const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust if Sunday
+        startOfWeek.setDate(startOfWeek.getDate() - distanceToMonday);
         startOfWeek.setHours(0, 0, 0, 0);
 
         // Find or create the meal plan for the week
@@ -66,3 +67,4 @@ export async function POST(req) {
         });
     }
 }
+

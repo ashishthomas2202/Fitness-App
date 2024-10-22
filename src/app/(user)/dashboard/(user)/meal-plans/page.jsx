@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import MealCalendar from "@/components/MealCalendar";
-
+import { X } from "lucide-react";
 
 export default function MealPlans() {
   const { data: session } = useSession();
@@ -15,6 +15,21 @@ export default function MealPlans() {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date()); // Track the selected date
+
+  // Function to navigate to the previous day
+  const goToPreviousDay = () => {
+    const prevDay = new Date(selectedDate);
+    prevDay.setDate(prevDay.getDate() - 1);
+    setSelectedDate(prevDay);
+  };
+
+  // Function to navigate to the next day
+  const goToNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    setSelectedDate(nextDay);
+  };
 
   // Fetch all meals 
   useEffect(() => {
@@ -35,11 +50,14 @@ export default function MealPlans() {
     fetchMeals();
   }, []);
 
-  // Fetch the user's meal plan
+  // Fetch the user's meal plan for the selected date
   useEffect(() => {
     const fetchMealPlan = async () => {
       try {
         const response = await axios.get("/api/mealplan", {
+          params: {
+            date: selectedDate.toISOString(),
+          },
           headers: {
             Authorization: `Bearer ${session?.token}`,
           },
@@ -59,14 +77,12 @@ export default function MealPlans() {
     if (session) {
       fetchMealPlan();
     }
-  }, [session]);
+  }, [session, selectedDate]);
 
   // Add a selected meal to the user's meal plan
   const addToMealPlan = async () => {
     if (selectedMeal) {
       try {
-        console.log("Selected Meal:", selectedMeal);
-
         const newMealEntry = {
           meal: {
             name: selectedMeal.name,
@@ -78,7 +94,7 @@ export default function MealPlans() {
             preparation_time_min: selectedMeal.preparation_time_min,
           },
           mealType,
-          date: new Date(),
+          date: selectedDate,
         };
 
         setMealPlan((prevMealPlan) => [...prevMealPlan, newMealEntry]);
@@ -87,7 +103,7 @@ export default function MealPlans() {
           "/api/mealplan/add",
           {
             mealId: selectedMeal.id,
-            date: new Date(),
+            date: selectedDate,
             mealType,
             userId: session?.user.id,
           },
@@ -103,11 +119,9 @@ export default function MealPlans() {
           setMealPlan((prevMealPlan) => prevMealPlan.filter((meal) => meal !== newMealEntry));
         }
 
-        // Reset input fields
         setSelectedMeal(null);
         setSearchTerm("");
         setFilteredMeals([]);
-
       } catch (error) {
         setError("Error adding meal to the plan.");
         console.error("Error adding meal to the plan:", error);
@@ -120,15 +134,13 @@ export default function MealPlans() {
     if (!mealId) return;
 
     try {
-      console.log("Removing Meal with ID:", mealId);
-
       setMealPlan((prevMealPlan) => prevMealPlan.filter((meal) => meal.meal.id !== mealId));
 
       const response = await axios.post(
         "/api/mealplan/delete",
         {
           mealId,
-          date: new Date(),
+          date: selectedDate,
           userId: session?.user.id,
         },
         {
@@ -139,18 +151,12 @@ export default function MealPlans() {
       );
 
       if (!response.data.success) {
-        console.error("Error response from server", response.data.message);
         setError("Error removing meal from the plan.");
-        fetchMealPlan();
       }
     } catch (error) {
       setError("Error removing meal from the plan.");
-      console.error("Error removing meal from the plan:", error);
-
-      fetchMealPlan();
     }
   };
-
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -158,8 +164,7 @@ export default function MealPlans() {
 
     const filtered = meals.filter((meal) => {
       const matchesSearch = meal.name.toLowerCase().includes(term.toLowerCase());
-      const matchesCategory =
-        categoryFilter === "All" || meal.category === categoryFilter;
+      const matchesCategory = categoryFilter === "All" || meal.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
 
@@ -167,7 +172,6 @@ export default function MealPlans() {
   };
 
   const handleMealSelect = (meal) => {
-    console.log("Meal selected:", meal);
     setSelectedMeal(meal);
     setSearchTerm(meal.name);
     setFilteredMeals([]);
@@ -183,6 +187,19 @@ export default function MealPlans() {
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
       <h1 className="text-2xl font-semibold mb-4">Plan Your Meals</h1>
       {error && <p className="text-red-500">{error}</p>}
+
+      {/* Day Navigation */}
+      <div className="flex justify-between items-center mb-4">
+        <button onClick={goToPreviousDay} className="px-4 py-2 bg-gray-500 text-white rounded">
+          Previous Day
+        </button>
+        <div>
+          <span className="font-semibold">Meals for {selectedDate.toLocaleDateString()}</span>
+        </div>
+        <button onClick={goToNextDay} className="px-4 py-2 bg-gray-500 text-white rounded">
+          Next Day
+        </button>
+      </div>
 
       {/* Search and Filter Section */}
       <div className="mb-4">
@@ -255,13 +272,9 @@ export default function MealPlans() {
         </select>
       </div>
 
-      <button
-        onClick={addToMealPlan}
-        className="px-4 py-2 bg-purple-500 text-white rounded"
-      >
+      <button onClick={addToMealPlan} className="px-4 py-2 bg-purple-500 text-white rounded">
         Add to Meal Plan
       </button>
-
 
       {/* Meal Plan Display */}
       <div className="mt-6">
@@ -269,10 +282,7 @@ export default function MealPlans() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mealPlan && mealPlan.length > 0 ? (
             mealPlan.map((plan, index) => (
-              <div
-                key={index}
-                className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
-              >
+              <div key={index} className="relative bg-white shadow-md rounded-lg p-6 border border-gray-200">
                 <h3 className="text-gray-500 font-semibold mb-2">
                   {plan.meal?.name || "Meal not found"}
                 </h3>
@@ -306,14 +316,13 @@ export default function MealPlans() {
                   <span className="font-semibold">Date:</span> {new Date(plan.date).toLocaleDateString() || "No date"}
                 </p>
 
-                {/* Remove Meal Button */}
+                {/* X icon for removing the meal */}
                 <button
                   onClick={() => removeMealFromPlan(plan.meal.id)}
-                  className="px-4 py-2 bg-red-500 text-white rounded mt-2"
+                  className="absolute bottom-4 right-4 text-red-500 hover:text-red-700"
                 >
-                  Remove Meal
+                  <X size={24} strokeWidth={4} />
                 </button>
-
               </div>
             ))
           ) : (
