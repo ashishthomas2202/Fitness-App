@@ -8,18 +8,31 @@ import {
 import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { FaFire } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 
-export const CalorieBurnedTracker = ({ burned = 0, goal = 10000 }) => {
+export const CalorieBurnedTracker = ({
+  burned = 0,
+  goal = 10000,
+  step: defaultStep = 100,
+}) => {
+  const [step, setStep] = useState(defaultStep);
   const [caloriesBurned, setCaloriesBurned] = useState(burned);
   const [percentage, setPercentage] = useState(0);
 
   // Handlers to increase or decrease calories burned
   const increaseCalorieBurned = () => {
-    if (caloriesBurned < goal) setCaloriesBurned(caloriesBurned + 100);
+    setCaloriesBurned(caloriesBurned + step);
   };
 
   const decreaseCalorieBurned = () => {
-    if (caloriesBurned > 0) setCaloriesBurned(caloriesBurned - 100);
+    // if (caloriesBurned > 0) setCaloriesBurned(caloriesBurned - 100);
+    if (caloriesBurned - step >= 0) setCaloriesBurned(caloriesBurned - step);
+    else setCaloriesBurned(0);
   };
 
   useLayoutEffect(() => {
@@ -48,10 +61,23 @@ export const CalorieBurnedTracker = ({ burned = 0, goal = 10000 }) => {
           </div>
         </ProgressRing>
       </CardContent>
-      <CardFooter className="flex justify-center gap-10">
+      <CardFooter className="flex justify-center gap-6">
         <button onClick={decreaseCalorieBurned}>
           <MinusCircleIcon size={28} />
         </button>
+        <Select
+          onValueChange={(value) => {
+            setStep(value);
+          }}
+        >
+          <SelectTrigger className="w-fit">{step}x</SelectTrigger>
+          <SelectContent>
+            <SelectItem value={1}>1x</SelectItem>
+            <SelectItem value={10}>10x</SelectItem>
+            <SelectItem value={100}>100x</SelectItem>
+            <SelectItem value={1000}>1000x</SelectItem>
+          </SelectContent>
+        </Select>
         <button onClick={increaseCalorieBurned}>
           <PlusCircleIcon size={28} />
         </button>
