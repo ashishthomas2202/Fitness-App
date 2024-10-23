@@ -8,6 +8,7 @@ export const ProgressRing = ({
   percentage = 0,
   color = "#FFDD00", // Default vibrant yellow
   backgroundColor = "#f1f5f9",
+  backgroundColorDark = "#262626",
   strokeWidth = 10,
   animationDuration = 1,
   noText = false,
@@ -57,7 +58,7 @@ export const ProgressRing = ({
         >
           <Circle
             radius={radius}
-            color={backgroundColor}
+            color={theme === "light" ? backgroundColor : backgroundColorDark}
             strokeWidth={strokeWidth}
             circumference={circumference}
           />
