@@ -13,7 +13,6 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import _ from "lodash";
-
 export default function SignUp() {
   const searchParams = useSearchParams();
   const router = useRouter();
