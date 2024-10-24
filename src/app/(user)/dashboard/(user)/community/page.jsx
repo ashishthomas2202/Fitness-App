@@ -58,7 +58,19 @@ const CommunityPage = () => {
   const closePostWindow = () => {
     setIsPostWindowOpen(false);
   };
-
+  const handleLike = (id) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === id
+          ? {
+              ...post,
+              liked: !post.liked, // Toggle like status
+              likes: post.liked ? post.likes - 1 : post.likes + 1, 
+            }
+          : post
+      )
+    );
+  };
 
   const handlePostSubmit = () => {
     if (postTitle && newPostText) {
@@ -314,8 +326,14 @@ const CommunityPage = () => {
               <p className="mt-4">{post.description}</p>
               <footer className="flex justify-between items-center mt-4">
                 <div className="flex space-x-4">
-                  <button className="flex items-center space-x-1">
-                    <Heart className="text-red-600" />
+                <button
+                    className="flex items-center space-x-1"
+                    onClick={() => handleLike(post.id)}
+                  >
+                    <Heart
+                      className={post.liked ? "text-red-600" : "text-red-600"}
+                      fill={post.liked ? "currentColor" : "none"}
+                    />
                     <span>{post.likes}</span>
                   </button>
                   <button className="flex items-center space-x-1">
