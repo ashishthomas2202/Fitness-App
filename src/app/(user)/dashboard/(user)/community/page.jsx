@@ -51,7 +51,7 @@ const CommunityPage = () => {
   const [posts, setPosts] = useState([]); 
   const [activeCommentPostId, setActiveCommentPostId] = useState(null); 
   const [newCommentText, setNewCommentText] = useState("");
-
+  const [visibleComments, setVisibleComments] = useState({}); 
 
   const openPostWindow = () => {
     setIsPostWindowOpen(true);
@@ -116,7 +116,15 @@ const handleCommentSubmit = (postId) => {
   setPosts(updatedPosts);
   setNewCommentText(""); 
 };
-
+const toggleComments = (postId) => {
+  setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
+};
+const toggleCommentsVisibility = (postId) => {
+  setVisibleComments((prevState) => ({
+    ...prevState,
+    [postId]: !prevState[postId], 
+  }));
+};
   return (
     
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
@@ -376,10 +384,22 @@ const handleCommentSubmit = (postId) => {
                     <span>{post.shares}</span>
                   </button>
                 </div>
+                
                 <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
                   {post.time}
                 </p>
+                
               </footer>
+         {/* Comments Button */}
+           <div className="flex justify-center mt-4 -mt-8">
+          <button
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
+          onClick={() => toggleComments(post.id)}
+          >
+          {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
+        </button>
+      </div>
+
                 {/* Comments Section */}
                   {post.comments.length > 0 && (
                 <div className="mt-4">
