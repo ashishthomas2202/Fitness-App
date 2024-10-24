@@ -11,6 +11,10 @@ const WorkoutPlanSchema = new Schema(
       ref: "User",
       required: true,
     },
+    planName: {
+      type: String,
+      required: true,
+    },
     days: [
       {
         day: {
@@ -26,7 +30,7 @@ const WorkoutPlanSchema = new Schema(
             },
             order: {
               type: Number,
-              min: [1, "Order must be a positive integer"],
+              min: [0, "Order must be a positive integer"],
               required: true,
             },
             sets: {
@@ -70,7 +74,17 @@ const WorkoutPlanSchema = new Schema(
       default: "",
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform: (doc, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  }
 );
 
 export default mongoose.models.WorkoutPlan ||

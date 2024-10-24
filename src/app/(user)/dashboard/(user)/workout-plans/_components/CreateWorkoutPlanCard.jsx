@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { PenIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
 import {
   Dialog,
@@ -20,13 +20,22 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-toastify";
+import { Label } from "@/components/ui/label";
+import moment from "moment-timezone";
 
-export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
+export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [planName, setPlanName] = useState("");
   const [workouts, setWorkouts] = useState([]);
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [search, setSearch] = useState("");
   const [editMode, setEditMode] = useState(false);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState(data?.note || "");
+  const [startDate, setStartDate] = useState(
+    data?.startDate || moment().format("yyyy-MM-DD")
+  );
+  const [endDate, setEndDate] = useState(data?.endDate || null);
+  const [error, setError] = useState({});
 
   const fetchWorkouts = async () => {
     return await axios
@@ -46,9 +55,6 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
   const createNewWorkout = async () => {
     console.log("Create new workout");
   };
-  useEffect(() => {
-    fetchWorkouts();
-  }, []);
 
   const toggleWorkoutSelection = (workout) => {
     if (selectedWorkouts.some((w) => w.id === workout.id)) {
@@ -138,37 +144,109 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
     workout.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleCreateWorkoutPlan = () => {
-    const { days, status, note } = validatedData;
+  const validate = () => {
+    let errors = {};
+    if (!planName) {
+      errors.planName = "Plan name is required";
+    }
+    if (!startDate || startDate == "Invalid date") {
+      errors.startDate = "Start date is required";
+    }
+    if (selectedWorkouts.length == 0) {
+      errors.workouts = "At least one workout is required";
+    }
+    setError(errors);
+    return Object.keys(errors).length !== 0;
   };
 
-  return (
-    <Dialog>
-      <DialogTrigger>
-        <Card className="p-2 min-h-52 justify-center cursor-pointer">
-          <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
-            <PlusCircleIcon size={60} />
-            <h3 className="text-xl font-light select-none">
-              Create Workout Plan
-            </h3>
-          </CardContent>
-        </Card>
-      </DialogTrigger>
+  const handleCreateWorkoutPlan = () => {
+    if (validate()) {
+      return;
+    }
 
-      <DialogContent className="max-w-4xl w-full bg-white rounded-lg shadow-lg p-6">
+    const distinctDays = [
+      ...new Set(selectedWorkouts.map((workout) => workout.days).flat()),
+    ];
+
+    const data = distinctDays.map((day) => {
+      let order = 0;
+      return {
+        day,
+        workouts: selectedWorkouts
+          .filter((workout) => workout.days.includes(day))
+          .map((workout, i) => {
+            const { isEditing, days, custom, id, ...rest } = workout;
+            return { workoutId: id, order: order + i, ...custom };
+          }),
+      };
+    });
+    onCreate({
+      planName,
+      days: data,
+      startDate,
+      endDate,
+      note,
+    });
+
+    setDialogOpen(false);
+  };
+
+  useEffect(() => {
+    fetchWorkouts();
+  }, []);
+
+  useEffect(() => {
+    if (Object.keys(error).length > 0) {
+      validate();
+    }
+  }, [selectedWorkouts, planName, startDate]);
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* <DialogTrigger> */}
+      <Card
+        className="p-2 min-h-52 justify-center cursor-pointer"
+        onClick={() => setDialogOpen(true)}
+      >
+        <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
+          <PlusCircleIcon size={60} />
+          <h3 className="text-xl font-light select-none">
+            Create Workout Plan
+          </h3>
+        </CardContent>
+      </Card>
+      {/* </DialogTrigger> */}
+
+      <DialogContent className="max-w-4xl w-full max-h-screen overflow-y-auto bg-white rounded-lg shadow-lg p-6">
         <DialogTitle>Create Workout Plan</DialogTitle>
-        <DialogDescription className="text-neutral-300 dark:text-neutral-500 font-light">
+        <DialogDescription className="text-neutral-400 dark:text-neutral-500 font-light">
           Please add workout to your plan
         </DialogDescription>
 
+        <div>
+          <Label>
+            Plan Name<sup className="text-red-500">*</sup>
+          </Label>
+          <Input
+            className="dark:border-none"
+            type="text"
+            placeholder="Enter plan name"
+            value={planName}
+            onChange={(e) => setPlanName(e.target.value)}
+          />
+          {error?.planName && (
+            <p className="text-red-500 text-sm mt-2">{error?.planName}</p>
+          )}
+        </div>
         <Input
+          className="dark:border-none"
           type="text"
           placeholder="Search workouts..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <ScrollArea className="h-40 border  dark:bg-neutral-900 rounded-xl shadow-lg overflow-y-visible pointer select-none">
+        <ScrollArea className="h-40 border dark:border-none p-2 dark:bg-neutral-900 rounded-xl shadow-lg overflow-y-visible pointer select-none">
           {filteredWorkouts.length == 0 ? (
             <div className="h-full flex flex-col items-center justify-center py-2 px-4">
               <span>No workout found</span>
@@ -185,7 +263,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
               {filteredWorkouts.map((workout) => (
                 <div
                   key={workout.id}
-                  className="flex items-center justify-between py-2 px-4 hover:bg-violet-100 dark:hover:bg-neutral-950 cursor-pointer"
+                  className="flex items-center justify-between py-2 px-4 hover:bg-violet-100 dark:hover:bg-neutral-950 rounded-lg cursor-pointer"
                   onClick={() => toggleWorkoutSelection(workout)}
                 >
                   <div className="flex items-center space-x-4 text-lg font-light">
@@ -214,9 +292,10 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
         <div>
           {/* Selected Workouts */}
           <h3 className="text-lg font-light dark:text-neutral-500 mb-2 select-none">
-            Selected Workouts
+            Selected Workouts<sup className="text-red-500">*</sup>
           </h3>
-          <ScrollArea className="min-h-40 max-h-[calc(100vh-800px)] shadow-lg p-2 rounded-xl border dark:border-none dark:bg-neutral-900 select-none">
+          <ScrollArea className="h-60 p-2 border  dark:border-none dark:bg-neutral-900 rounded-xl shadow-lg overflow-y-visible pointer select-none">
+            {/* <ScrollArea className="min-h-40 max-h-[calc(100vh-800px)] shadow-lg p-2 rounded-xl border dark:border-none dark:bg-neutral-900"> */}
             {selectedWorkouts?.length == 0 ? (
               <div className="h-full flex justify-center items-center">
                 <h4 className="dark:text-neutral-600">No workouts added</h4>
@@ -325,6 +404,9 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
               </Reorder.Group>
             )}
           </ScrollArea>
+          {error?.workouts && (
+            <p className="text-red-500 text-sm mt-2">{error?.workouts}</p>
+          )}
         </div>
 
         <div>
@@ -334,14 +416,36 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {} }) => {
           <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
 
-        <Button
-          variant="primary"
-          disabled={selectedWorkouts.length == 0}
-          onClick={() => {
-            onCreate(selectedWorkouts);
-            console.log(selectedWorkouts);
-          }}
-        >
+        <div className="flex flex-col gap-4 sm:flex-row ">
+          <fieldset>
+            <Label>
+              Start Date<sup className="text-red-500">*</sup>
+            </Label>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) =>
+                setStartDate(moment(e.target.value).format("yyyy-MM-DD"))
+              }
+              required
+            />
+            {error?.startDate && (
+              <p className="text-red-500 text-sm mt-2">{error?.startDate}</p>
+            )}
+          </fieldset>
+          <fieldset>
+            <Label>End Date</Label>
+            <Input
+              type="date"
+              value={moment(endDate).format("yyyy-MM-DD") || ""}
+              onChange={(e) =>
+                setEndDate(moment(e.target.value).format("yyyy-MM-DD"))
+              }
+            />
+          </fieldset>
+        </div>
+
+        <Button variant="primary" onClick={handleCreateWorkoutPlan}>
           Create Workout Plan
         </Button>
       </DialogContent>
