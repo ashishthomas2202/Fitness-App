@@ -49,6 +49,8 @@ const CommunityPage = () => {
   const [newPostText, setNewPostText] = useState("");
   const [postTitle, setPostTitle] = useState("");
   const [posts, setPosts] = useState([]); 
+  const [activeCommentPostId, setActiveCommentPostId] = useState(null); 
+  const [newCommentText, setNewCommentText] = useState("");
 
 
   const openPostWindow = () => {
@@ -89,6 +91,32 @@ const CommunityPage = () => {
     closePostWindow();
   };
 }
+const toggleCommentWindow = (postId) => {
+  if (activeCommentPostId === postId) {
+    setActiveCommentPostId(null); 
+  } else {
+    setActiveCommentPostId(postId); 
+  }
+};
+const handleCommentSubmit = (postId) => {
+  const trimmedComment = newCommentText.trim();
+  if (!trimmedComment) {
+    alert("Comment cannot be empty!");
+    return;
+  }
+
+  const updatedPosts = posts.map((post) =>
+    post.id === postId
+      ? {
+          ...post,
+          comments: [...(post.comments || []), { user: "Current User", comment: newCommentText }],
+        }
+      : post
+  );
+  setPosts(updatedPosts);
+  setNewCommentText(""); 
+};
+
   return (
     
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
@@ -336,9 +364,12 @@ const CommunityPage = () => {
                     />
                     <span>{post.likes}</span>
                   </button>
-                  <button className="flex items-center space-x-1">
-                    <MessageSquare />
-                    <span>{post.comments}</span>
+                  <button 
+                 className="flex items-center space-x-1"
+                   onClick={() => toggleCommentWindow(post.id)} 
+                >
+               <MessageSquare />
+                 <span>{post.comments.length}</span> {}
                   </button>
                   <button className="flex items-center space-x-1">
                     <Share />
@@ -349,8 +380,37 @@ const CommunityPage = () => {
                   {post.time}
                 </p>
               </footer>
+                {/* Comments Section */}
+                  {post.comments.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold">Comments:</h4>
+                  {post.comments.map((comment, index) => (
+                    <p key={index} className="mt-2 text-sm">
+                      <span className="font-semibold">{comment.user}:</span> {comment.comment}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* Comment Input Window */}
+              {activeCommentPostId === post.id && (
+                <div className="mt-4">
+                  <textarea
+                    value={newCommentText}
+                    onChange={(e) => setNewCommentText(e.target.value)}
+                    className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
+                    placeholder="Write a comment..."
+                    rows={2}
+                  />
+                  <button
+                    onClick={() => handleCommentSubmit(post.id)}
+                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+                  >
+                    Submit Comment
+                  </button>
+                </div>
+              )}
             </div>
-            
           ))}
         </section>
       </main>
