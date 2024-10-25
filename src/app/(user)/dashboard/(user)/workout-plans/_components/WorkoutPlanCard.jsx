@@ -206,7 +206,7 @@ export const WorkoutPlanCard = ({
               <DropdownMenuContent className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-white ">
                 {colors.map((c) => (
                   <DropdownMenuItem
-                    className="flex items-center gap-2 dark:hover:bg-neutral-900"
+                    className="flex items-center gap-2 dark:hover:bg-neutral-900 dark:hover:text-white cursor-pointer"
                     key={`${c.code}-${Date()}-color-picker`}
                     onClick={() => updateColor(workoutPlan.id, c.code)}
                   >

@@ -315,56 +315,59 @@ export const WorkoutDialog = ({
             <p className="text-red-500 text-sm mt-2">{error?.planName}</p>
           )}
         </div>
-        <Input
-          className="dark:border-none"
-          type="text"
-          placeholder="Search workouts..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
 
-        <ScrollArea className="h-40 border dark:border-none p-2 dark:bg-neutral-900 rounded-xl shadow-lg overflow-y-visible pointer select-none">
-          {filteredWorkouts.length == 0 ? (
-            <div className="h-full flex flex-col items-center justify-center py-2 px-4">
-              <span>No workout found</span>
-              <span
-                className="mt-2 text-violet-500 cursor-pointer"
-                onClick={createNewWorkout}
-              >
-                Create your own Workout
-              </span>
-            </div>
-          ) : (
-            <>
-              {" "}
-              {filteredWorkouts.map((workout) => (
+        <div className="flex flex-col gap-2 p-2 border dark:border-neutral-900 rounded-xl">
+          <Input
+            className="dark:border-none"
+            type="text"
+            placeholder="Search workouts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <ScrollArea className="h-40 border dark:border-none p-2 dark:bg-neutral-900 rounded-xl shadow-lg overflow-y-visible pointer select-none">
+            {filteredWorkouts.length == 0 ? (
+              <div className="h-full flex flex-col items-center justify-center py-2 px-4">
+                <span>No workout found</span>
+                <span
+                  className="mt-2 text-violet-500 cursor-pointer"
+                  onClick={createNewWorkout}
+                >
+                  Create your own Workout
+                </span>
+              </div>
+            ) : (
+              <>
+                {" "}
+                {filteredWorkouts.map((workout) => (
+                  <div
+                    key={workout.id}
+                    className="flex items-center justify-between py-2 px-4 hover:bg-violet-100 dark:hover:bg-neutral-950 rounded-lg cursor-pointer"
+                    onClick={() => toggleWorkoutSelection(workout)}
+                  >
+                    <div className="flex items-center space-x-4 text-lg font-light">
+                      <Checkbox
+                        checked={selectedWorkouts.some(
+                          (w) => w.id === workout.id
+                        )}
+                        onCheckedChange={() => toggleWorkoutSelection(workout)}
+                      />
+                      <span>{workout.name}</span>
+                    </div>
+                  </div>
+                ))}
                 <div
-                  key={workout.id}
-                  className="flex items-center justify-between py-2 px-4 hover:bg-violet-100 dark:hover:bg-neutral-950 rounded-lg cursor-pointer"
-                  onClick={() => toggleWorkoutSelection(workout)}
+                  className="flex items-center justify-between py-2 px-4 text-violet-500 hover:bg-violet-100 dark:hover:bg-neutral-950 cursor-pointer"
+                  onClick={createNewWorkout}
                 >
                   <div className="flex items-center space-x-4 text-lg font-light">
-                    <Checkbox
-                      checked={selectedWorkouts.some(
-                        (w) => w.id === workout.id
-                      )}
-                      onCheckedChange={() => toggleWorkoutSelection(workout)}
-                    />
-                    <span>{workout.name}</span>
+                    <span>Create your own workout</span>
                   </div>
                 </div>
-              ))}
-              <div
-                className="flex items-center justify-between py-2 px-4 text-violet-500 hover:bg-violet-100 dark:hover:bg-neutral-950 cursor-pointer"
-                onClick={createNewWorkout}
-              >
-                <div className="flex items-center space-x-4 text-lg font-light">
-                  <span>Create your own workout</span>
-                </div>
-              </div>
-            </>
-          )}
-        </ScrollArea>
+              </>
+            )}
+          </ScrollArea>
+        </div>
 
         <div>
           {/* Selected Workouts */}
@@ -542,7 +545,7 @@ export const WorkoutDialog = ({
               <DropdownMenuContent className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-white ">
                 {colors.map((c) => (
                   <DropdownMenuItem
-                    className="flex items-center gap-2 dark:hover:bg-neutral-900"
+                    className="flex items-center gap-2 dark:hover:bg-neutral-900 dark:hover:text-white cursor-pointer"
                     key={`${c.code}-${updateData?.id || Date()}-color-picker`}
                     onClick={() => setColor(c.code)}
                   >
