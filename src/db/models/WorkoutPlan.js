@@ -73,6 +73,10 @@ const WorkoutPlanSchema = new Schema(
       type: String,
       default: "",
     },
+    color: {
+      type: String,
+      default: "#4F46E5",
+    },
   },
   {
     timestamps: true,

@@ -2,7 +2,7 @@ import connectDB from "@/db/db";
 import WorkoutPlan from "@/db/models/WorkoutPlan";
 import { authenticatedUser } from "@/lib/user";
 
-export async function PATCH(req) {
+export async function PATCH(req, { params }) {
   try {
     await connectDB();
 
@@ -18,7 +18,8 @@ export async function PATCH(req) {
       );
     }
 
-    const { planId, status } = await req.json();
+    const { id: planId } = params;
+    const { status } = await req.json();
 
     if (!planId || !["active", "inactive"].includes(status)) {
       return Response.json(

@@ -17,10 +17,14 @@ import { cn } from "@/lib/utils";
 import { Pen, Trash2 } from "lucide-react";
 import moment from "moment-timezone";
 import { useLayoutEffect, useState } from "react";
+import { WorkoutDialog } from "./WorkoutDialog";
 
 export const WorkoutPlanCard = ({
+  workouts = [],
   workoutPlan,
+  onUpdate = () => {},
   updateStatus = () => {},
+  updateColor = () => {},
   onDelete = () => {},
 }) => {
   const [workoutStats, setWorkoutStats] = useState({
@@ -30,7 +34,27 @@ export const WorkoutPlanCard = ({
     mostTargetedMuscleGroup: "",
   });
   const [disableDelete, setDisableDelete] = useState(false);
-  function calculateWorkoutStats(plan) {
+
+  const colors = [
+    { name: "Indigo", code: "#4F46E5" },
+    { name: "Periwinkle", code: "#818CF8" },
+    { name: "Lavender", code: "#C4B5FD" },
+    { name: "Blush", code: "#F9A8D4" },
+    { name: "Coral", code: "#FB7185" },
+    { name: "Crimson", code: "#F87171" },
+    { name: "Topaz", code: "#FFD700" },
+    { name: "Saffron", code: "#FBBF24" },
+    { name: "Amber", code: "#F59E0B" },
+    { name: "Mint", code: "#34D399" },
+    { name: "Emerald", code: "#10B981" },
+    { name: "Lime", code: "#84CC16" },
+    { name: "Azure", code: "#60A5FA" },
+    { name: "Cerulean", code: "#3B82F6" },
+
+    { name: "Slate", code: "#64748B" },
+  ];
+
+  const calculateWorkoutStats = (plan) => {
     let totalTime = 0;
     let totalCalories = 0;
     const uniqueWorkouts = new Set(); // Track unique workout names
@@ -79,7 +103,7 @@ export const WorkoutPlanCard = ({
     setWorkoutStats(workoutStats);
 
     return workoutStats;
-  }
+  };
 
   useLayoutEffect(() => {
     calculateWorkoutStats(workoutPlan);
@@ -90,26 +114,6 @@ export const WorkoutPlanCard = ({
       <CardHeader className="flex-row justify-between items-center p-4">
         <h3 className="text-xl  font-semibold">{workoutPlan.planName}</h3>
 
-        {/* <Select>
-          <SelectTrigger>
-            <p
-              className={cn(
-                "text-sm font-light text-gray-600 p-1 rounded-xl border",
-                workoutPlan?.status === "active"
-                  ? "border-violet-500 text-violet-500 dark:bg-violet-500 dark:text-white"
-                  : "border-gray-500 text-gray-500 dark:bg-gray-500 dark:text-white"
-              )}
-            >
-              {workoutPlan.status}
-            </p>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">
-              <p>Active</p>
-            </SelectItem>
-            <SelectItem value="inactive">In-Active</SelectItem>
-          </SelectContent>
-        </Select> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -164,7 +168,6 @@ export const WorkoutPlanCard = ({
               {/* {workoutStats?.totalTime} mins */}
               {workoutStats?.totalTime > 60 ? (
                 <>
-                  {console.log(workoutStats?.totalTime)}
                   {Math.floor(workoutStats?.totalTime / 60)} hr{" "}
                   {workoutStats?.totalTime % 60} mins
                 </>
@@ -186,28 +189,70 @@ export const WorkoutPlanCard = ({
               {workoutStats?.mostTargetedMuscleGroup}
             </span>
           </p>
+          <div className="flex gap-2 items-center">
+            <p className="text-sm font-semibold text-gray-600">Color:</p>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className=" border dark:border-none dark:bg-neutral-900 rounded-full p-1">
+                  <div
+                    className="h-5 w-5 rounded-full"
+                    style={{
+                      backgroundColor: workoutPlan.color,
+                    }}
+                  ></div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-white ">
+                {colors.map((c) => (
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 dark:hover:bg-neutral-900"
+                    key={`${c.code}-${Date()}-color-picker`}
+                    onClick={() => updateColor(workoutPlan.id, c.code)}
+                  >
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: c.code }}
+                    ></div>
+                    <p>{c.name}</p>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div>
           <p className="text-sm text-gray-600">
             <span className="font-semibold">Start Date:</span>{" "}
-            {moment(workoutPlan.startDate).format("MMM DD, YYYY")}
+            <span className="text-violet-500">
+              {moment(workoutPlan.startDate).format("MMM DD, YYYY")}
+            </span>
           </p>
           <p className="text-sm text-gray-600">
             <span className="font-semibold">End Date:</span>{" "}
-            {workoutPlan?.endDate
-              ? moment(workoutPlan.endDate).format("MMM DD, YYYY")
-              : "-"}
+            <span className="text-violet-500">
+              {workoutPlan?.endDate
+                ? moment(workoutPlan.endDate).format("MMM DD, YYYY")
+                : "-"}
+            </span>
           </p>
         </div>
       </CardContent>
       <CardFooter className="p-4 flex justify-between">
-        <Button
-          className="h-10 w-10  p-2 text-primary border-primary bg-transparent hover:bg-primary hover:text-white"
-          variant="outline"
+        <WorkoutDialog
+          workouts={workouts}
+          data={workoutPlan}
+          mode="update"
+          onUpdate={onUpdate}
         >
-          <Pen />
-        </Button>
+          <Button
+            className="h-10 w-10  p-2 text-primary border-primary bg-transparent hover:bg-primary hover:text-white"
+            variant="outline"
+          >
+            <Pen />
+          </Button>
+        </WorkoutDialog>
         <Button
           className="h-10 w-10 p-2  text-rose-500 border-rose-500 bg-transparent hover:bg-rose-500 hover:text-white"
           variant="outline"

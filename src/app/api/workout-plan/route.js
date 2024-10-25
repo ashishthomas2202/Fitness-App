@@ -27,6 +27,7 @@ export async function GET(req) {
         model: "Workout", // Reference to the Workout model
       })
       .sort({ status: 1, createdAt: -1 });
+
     return Response.json(
       {
         success: true,

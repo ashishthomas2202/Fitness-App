@@ -1,56 +1,101 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
-import { PenIcon, PlusCircleIcon, Trash2Icon } from "lucide-react";
+import { PenIcon, Trash2Icon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import axios from "axios";
-
 import { Reorder } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "react-toastify";
 import { Label } from "@/components/ui/label";
 import moment from "moment-timezone";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
-export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
+const parseSelectedWorkouts = (data) => {
+  let distinctWorkouts = [];
+
+  data.days.forEach((day) => {
+    day.workouts.forEach((workout) => {
+      const existingWorkout = distinctWorkouts.find(
+        (w) => w.id === workout.workoutId._id
+      );
+
+      if (!existingWorkout) {
+        distinctWorkouts.push({
+          id: workout.workoutId._id,
+          name: workout.workoutId.name,
+          custom: {
+            sets: workout.sets,
+            reps: workout.reps,
+            durationMin: workout.durationMin,
+          },
+          days: [day.day],
+          isEditing: false,
+          useDuration: workout.durationMin !== null,
+        });
+      } else {
+        existingWorkout.days.push(day.day);
+      }
+    });
+  });
+
+  return distinctWorkouts;
+};
+
+export const WorkoutDialog = ({
+  children,
+  onCreate = () => {},
+  onUpdate = () => {},
+  workouts = [],
+  data: updateData,
+  mode = "create", // create or update
+}) => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [planName, setPlanName] = useState("");
-  const [workouts, setWorkouts] = useState([]);
-  const [selectedWorkouts, setSelectedWorkouts] = useState([]);
-  const [search, setSearch] = useState("");
-  const [editMode, setEditMode] = useState(false);
-  const [note, setNote] = useState(data?.note || "");
-  const [startDate, setStartDate] = useState(
-    data?.startDate || moment().format("yyyy-MM-DD")
+  const [planName, setPlanName] = useState(updateData?.planName || "");
+  const [selectedWorkouts, setSelectedWorkouts] = useState(
+    updateData ? parseSelectedWorkouts(updateData) : []
   );
-  const [endDate, setEndDate] = useState(data?.endDate || null);
-  const [error, setError] = useState({});
 
-  const fetchWorkouts = async () => {
-    return await axios
-      .get("/api/workouts")
-      .then((response) => {
-        if (response?.data?.success) {
-          setWorkouts(response?.data?.data || []);
-          return response?.data?.data || [];
-        }
-        return [];
-      })
-      .catch((error) => {
-        return [];
-      });
-  };
+  const [search, setSearch] = useState("");
+  const [note, setNote] = useState(updateData?.note || "");
+  const [startDate, setStartDate] = useState(
+    updateData?.startDate || moment().format("yyyy-MM-DD")
+  );
+  const [endDate, setEndDate] = useState(updateData?.endDate || null);
+
+  const colors = [
+    { name: "Indigo", code: "#4F46E5" },
+    { name: "Periwinkle", code: "#818CF8" },
+    { name: "Lavender", code: "#C4B5FD" },
+    { name: "Blush", code: "#F9A8D4" },
+    { name: "Coral", code: "#FB7185" },
+    { name: "Crimson", code: "#F87171" },
+    { name: "Topaz", code: "#FFD700" },
+    { name: "Saffron", code: "#FBBF24" },
+    { name: "Amber", code: "#F59E0B" },
+    { name: "Mint", code: "#34D399" },
+    { name: "Emerald", code: "#10B981" },
+    { name: "Lime", code: "#84CC16" },
+    { name: "Azure", code: "#60A5FA" },
+    { name: "Cerulean", code: "#3B82F6" },
+    { name: "Slate", code: "#64748B" },
+  ];
+
+  const [color, setColor] = useState(updateData?.color || colors[0].code);
+  const [error, setError] = useState({});
 
   const createNewWorkout = async () => {
     console.log("Create new workout");
@@ -155,11 +200,15 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
     if (selectedWorkouts.length == 0) {
       errors.workouts = "At least one workout is required";
     }
+
+    if (color === "") {
+      errors.color = "Color is required";
+    }
     setError(errors);
     return Object.keys(errors).length !== 0;
   };
 
-  const handleCreateWorkoutPlan = () => {
+  const handleSubmit = () => {
     if (validate()) {
       return;
     }
@@ -180,31 +229,57 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
           }),
       };
     });
-    onCreate({
-      planName,
-      days: data,
-      startDate,
-      endDate,
-      note,
-    });
 
-    resetFields();
+    if (mode === "create") {
+      onCreate({
+        planName,
+        days: data,
+        startDate,
+        endDate,
+        note,
+        color,
+      });
+      // resetFields();
+    } else {
+      onUpdate(updateData.id, {
+        planName,
+        days: data,
+        startDate,
+        endDate,
+        note,
+        color,
+      });
+    }
 
     setDialogOpen(false);
   };
 
   const resetFields = () => {
-    setPlanName("");
-    setSelectedWorkouts([]);
-    setStartDate(moment().format("yyyy-MM-DD"));
-    setEndDate(null);
-    setNote("");
-    setError({});
+    if (mode === "create") {
+      setPlanName("");
+      setSelectedWorkouts([]);
+      setStartDate(moment().format("yyyy-MM-DD"));
+      setEndDate(null);
+      setNote("");
+      setColor(colors[0].code);
+      setError({});
+    } else {
+      setPlanName(updateData?.planName || "");
+      setSelectedWorkouts(updateData ? parseSelectedWorkouts(updateData) : []);
+      setStartDate(updateData?.startDate || moment().format("yyyy-MM-DD"));
+      setEndDate(updateData?.endDate || null);
+      setNote(updateData?.note || "");
+      setColor(updateData?.color || colors[0].code);
+
+      setError({});
+    }
   };
 
   useEffect(() => {
-    fetchWorkouts();
-  }, []);
+    if (dialogOpen) {
+      resetFields();
+    }
+  }, [dialogOpen]);
 
   useEffect(() => {
     if (Object.keys(error).length > 0) {
@@ -214,22 +289,13 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      {/* <DialogTrigger> */}
-      <Card
-        className="p-2 min-h-52 justify-center cursor-pointer"
-        onClick={() => setDialogOpen(true)}
-      >
-        <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
-          <PlusCircleIcon size={60} />
-          <h3 className="text-xl font-light select-none">
-            Create Workout Plan
-          </h3>
-        </CardContent>
-      </Card>
-      {/* </DialogTrigger> */}
-
+      <div className="contents" onClick={() => setDialogOpen(true)}>
+        {children}
+      </div>
       <DialogContent className="max-w-4xl w-full max-h-screen overflow-y-auto bg-white rounded-lg shadow-lg p-6">
-        <DialogTitle>Create Workout Plan</DialogTitle>
+        <DialogTitle>
+          {mode == "create" ? "Create" : "Update"} Workout Plan
+        </DialogTitle>
         <DialogDescription className="text-neutral-400 dark:text-neutral-500 font-light">
           Please add workout to your plan
         </DialogDescription>
@@ -348,6 +414,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
                         handleWorkoutDayChange(workout.id, value)
                       }
                     />
+
                     {workout.isEditing && (
                       <div className="space-x-4 mt-2">
                         <div className="flex justify-center items-center gap-2">
@@ -362,6 +429,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
                           <div>
                             <label>Duration (min):</label>
                             <Input
+                              className="bg-white"
                               type="number"
                               min={1}
                               value={workout.custom.durationMin || 1}
@@ -379,6 +447,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
                             <div>
                               <label>Sets:</label>
                               <Input
+                                className="bg-white"
                                 type="number"
                                 min={1}
                                 value={workout.custom.sets || 1}
@@ -394,6 +463,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
                             <div>
                               <label>Reps:</label>
                               <Input
+                                className="bg-white"
                                 type="number"
                                 min={1}
                                 value={workout.custom.reps || 1}
@@ -434,7 +504,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
             </Label>
             <Input
               type="date"
-              value={startDate}
+              value={moment(startDate).format("yyyy-MM-DD")}
               onChange={(e) =>
                 setStartDate(moment(e.target.value).format("yyyy-MM-DD"))
               }
@@ -454,10 +524,45 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
               }
             />
           </fieldset>
+
+          <fieldset>
+            <Label>
+              Color<sup className="text-red-500">*</sup>
+            </Label>
+            <br />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className=" border dark:border-none dark:bg-neutral-900 rounded-lg p-2">
+                  <div
+                    className="w-8 h-8 rounded-full"
+                    style={{ backgroundColor: color }}
+                  ></div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-white ">
+                {colors.map((c) => (
+                  <DropdownMenuItem
+                    className="flex items-center gap-2 dark:hover:bg-neutral-900"
+                    key={`${c.code}-${updateData?.id || Date()}-color-picker`}
+                    onClick={() => setColor(c.code)}
+                  >
+                    <div
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: c.code }}
+                    ></div>
+                    <p>{c.name}</p>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {error?.color && (
+              <p className="text-red-500 text-sm mt-2">{error?.color}</p>
+            )}
+          </fieldset>
         </div>
 
-        <Button variant="primary" onClick={handleCreateWorkoutPlan}>
-          Create Workout Plan
+        <Button variant="primary" onClick={handleSubmit}>
+          {mode == "create" ? "Create" : "Update"} Workout Plan
         </Button>
       </DialogContent>
     </Dialog>

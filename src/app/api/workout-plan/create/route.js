@@ -37,6 +37,7 @@ const workoutPlanSchema = yup.object().shape({
   note: yup.string(),
   startDate: yup.date().required("Start date is required"),
   endDate: yup.date().nullable(),
+  color: yup.string().required("Color is required"),
 });
 
 export async function POST(req) {
@@ -72,7 +73,7 @@ export async function POST(req) {
       );
     }
 
-    const { planName, days, note, startDate, endDate } = validatedData;
+    const { planName, days, note, startDate, endDate, color } = validatedData;
 
     // Save the workout plan to the database
     const workoutPlan = new WorkoutPlan({
@@ -82,6 +83,7 @@ export async function POST(req) {
       note,
       startDate,
       endDate,
+      color,
     });
 
     await workoutPlan.save();
