@@ -7,44 +7,17 @@ export const Calendar = ({
   value = new Date(),
   onChange = () => {},
   items = [
+    { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
+    { repeat: "daily", name: "Daily Event", color: "#f59e0b" },
     {
-      date: new Date().toISOString().split("T")[0],
-      name: "Event 1",
-      color: "#8b5cf6",
-    },
-    {
-      date: new Date().toISOString().split("T")[0],
-      name: "Event 2",
-      color: "#f59e0b",
-    },
-    {
-      date: new Date().toISOString().split("T")[0],
-      name: "Event 3",
+      repeat: "weekly",
+      days: ["Monday", "Wednesday"],
+      name: "Weekly Event",
       color: "#10b981",
     },
-    {
-      date: new Date(new Date().setDate(new Date().getDate() + 1))
-        .toISOString()
-        .split("T")[0],
-      name: "Event 4",
-      color: "#3b82f6",
-    },
-    {
-      date: new Date(new Date().setDate(new Date().getDate() + 2))
-        .toISOString()
-        .split("T")[0],
-      name: "Event 5",
-      color: "#ef4444",
-    },
-    {
-      startDate: "2024-10-02",
-      endDate: "2024-10-05",
-repeat: "daily",//custom, daily, weekly, monthly, yearly
-customDays: [1, 3, 5],//for custom repeat
-      name: "Event 1",
-      color: "#8b5cf6",
-    },
+    { repeat: "monthly", day: 15, name: "Monthly Event", color: "#3b82f6" },
   ],
+  selection = false,
 }) => {
   const Months = [
     "January",
@@ -88,30 +61,6 @@ customDays: [1, 3, 5],//for custom repeat
     return new Date(year, month + 1, 0).getDate();
   };
 
-  const getNextMonth = () => {
-    if (month === 11) {
-      setYear(year + 1);
-      setMonth(0);
-    } else {
-      setMonth(month + 1);
-    }
-  };
-
-  const getPrevMonth = () => {
-    if (month === 0) {
-      setYear(year - 1);
-      setMonth(11);
-    } else {
-      setMonth(month - 1);
-    }
-  };
-
-  const getToday = () => {
-    setYear(new Date().getFullYear());
-    setMonth(new Date().getMonth());
-    setDate(new Date().getDate());
-  };
-
   const calculatePreDays = () => {
     const firstDayOfMonth = new Date(year, month, 1).getDay();
     const daysInPrevMonth = getDaysInMonth(year, month - 1); // Handle previous month days correctly
@@ -143,6 +92,55 @@ customDays: [1, 3, 5],//for custom repeat
     setPostDays(calculatedPostDays);
   };
 
+  // const getEventsForDay = (day) => {
+  //   const formattedDate = new Date(year, month, day)
+  //     .toISOString()
+  //     .split("T")[0];
+
+  //   return items.filter((item) => {
+  //     if (item.date === formattedDate) return true; // One-time events
+  //     if (item.repeat === "daily") return true;
+  //     if (
+  //       item.repeat === "weekly" &&
+  //       item.days.includes(Days[new Date(year, month, day).getDay()])
+  //     )
+  //       return true;
+  //     if (item.repeat === "monthly" && day === parseInt(item.day)) return true;
+  //     return false;
+  //   });
+  // };
+
+  const getEventsForDay = ({ day, isPre = false, isPost = false }) => {
+    let eventYear = year;
+    let eventMonth = month;
+
+    // Adjust the year and month for pre and post days
+    if (isPre) {
+      eventMonth = month === 0 ? 11 : month - 1;
+      eventYear = month === 0 ? year - 1 : year;
+    } else if (isPost) {
+      eventMonth = month === 11 ? 0 : month + 1;
+      eventYear = month === 11 ? year + 1 : year;
+    }
+
+    const formattedDate = new Date(eventYear, eventMonth, day)
+      .toISOString()
+      .split("T")[0];
+
+    return items.filter((item) => {
+      if (item.date === formattedDate) return true; // One-time events
+
+      const dayOfWeek = Days[new Date(eventYear, eventMonth, day).getDay()];
+
+      if (item.repeat === "daily") return true;
+      if (item.repeat === "weekly" && item.days.includes(dayOfWeek))
+        return true;
+      if (item.repeat === "monthly" && day === parseInt(item.day)) return true;
+
+      return false;
+    });
+  };
+
   useEffect(() => {
     calculatePreDays();
     calculateDaysInMonth();
@@ -156,10 +154,9 @@ customDays: [1, 3, 5],//for custom repeat
   return (
     <section>
       <div className="flex flex-col gap-2 mb-2 justify-between lg:flex-row lg:items-center">
-        <h2 className="hidden lg:block text-3xl font-semibold">
+        <h2 className="hidden lg:block text-3xl font-semibold min-w-1/2">
           {Months[month]}, {year}
         </h2>
-
         <div className="px-1 py-1 bg-gray-100 rounded-lg shadow-sm w-fit mx-auto mb-5 sm:mr-0 lg:w-auto lg:mr-auto lg:mb-0">
           <ul className="flex">
             {modes.map((m) => (
@@ -178,36 +175,22 @@ customDays: [1, 3, 5],//for custom repeat
             ))}
           </ul>
         </div>
-
         <div className="sm:flex justify-between gap-2 mb-8 lg:mb-0">
           <h2 className="text-center font-bold text-[8vw] mb-4 sm:mb-0 sm:text-4xl lg:hidden">
-            {Months[month]}, {year}
+            {Months[date?.month]}, {date?.year}
           </h2>
-
-          <div className="flex justify-between gap-2">
-            <button
-              className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
-              onClick={getPrevMonth}
-            >
-              <span className="text-xl">
-                <LuChevronLeft />
-              </span>
-            </button>
-            <button
-              className="h-10 flex justify-center items-center py-0 px-6 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
-              onClick={getToday}
-            >
-              <span>Today</span>
-            </button>
-            <button
-              className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
-              onClick={getNextMonth}
-            >
-              <span className="text-xl">
-                <LuChevronRight />
-              </span>
-            </button>
-          </div>
+          <Navigator
+            date={{
+              year,
+              month,
+              date,
+            }}
+            set={{
+              year: setYear,
+              month: setMonth,
+              date: setDate,
+            }}
+          />
         </div>
       </div>
 
@@ -238,7 +221,11 @@ customDays: [1, 3, 5],//for custom repeat
 
               onChange(selectedDate);
             }}
-          />
+          >
+            {getEventsForDay({ day, isPre: true }).map((event, index) => (
+              <Event key={`event-${index}`} event={event} />
+            ))}
+          </DateBlock>
         ))}
         {daysInMonth.map((day) => (
           <DateBlock
@@ -249,8 +236,9 @@ customDays: [1, 3, 5],//for custom repeat
               month === currentDate.getMonth() &&
               year === currentDate.getFullYear()
             }
+            highlightText="Today"
             // tr={console.log(day)}
-            selected={day == date}
+            selected={selection && day == date}
             onClick={() => {
               const selectedDate = new Date(year, month, day);
               console.log(selectedDate);
@@ -259,7 +247,9 @@ customDays: [1, 3, 5],//for custom repeat
               onChange(selectedDate);
             }}
           >
-            Hello
+            {getEventsForDay({ day }).map((event, index) => (
+              <Event key={`event-${index}`} event={event} />
+            ))}
           </DateBlock>
         ))}
 
@@ -272,16 +262,72 @@ customDays: [1, 3, 5],//for custom repeat
               const postYear = month === 11 ? year + 1 : year;
               const postMonth = month === 11 ? 0 : month + 1;
               const selectedDate = new Date(year, postMonth, day);
-              console.log(selectedDate);
               setYear(postYear);
               setMonth(postMonth);
               setDate(selectedDate.getDate());
               onChange(selectedDate);
             }}
-          />
+          >
+            {getEventsForDay({ day, isPost: true }).map((event, index) => (
+              <Event key={`event-${index}`} event={event} />
+            ))}
+          </DateBlock>
         ))}
       </div>
     </section>
+  );
+};
+
+const Navigator = ({ date, set }) => {
+  const getNextMonth = () => {
+    if (date?.month === 11) {
+      set?.year(date?.year + 1);
+      set?.month(0);
+    } else {
+      set?.month(date?.month + 1);
+    }
+  };
+
+  const getPrevMonth = () => {
+    if (date?.month === 0) {
+      set?.year(date?.year - 1);
+      set?.month(11);
+    } else {
+      set?.month(date?.month - 1);
+    }
+  };
+
+  const getToday = () => {
+    set?.year(new Date().getFullYear());
+    set?.month(new Date().getMonth());
+    set?.date(new Date().getDate());
+  };
+
+  return (
+    <div className="flex justify-between gap-2">
+      <button
+        className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
+        onClick={getPrevMonth}
+      >
+        <span className="text-xl">
+          <LuChevronLeft />
+        </span>
+      </button>
+      <button
+        className="h-10 flex justify-center items-center py-0 px-6 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
+        onClick={getToday}
+      >
+        <span>Today</span>
+      </button>
+      <button
+        className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
+        onClick={getNextMonth}
+      >
+        <span className="text-xl">
+          <LuChevronRight />
+        </span>
+      </button>
+    </div>
   );
 };
 
@@ -298,6 +344,7 @@ const DateBlock = ({
   day,
   fade = false,
   highlight = false,
+  highlightText,
   selected = false,
   onClick = () => {},
   children,
@@ -306,24 +353,54 @@ const DateBlock = ({
     <div className={cn("aspect-square")} onClick={onClick}>
       <div
         className={cn(
-          "h-full  sm:bg-gray-50 dark:sm:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg flex justify-center items-center text-sm sm:text-base select-none cursor-pointer md:flex-col md:items-stretch md:p-2 md:font-semibold transition-all duration-75",
+          "h-full  sm:bg-gray-50 dark:sm:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 dark:hover:shadow-inner rounded-lg flex justify-center items-center text-sm sm:text-base select-none  md:flex-col md:items-stretch md:p-1 lg:p-2 md:font-semibold transition-all duration-75",
           fade && "text-gray-300 dark:text-neutral-700",
           highlight &&
             !selected &&
             "bg-gradient-to-tr from-rose-400   hover:from-rose-500 text-white ",
-          selected && "[&&]:bg-violet-500 text-white md:text-violet-500"
+          selected &&
+            "[&&]:bg-violet-500 [&&]:hover:bg-violet-600 text-white md:text-violet-500"
         )}
       >
-        <span
-          className={cn(
-            "md:bg-white h-7 w-7 flex justify-center items-center rounded-full",
-            highlight && !selected && "sm:text-rose-500 dark:text-white"
+        <div className="flex items-center justify-between">
+          <span
+            className={cn(
+              "h-full w-full md:bg-white dark:md:bg-neutral-900 md:h-7 md:w-7 lg:w-8 lg:h-8 flex justify-center items-center md:rounded-full cursor-pointer",
+              highlight && !selected && "sm:text-rose-500 dark:text-white"
+            )}
+          >
+            {day}
+          </span>
+          {highlight && highlightText && (
+            <>
+              <span className="text-sm text-black dark:text-rose-400 text-center">
+                {highlightText}
+              </span>
+              <span className="md:w-7 lg:w-8"></span>
+            </>
           )}
-        >
-          {day}
-        </span>
+        </div>
         <div className="hidden md:block flex-1">{children}</div>
       </div>
     </div>
   );
 };
+
+const Event = ({ event }) => (
+  <div
+    className="px-1 rounded text-black dark:text-white text-[10px] lg:text-sm font-light  flex items-center gap-2 cursor-pointer transition-all duration-75"
+    // style={{ backgroundColor: event.color }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.backgroundColor = event.color; // Darken on hover
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.backgroundColor = "transparent"; // Revert on mouse leave
+    }}
+  >
+    <div
+      className="h-3 w-3 rounded-full"
+      style={{ backgroundColor: event.color }}
+    ></div>{" "}
+    <span className="truncate flex-1 leading-5">{event.name}</span>
+  </div>
+);
