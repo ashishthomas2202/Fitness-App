@@ -124,7 +124,7 @@ export default function WorkoutPlans() {
 
   return (
     <Page title="Workout Plans">
-      <Calendar />
+      {/* <Calendar /> */}
       <section className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {/* <CreateWorkoutPlanCard onCreate={createWorkoutPlan} />
          */}

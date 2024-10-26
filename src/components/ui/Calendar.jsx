@@ -1,3 +1,51 @@
+/**
+ * ## Calendar Items Array Documentation
+ *
+ * The `items` array contains events with different types such as one-time and recurring events.
+ * Each event must follow this structure:
+ *
+ * @typedef {Object} CalendarItem
+ * @property {string} name - The name or title of the event. (Required)
+ * @property {string} color - The hex color code of the event. (Required)
+ * @property {string} [date] - The exact date for one-time events in the format "YYYY-MM-DD".
+ * @property {string} [repeat] - Specifies the recurrence type: "daily", "weekly", "monthly".
+ * @property {Array<string>} [days] - Days of the week for weekly events (e.g., ["Monday", "Wednesday"]).
+ * @property {number} [day] - The specific day of the month for monthly events (e.g., 15).
+ * @property {string} [start] - The start date for the recurring event in the format "YYYY-MM-DD".
+ * @property {string} [end] - The end date for the recurring event in the format "YYYY-MM-DD".
+ *
+ * ## Examples
+ *
+ * ### One-Time Event:
+ * { date: "2024-12-25", name: "Christmas", color: "#ef4444" }
+ *
+ * ### Daily Recurring Event:
+ * { repeat: "daily", name: "Daily Exercise", color: "#34d399", start: "2024-10-01" }
+ *
+ * ### Weekly Recurring Event on Specific Days:
+ * {
+ *   repeat: "weekly",
+ *   days: ["Tuesday", "Thursday"],
+ *   name: "Yoga Class",
+ *   color: "#10b981",
+ *   start: "2024-09-10",
+ *   end: "2024-10-20"
+ * }
+ *
+ * ### Monthly Recurring Event:
+ * { repeat: "monthly", day: 15, name: "Salary", color: "#3b82f6" }
+ *
+ * ### Custom Weekly Event with Range:
+ * {
+ *   repeat: "weekly",
+ *   days: ["Friday", "Saturday"],
+ *   name: "Weekend Fun",
+ *   color: "#f87171",
+ *   start: "2024-09-20",
+ *   end: "2024-12-31"
+ * }
+ */
+
 "use client";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useState, useLayoutEffect } from "react";
@@ -7,15 +55,58 @@ export const Calendar = ({
   value = new Date(),
   onChange = () => {},
   items = [
+    // One-time event
     { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
-    { repeat: "daily", name: "Daily Event", color: "#f59e0b" },
+    // Daily recurring event starting today
+    {
+      repeat: "daily",
+      name: "Daily Event",
+      color: "#f59e0b",
+      start: "2024-10-01",
+    },
+    // Weekly recurring event on Monday and Wednesday starting from a specific date
     {
       repeat: "weekly",
       days: ["Monday", "Wednesday"],
       name: "Weekly Event",
       color: "#10b981",
+      start: "2024-09-15",
     },
-    { repeat: "monthly", day: 15, name: "Monthly Event", color: "#3b82f6" },
+    // Weekly event with a start and end date (limited occurrence)
+    {
+      repeat: "weekly",
+      days: ["Tuesday", "Thursday"],
+      name: "Limited Weekly Event",
+      color: "#f87171",
+      start: "2024-09-10",
+      end: "2024-10-20",
+    },
+    // Monthly recurring event on the 15th of every month
+    {
+      repeat: "monthly",
+      day: 15,
+      name: "Monthly Event",
+      color: "#3b82f6",
+    },
+    // Monthly event starting from October 1st, ending on December 15th
+    {
+      repeat: "monthly",
+      day: 1,
+      name: "Limited Monthly Event",
+      color: "#34d399",
+      start: "2024-10-01",
+      end: "2024-12-15",
+    },
+    // One-time event in the future
+    { date: "2024-12-25", name: "Christmas Event", color: "#ef4444" },
+    // Event repeating only on custom days
+    {
+      repeat: "weekly",
+      days: ["Friday", "Saturday"],
+      name: "Weekend Event",
+      color: "#8b5cf6",
+      start: "2024-09-20",
+    },
   ],
   selection = false,
 }) => {
@@ -44,11 +135,10 @@ export const Calendar = ({
     "Saturday",
   ];
 
-  const modes = ["month", "week", "day"];
-
   const [year, setYear] = useState(value.getFullYear());
   const [month, setMonth] = useState(value.getMonth());
   const [date, setDate] = useState(value.getDate());
+
   const [mode, setMode] = useState("month");
   const [preDays, setPreDays] = useState([]);
   const [daysInMonth, setDaysInMonth] = useState([]);
@@ -92,24 +182,6 @@ export const Calendar = ({
     setPostDays(calculatedPostDays);
   };
 
-  // const getEventsForDay = (day) => {
-  //   const formattedDate = new Date(year, month, day)
-  //     .toISOString()
-  //     .split("T")[0];
-
-  //   return items.filter((item) => {
-  //     if (item.date === formattedDate) return true; // One-time events
-  //     if (item.repeat === "daily") return true;
-  //     if (
-  //       item.repeat === "weekly" &&
-  //       item.days.includes(Days[new Date(year, month, day).getDay()])
-  //     )
-  //       return true;
-  //     if (item.repeat === "monthly" && day === parseInt(item.day)) return true;
-  //     return false;
-  //   });
-  // };
-
   const getEventsForDay = ({ day, isPre = false, isPost = false }) => {
     let eventYear = year;
     let eventMonth = month;
@@ -126,30 +198,53 @@ export const Calendar = ({
     const formattedDate = new Date(eventYear, eventMonth, day)
       .toISOString()
       .split("T")[0];
+    const dayOfWeek = Days[new Date(eventYear, eventMonth, day).getDay()];
 
     return items.filter((item) => {
-      if (item.date === formattedDate) return true; // One-time events
+      // Handle one-time events
+      if (item.date === formattedDate) return true;
 
-      const dayOfWeek = Days[new Date(eventYear, eventMonth, day).getDay()];
+      const itemStartDate = new Date(item.start);
+      const itemEndDate = item.end ? new Date(item.end) : null;
+      const currentDate = new Date(eventYear, eventMonth, day);
 
-      if (item.repeat === "daily") return true;
-      if (item.repeat === "weekly" && item.days.includes(dayOfWeek))
+      // Check if current date is within the start and end date range
+      const isWithinRange =
+        (!item.start || currentDate >= itemStartDate) &&
+        (!item.end || currentDate <= itemEndDate);
+
+      // Handle daily events within the specified range
+      if (item.repeat === "daily" && isWithinRange) return true;
+
+      // Handle weekly events on specific days within the range
+      if (
+        item.repeat === "weekly" &&
+        item.days.includes(dayOfWeek) &&
+        isWithinRange
+      )
         return true;
-      if (item.repeat === "monthly" && day === parseInt(item.day)) return true;
+
+      // Handle monthly events on a specific day of the month within the range
+      if (
+        item.repeat === "monthly" &&
+        day === parseInt(item?.day) &&
+        isWithinRange
+      )
+        return true;
 
       return false;
     });
   };
 
+  const handleEventClick = ({ day, event }) => {
+    console.log("Day clicked:", month, day, "-", year);
+    console.log("Event clicked:", event);
+  };
   useEffect(() => {
     calculatePreDays();
     calculateDaysInMonth();
     calculatePostDays();
   }, [year, month]);
-
-  useEffect(() => {
-    console.log("Date changed:", date);
-  }, [date]);
 
   return (
     <section>
@@ -157,27 +252,10 @@ export const Calendar = ({
         <h2 className="hidden lg:block text-3xl font-semibold min-w-1/2">
           {Months[month]}, {year}
         </h2>
-        <div className="px-1 py-1 bg-gray-100 rounded-lg shadow-sm w-fit mx-auto mb-5 sm:mr-0 lg:w-auto lg:mr-auto lg:mb-0">
-          <ul className="flex">
-            {modes.map((m) => (
-              <li
-                className={cn(
-                  " px-4 py-2 capitalize cursor-pointer antialiased rounded-md",
-                  m === mode
-                    ? "bg-white font-semibold text-black shadow-sm"
-                    : "hover:bg-gray-50 font-base text-gray-600"
-                )}
-                key={`mode-${m}`}
-                onClick={() => setMode(m)}
-              >
-                {m}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ModeSelector mode={mode} setMode={setMode} />
         <div className="sm:flex justify-between gap-2 mb-8 lg:mb-0">
           <h2 className="text-center font-bold text-[8vw] mb-4 sm:mb-0 sm:text-4xl lg:hidden">
-            {Months[date?.month]}, {date?.year}
+            {Months[month]}, {year}
           </h2>
           <Navigator
             date={{
@@ -216,14 +294,17 @@ export const Calendar = ({
               setYear(preYear);
               setMonth(preMonth);
               setDate(selectedDate.getDate());
-
-              console.log(selectedDate);
-
               onChange(selectedDate);
             }}
           >
             {getEventsForDay({ day, isPre: true }).map((event, index) => (
-              <Event key={`event-${index}`} event={event} />
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+              />
             ))}
           </DateBlock>
         ))}
@@ -241,14 +322,18 @@ export const Calendar = ({
             selected={selection && day == date}
             onClick={() => {
               const selectedDate = new Date(year, month, day);
-              console.log(selectedDate);
-
               setDate(selectedDate.getDate());
               onChange(selectedDate);
             }}
           >
             {getEventsForDay({ day }).map((event, index) => (
-              <Event key={`event-${index}`} event={event} />
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+              />
             ))}
           </DateBlock>
         ))}
@@ -269,12 +354,42 @@ export const Calendar = ({
             }}
           >
             {getEventsForDay({ day, isPost: true }).map((event, index) => (
-              <Event key={`event-${index}`} event={event} />
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+              />
             ))}
           </DateBlock>
         ))}
       </div>
     </section>
+  );
+};
+
+const ModeSelector = ({ mode, setMode }) => {
+  const modes = ["month", "week", "day"];
+  return (
+    <div className="px-1 py-1 bg-gray-100 dark:bg-neutral-700 rounded-lg shadow-sm w-fit mx-auto mb-5 sm:mr-0 lg:w-auto lg:mr-auto lg:mb-0">
+      <ul className="flex">
+        {modes.map((m) => (
+          <li
+            className={cn(
+              " px-4 py-2 capitalize cursor-pointer antialiased rounded-md",
+              m === mode
+                ? "bg-white dark:bg-neutral-950 font-semibold text-black dark:text-white shadow-sm"
+                : "hover:bg-gray-50 dark:hover:bg-neutral-900 dark:hover:text-neutral-400 font-base text-gray-600 dark:text-black"
+            )}
+            key={`mode-${m}`}
+            onClick={() => setMode(m)}
+          >
+            {m}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
@@ -373,10 +488,10 @@ const DateBlock = ({
           </span>
           {highlight && highlightText && (
             <>
-              <span className="text-sm text-black dark:text-rose-400 text-center">
+              <span className="hidden lg:block text-sm text-black dark:text-rose-400 text-center">
                 {highlightText}
               </span>
-              <span className="md:w-7 lg:w-8"></span>
+              <span className="hidden lg:block lg:w-8"></span>
             </>
           )}
         </div>
@@ -386,7 +501,7 @@ const DateBlock = ({
   );
 };
 
-const Event = ({ event }) => (
+const Event = ({ event, onClick = () => {} }) => (
   <div
     className="px-1 rounded text-black dark:text-white text-[10px] lg:text-sm font-light  flex items-center gap-2 cursor-pointer transition-all duration-75"
     // style={{ backgroundColor: event.color }}
@@ -396,6 +511,7 @@ const Event = ({ event }) => (
     onMouseLeave={(e) => {
       e.currentTarget.style.backgroundColor = "transparent"; // Revert on mouse leave
     }}
+    onClick={onClick}
   >
     <div
       className="h-3 w-3 rounded-full"
