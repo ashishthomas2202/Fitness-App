@@ -51,6 +51,18 @@ import { cn } from "@/lib/utils";
 import React, { useEffect, useState, useLayoutEffect } from "react";
 import { useScreenSize } from "@/hooks/useScreenSize";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+
+const getCurrentWeek = (selectedDate) => {
+  const startOfWeek = new Date(
+    selectedDate.setDate(selectedDate.getDate() - selectedDate.getDay())
+  );
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + i);
+    return date;
+  });
+};
+
 export const Calendar = ({
   value = new Date(),
   onChange = () => {},
@@ -108,7 +120,7 @@ export const Calendar = ({
       start: "2024-09-20",
     },
   ],
-  selection = false,
+  selection = true,
 }) => {
   const Months = [
     "January",
@@ -138,8 +150,8 @@ export const Calendar = ({
   const [year, setYear] = useState(value.getFullYear());
   const [month, setMonth] = useState(value.getMonth());
   const [date, setDate] = useState(value.getDate());
-
   const [mode, setMode] = useState("month");
+  const [weekDates, setWeekDates] = useState(getCurrentWeek(new Date()));
   const [preDays, setPreDays] = useState([]);
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [postDays, setPostDays] = useState([]);
@@ -180,6 +192,10 @@ export const Calendar = ({
     );
 
     setPostDays(calculatedPostDays);
+  };
+
+  const calculateWeekDates = () => {
+    setWeekDates(getCurrentWeek(new Date(year, month, date)));
   };
 
   const getEventsForDay = ({ day, isPre = false, isPost = false }) => {
@@ -240,22 +256,55 @@ export const Calendar = ({
     console.log("Day clicked:", month, day, "-", year);
     console.log("Event clicked:", event);
   };
-  useEffect(() => {
-    calculatePreDays();
-    calculateDaysInMonth();
-    calculatePostDays();
-  }, [year, month]);
 
+  const getHeading = () => {
+    if (mode === "week") {
+      const startOfWeek = weekDates[0];
+      const endOfWeek = weekDates[6];
+      if (startOfWeek.getFullYear() !== endOfWeek.getFullYear()) {
+        return `${
+          Months[startOfWeek.getMonth()]
+        }, ${startOfWeek.getFullYear()} - ${
+          Months[endOfWeek.getMonth()]
+        }, ${endOfWeek.getFullYear()}`;
+      } else if (startOfWeek.getMonth() !== endOfWeek.getMonth()) {
+        return `${Months[startOfWeek.getMonth()]} - ${
+          Months[endOfWeek.getMonth()]
+        }, ${year}`;
+      }
+
+      return `${Months[startOfWeek.getMonth()]}, ${year}`;
+    }
+
+    return `${Months[month]}, ${year}`;
+  };
+  useEffect(() => {
+    if (mode === "month") {
+      calculatePreDays();
+      calculateDaysInMonth();
+      calculatePostDays();
+    }
+  }, [year, month, mode]);
+
+  useEffect(() => {
+    if (mode === "week") {
+      calculateWeekDates();
+    }
+  }, [year, month, date, mode]);
+
+  useEffect(() => {
+    console.log("Current Date:", year, month, date);
+  }, [year, month, date]);
   return (
     <section>
       <div className="flex flex-col gap-2 mb-2 justify-between lg:flex-row lg:items-center">
         <h2 className="hidden lg:block text-3xl font-semibold min-w-1/2">
-          {Months[month]}, {year}
+          {getHeading()}
         </h2>
         <ModeSelector mode={mode} setMode={setMode} />
         <div className="sm:flex justify-between gap-2 mb-8 lg:mb-0">
-          <h2 className="text-center font-bold text-[8vw] mb-4 sm:mb-0 sm:text-4xl lg:hidden">
-            {Months[month]}, {year}
+          <h2 className="text-center font-bold text-[8vw] mb-4 select-none sm:mb-0 sm:text-4xl lg:hidden">
+            {getHeading()}
           </h2>
           <Navigator
             date={{
@@ -268,6 +317,7 @@ export const Calendar = ({
               month: setMonth,
               date: setDate,
             }}
+            mode={mode}
           />
         </div>
       </div>
@@ -280,99 +330,197 @@ export const Calendar = ({
           />
         ))}
       </div>
-      <div className="grid grid-cols-7 sm:gap-2">
-        {preDays.map((day) => (
-          <DateBlock
-            key={`pre-day-${day}`}
-            day={day}
-            fade
-            onClick={() => {
-              const preYear = month === 0 ? year - 1 : year;
-              const preMonth = month === 0 ? 11 : month - 1;
-              const selectedDate = new Date(year, preMonth, day);
+      {mode == "month" && (
+        <MonthView
+          preDays={preDays}
+          daysInMonth={daysInMonth}
+          postDays={postDays}
+          currentDate={currentDate}
+          date={{
+            year: year,
+            month: month,
+            date: date,
+          }}
+          setDate={{
+            year: setYear,
+            month: setMonth,
+            date: setDate,
+          }}
+          getEventsForDay={getEventsForDay}
+          handleEventClick={handleEventClick}
+          onChange={onChange}
+          selection={selection}
+        />
+      )}
 
-              setYear(preYear);
-              setMonth(preMonth);
-              setDate(selectedDate.getDate());
-              onChange(selectedDate);
-            }}
-          >
-            {getEventsForDay({ day, isPre: true }).map((event, index) => (
-              <Event
-                key={`event-${index}`}
-                event={event}
-                onClick={() => {
-                  handleEventClick({ day, event });
-                }}
-              />
-            ))}
-          </DateBlock>
-        ))}
-        {daysInMonth.map((day) => (
-          <DateBlock
-            key={`day-${day}`}
-            day={day}
-            highlight={
-              day === currentDate.getDate() &&
-              month === currentDate.getMonth() &&
-              year === currentDate.getFullYear()
-            }
-            highlightText="Today"
-            // tr={console.log(day)}
-            selected={selection && day == date}
-            onClick={() => {
-              const selectedDate = new Date(year, month, day);
-              setDate(selectedDate.getDate());
-              onChange(selectedDate);
-            }}
-          >
-            {getEventsForDay({ day }).map((event, index) => (
-              <Event
-                key={`event-${index}`}
-                event={event}
-                onClick={() => {
-                  handleEventClick({ day, event });
-                }}
-              />
-            ))}
-          </DateBlock>
-        ))}
-
-        {postDays.map((day) => (
-          <DateBlock
-            key={`post-day-${day}`}
-            day={day}
-            fade
-            onClick={() => {
-              const postYear = month === 11 ? year + 1 : year;
-              const postMonth = month === 11 ? 0 : month + 1;
-              const selectedDate = new Date(year, postMonth, day);
-              setYear(postYear);
-              setMonth(postMonth);
-              setDate(selectedDate.getDate());
-              onChange(selectedDate);
-            }}
-          >
-            {getEventsForDay({ day, isPost: true }).map((event, index) => (
-              <Event
-                key={`event-${index}`}
-                event={event}
-                onClick={() => {
-                  handleEventClick({ day, event });
-                }}
-              />
-            ))}
-          </DateBlock>
-        ))}
-      </div>
+      {mode == "week" && (
+        <WeekView
+          date={{
+            year: year,
+            month: month,
+            date: date,
+          }}
+          setDate={{
+            year: setYear,
+            month: setMonth,
+            date: setDate,
+          }}
+          weekDates={weekDates}
+          onChange={onChange}
+          getEventsForDay={getEventsForDay}
+          handleEventClick={handleEventClick}
+          selection={selection}
+        />
+      )}
     </section>
   );
 };
+const WeekView = ({
+  date: selectedDate = {},
+  setDate = {},
+  weekDates = [],
+  onChange = () => {},
+  getEventsForDay = () => [],
+  handleEventClick = () => {},
+  selection = false,
+}) => {
+  return (
+    <div className="grid grid-cols-7 sm:gap-2">
+      {weekDates.map((date) => (
+        <DateBlock
+          key={date.toISOString()}
+          day={date.getDate()}
+          selected={
+            selection &&
+            date.getDate() == selectedDate?.date &&
+            date.getMonth() == selectedDate?.month &&
+            date.getFullYear() == selectedDate?.year
+          }
+          onClick={() => {
+            const selectedDate = new Date(date);
+            setDate?.year(selectedDate.getFullYear());
+            setDate?.month(selectedDate.getMonth());
+            setDate?.date(selectedDate.getDate());
+            onChange(selectedDate);
+          }}
+        >
+          {getEventsForDay({ day: date.getDate() }).map((event, index) => (
+            <Event
+              key={`event-${index}`}
+              event={event}
+              onClick={() => handleEventClick({ day: date.getDate(), event })}
+            />
+          ))}
+        </DateBlock>
+      ))}
+    </div>
+  );
+};
+const MonthView = ({
+  preDays = [],
+  daysInMonth = [],
+  postDays = [],
+  currentDate = new Date(),
+  date = {},
+  setDate = {},
+  getEventsForDay = () => [],
+  handleEventClick = () => {},
+  onChange = () => {},
+  selection = false,
+}) => {
+  return (
+    <div className="grid grid-cols-7 sm:gap-2">
+      {preDays.map((day) => (
+        <DateBlock
+          key={`pre-day-${day}`}
+          day={day}
+          fade
+          onClick={() => {
+            const preYear = date?.month === 0 ? date?.year - 1 : date?.year;
+            const preMonth = date?.month === 0 ? 11 : date?.month - 1;
+            const selectedDate = new Date(date?.year, preMonth, day);
 
+            setDate?.year(preYear);
+            setDate?.month(preMonth);
+            setDate?.date(selectedDate.getDate());
+            onChange(selectedDate);
+          }}
+        >
+          {getEventsForDay({ day, isPre: true }).map((event, index) => (
+            <Event
+              key={`event-${index}`}
+              event={event}
+              onClick={() => {
+                handleEventClick({ day, event });
+              }}
+            />
+          ))}
+        </DateBlock>
+      ))}
+
+      {daysInMonth.map((day) => (
+        <DateBlock
+          key={`day-${day}`}
+          day={day}
+          highlight={
+            day === currentDate.getDate() &&
+            date?.month === currentDate.getMonth() &&
+            date?.year === currentDate.getFullYear()
+          }
+          highlightText="Today"
+          // tr={console.log(day)}
+          selected={selection && day == date?.date}
+          onClick={() => {
+            const selectedDate = new Date(date?.year, date?.month, day);
+            setDate?.date(selectedDate.getDate());
+            onChange(selectedDate);
+          }}
+        >
+          {getEventsForDay({ day }).map((event, index) => (
+            <Event
+              key={`event-${index}`}
+              event={event}
+              onClick={() => {
+                handleEventClick({ day, event });
+              }}
+            />
+          ))}
+        </DateBlock>
+      ))}
+
+      {postDays.map((day) => (
+        <DateBlock
+          key={`post-day-${day}`}
+          day={day}
+          fade
+          onClick={() => {
+            const postYear = date?.month === 11 ? date?.year + 1 : date?.year;
+            const postMonth = date?.month === 11 ? 0 : date?.month + 1;
+            const selectedDate = new Date(date?.year, postMonth, day);
+            setDate?.year(postYear);
+            setDate?.month(postMonth);
+            setDate?.date(selectedDate.getDate());
+            onChange(selectedDate);
+          }}
+        >
+          {getEventsForDay({ day, isPost: true }).map((event, index) => (
+            <Event
+              key={`event-${index}`}
+              event={event}
+              onClick={() => {
+                handleEventClick({ day, event });
+              }}
+            />
+          ))}
+        </DateBlock>
+      ))}
+    </div>
+  );
+};
 const ModeSelector = ({ mode, setMode }) => {
   const modes = ["month", "week", "day"];
   return (
-    <div className="px-1 py-1 bg-gray-100 dark:bg-neutral-700 rounded-lg shadow-sm w-fit mx-auto mb-5 sm:mr-0 lg:w-auto lg:mr-auto lg:mb-0">
+    <div className="px-1 py-1 select-none bg-gray-100 dark:bg-neutral-700 rounded-lg shadow-sm w-fit mx-auto mb-5 sm:mr-0 lg:w-auto lg:mr-auto lg:mb-0">
       <ul className="flex">
         {modes.map((m) => (
           <li
@@ -393,7 +541,7 @@ const ModeSelector = ({ mode, setMode }) => {
   );
 };
 
-const Navigator = ({ date, set }) => {
+const Navigator = ({ date, set, mode }) => {
   const getNextMonth = () => {
     if (date?.month === 11) {
       set?.year(date?.year + 1);
@@ -412,17 +560,47 @@ const Navigator = ({ date, set }) => {
     }
   };
 
+  const getNextWeek = () => {
+    const newDate = new Date(date.year, date.month, date.date + 7);
+    set?.year(newDate.getFullYear());
+    set?.month(newDate.getMonth());
+    set?.date(newDate.getDate());
+  };
+
+  const getPrevWeek = () => {
+    const newDate = new Date(date.year, date.month, date.date - 7);
+    set?.year(newDate.getFullYear());
+    set?.month(newDate.getMonth());
+    set?.date(newDate.getDate());
+  };
+
   const getToday = () => {
     set?.year(new Date().getFullYear());
     set?.month(new Date().getMonth());
     set?.date(new Date().getDate());
   };
 
+  const handleNext = () => {
+    if (mode === "month") {
+      getNextMonth();
+    } else if (mode === "week") {
+      getNextWeek();
+    }
+  };
+
+  const handlePrev = () => {
+    if (mode === "month") {
+      getPrevMonth();
+    } else if (mode === "week") {
+      getPrevWeek();
+    }
+  };
+
   return (
-    <div className="flex justify-between gap-2">
+    <div className="flex justify-between gap-2 select-none">
       <button
         className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
-        onClick={getPrevMonth}
+        onClick={handlePrev}
       >
         <span className="text-xl">
           <LuChevronLeft />
@@ -436,7 +614,7 @@ const Navigator = ({ date, set }) => {
       </button>
       <button
         className="h-10 w-10 flex justify-center items-center p-0 bg-gray-50 dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 rounded-lg shadow"
-        onClick={getNextMonth}
+        onClick={handleNext}
       >
         <span className="text-xl">
           <LuChevronRight />
@@ -448,7 +626,7 @@ const Navigator = ({ date, set }) => {
 
 const DayBlock = ({ day }) => {
   return (
-    <div className="p-0 sm:p-2 sm:bg-gray-100 dark:sm:bg-neutral-800 rounded-lg">
+    <div className="p-0 sm:p-2 sm:bg-gray-100 dark:sm:bg-neutral-800 rounded-lg select-none">
       <div className="text-center antialiased text-black text-sm sm:text-base dark:text-white font-bold truncate">
         {day}
       </div>
@@ -465,7 +643,7 @@ const DateBlock = ({
   children,
 }) => {
   return (
-    <div className={cn("aspect-square")} onClick={onClick}>
+    <div className={cn("aspect-square select-none")} onClick={onClick}>
       <div
         className={cn(
           "h-full  sm:bg-gray-50 dark:sm:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-900 dark:hover:shadow-inner rounded-lg flex justify-center items-center text-sm sm:text-base select-none  md:flex-col md:items-stretch md:p-1 lg:p-2 md:font-semibold transition-all duration-75",
@@ -514,7 +692,7 @@ const Event = ({ event, onClick = () => {} }) => (
     onClick={onClick}
   >
     <div
-      className="h-3 w-3 rounded-full"
+      className="h-3 w-3 rounded-full border border-neutral-700"
       style={{ backgroundColor: event.color }}
     ></div>{" "}
     <span className="truncate flex-1 leading-5">{event.name}</span>
