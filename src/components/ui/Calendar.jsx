@@ -231,6 +231,13 @@ export const Calendar = ({
       .split("T")[0];
     const dayOfWeek = Days[new Date(eventYear, eventMonth, day).getDay()];
 
+    console.log(
+      "Day of the week:",
+      dayOfWeek,
+      `${eventYear} ${eventMonth} ${day}`,
+      new Date(eventYear, eventMonth, day)
+    );
+
     return items.filter((item) => {
       // Handle one-time events
       if (item.date === formattedDate) return true;
@@ -370,6 +377,7 @@ export const Calendar = ({
 
       {mode == "week" && (
         <WeekView
+          key={`${year}-${month}-${date}-weekView`} // Force re-render on key change
           date={{
             year: year,
             month: month,
@@ -471,7 +479,7 @@ const MonthView = ({
       <div className="grid grid-cols-7 mb-2 sm:gap-2">
         {Days.map((day) => (
           <DayBlock
-            key={`days-${day}`}
+            key={`days-${day}-dayBlock-MonthView`}
             day={xs ? day.slice(0, 1) : sm || md ? day.slice(0, 3) : day}
           />
         ))}
@@ -479,7 +487,7 @@ const MonthView = ({
       <div className="grid grid-cols-7 sm:gap-2">
         {preDays.map((day) => (
           <DateBlock
-            key={`pre-day-${day}`}
+            key={`pre-day-${day}-dateBlock-MonthView`}
             day={day}
             fade
             onClick={() => {
@@ -495,7 +503,7 @@ const MonthView = ({
           >
             {getEventsForDay({ day, isPre: true }).map((event, index) => (
               <Event
-                key={`event-${index}`}
+                key={`event-${index}-preDays-MonthView`}
                 event={event}
                 onClick={() => {
                   handleEventClick({ day, event });
@@ -507,7 +515,7 @@ const MonthView = ({
 
         {daysInMonth.map((day) => (
           <DateBlock
-            key={`day-${day}`}
+            key={`day-${day}-dateBlock-MonthView-${date?.month}`}
             day={day}
             highlight={
               day === currentDate.getDate() &&
@@ -525,7 +533,7 @@ const MonthView = ({
           >
             {getEventsForDay({ day }).map((event, index) => (
               <Event
-                key={`event-${index}`}
+                key={`event-${index}-daysInMonth-MonthView`}
                 event={event}
                 onClick={() => {
                   handleEventClick({ day, event });
@@ -538,7 +546,7 @@ const MonthView = ({
 
         {postDays.map((day) => (
           <DateBlock
-            key={`post-day-${day}`}
+            key={`post-day-${day}-dateBlock-MonthView-${date?.month}`}
             day={day}
             fade
             onClick={() => {
@@ -553,7 +561,7 @@ const MonthView = ({
           >
             {getEventsForDay({ day, isPost: true }).map((event, index) => (
               <Event
-                key={`event-${index}`}
+                key={`event-${index}-postDays-MonthView`}
                 event={event}
                 onClick={() => {
                   handleEventClick({ day, event });
@@ -579,7 +587,7 @@ const ModeSelector = ({ mode, setMode }) => {
                 ? "bg-white dark:bg-neutral-950 font-semibold text-black dark:text-white shadow-sm"
                 : "hover:bg-gray-50 dark:hover:bg-neutral-900 dark:hover:text-neutral-400 font-base text-gray-600 dark:text-black"
             )}
-            key={`mode-${m}`}
+            key={`mode-${m}-selector`}
             onClick={() => setMode(m)}
           >
             {m}
@@ -770,9 +778,214 @@ const DetailedEvent = ({ event, onClick = () => {} }) => (
   </div>
 );
 
-/**
- * Displays events with and without specific times.
- */
+// /**
+//  * Displays events with and without specific times.
+//  */
+// const EventList = ({
+//   date: selectedDate = {},
+//   getEventsForDay = () => [],
+//   weekDates,
+//   selection = false,
+// }) => {
+//   const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+//   const parseTime = (timeString) => {
+//     const [time, modifier] = timeString.split(" ");
+//     let [hours, minutes] = time.split(":");
+//     if (modifier === "PM" && hours !== "12") hours = parseInt(hours) + 12;
+//     if (modifier === "AM" && hours === "12") hours = 0;
+//     return { hours: parseInt(hours), minutes: parseInt(minutes) };
+//   };
+
+//   return (
+//     <>
+//       <div className="grid grid-cols-8">
+//         <div className="col-span-1"></div>
+//         {weekDates.map((date) => {
+//           const currentDate = date.getDate();
+//           const currentMonth = date.getMonth();
+//           const currentYear = date.getFullYear();
+//           const currentDay = date.getDay();
+//           const dayEvents = getEventsForDay({
+//             day: currentDate,
+//             month: currentMonth,
+//             year: currentYear,
+//           });
+
+//           const [timedEvents, untimedEvents] = dayEvents.reduce(
+//             ([timed, untimed], event) => {
+//               if (event.startTime || event.endTime || event.time)
+//                 timed.push(event);
+//               else untimed.push(event);
+//               return [timed, untimed];
+//             },
+//             [[], []]
+//           );
+
+//           return (
+//             <div
+//               key={`${date.toISOString()}-weekday-weekview`}
+//               className="px-2"
+//             >
+//               <div
+//                 className={cn(
+//                   "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square",
+//                   selection &&
+//                     selectedDate.date == currentDate &&
+//                     "bg-violet-500 dark:bg-violet-500 text-white"
+//                 )}
+//               >
+//                 <div>
+//                   <h2
+//                     className={cn(
+//                       "text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate",
+//                       selection &&
+//                         selectedDate.date == currentDate &&
+//                         "text-slate-100 dark:text-slate-100"
+//                     )}
+//                   >
+//                     {Days[currentDay]}
+//                   </h2>
+//                   <h2 className="text-4xl font-bold text-center mt-2">
+//                     {currentDate}
+
+//                     {/* {`${Months[currentMonth].slice(0, 3)} ${currentDate}`} */}
+//                   </h2>
+//                 </div>
+//                 {untimedEvents.length != 0 && (
+//                   <>
+//                     <h3 className="font-semibold text-center mt-4">
+//                       Untimed Events
+//                     </h3>
+//                     {untimedEvents.map((event, index) => (
+//                       <div className="">
+//                         <Event
+//                           key={`untimed-${index}-weekview`}
+//                           event={event}
+//                           selected={
+//                             selection && selectedDate.date == currentDate
+//                           }
+//                         />
+//                       </div>
+//                     ))}
+//                   </>
+//                 )}
+//               </div>
+//             </div>
+//           );
+//         })}
+//       </div>
+
+//       <div className="grid grid-cols-8 bg-slate-50 dark:bg-neutral-800 rounded-lg py-5 mt-5">
+//         <div className="col-span-1">
+//           <div className="grid grid-rows-subgrid">
+//             {hours.map((hour) => (
+//               <div
+//                 key={`${hour}-time-marker-weekview`}
+//                 className="col-span-1 h-16"
+//               >
+//                 <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+//                   {hour}
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </div>
+//         {weekDates.map((date) => {
+//           const currentDate = date.getDate();
+//           const currentMonth = date.getMonth();
+//           const currentYear = date.getFullYear();
+//           const currentDay = date.getDay();
+//           const dayEvents = getEventsForDay({
+//             day: currentDate,
+//             month: currentMonth,
+//             year: currentYear,
+//           });
+
+//           const [timedEvents, untimedEvents] = dayEvents.reduce(
+//             ([timed, untimed], event) => {
+//               if (event.startTime || event.endTime || event.time)
+//                 timed.push(event);
+//               else untimed.push(event);
+//               return [timed, untimed];
+//             },
+//             [[], []]
+//           );
+
+//           return (
+//             <div key={`${date.toISOString()}-weekday-weekview-1`}>
+//               {/* <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+//                 {date.getDate()}
+//               </div> */}
+
+//               {hours.map((hour) => {
+//                 const currentHour = parseInt(hour);
+
+//                 // Filter events that match the current hour or span between this hour and the next
+//                 const matchingEvents = timedEvents.filter((event) => {
+//                   const { hours: startHour, minutes: startMinute } = parseTime(
+//                     event.startTime || event.time || "12:00 AM"
+//                   );
+//                   const { hours: endHour } = parseTime(
+//                     event.endTime || event.time || "12:00 AM"
+//                   );
+
+//                   // Case 1: Events with only 'time' key (point-in-time events)
+//                   if (event.time) {
+//                     return startHour === currentHour;
+//                   }
+
+//                   // Case 2: Events with 'startTime' and 'endTime' (span events)
+//                   return (
+//                     startHour <= currentHour &&
+//                     (endHour > currentHour ||
+//                       (endHour === currentHour && startMinute === 0))
+//                   );
+//                 });
+
+//                 // Render the events or a blank div if no matching events found
+//                 return (
+//                   <div
+//                     key={`${date.toISOString()}-${hour}-weekday-weekview-2`}
+//                     className="col-span-1 h-16 relative"
+//                   >
+//                     {matchingEvents.length > 0 ? (
+//                       matchingEvents.map((event, index) => (
+//                         <div className="border-l dark:border-l-neutral-700 h-full px-2">
+//                           <DetailedEvent
+//                             key={`timed-${hour}-${index}-weekview`}
+//                             event={event}
+//                             style={{
+//                               position: "absolute",
+//                               top: 0,
+//                               height: `${
+//                                 (parseTime(
+//                                   event.endTime || event.time || "12:00 AM"
+//                                 ).hours -
+//                                   parseTime(
+//                                     event.startTime || event.time || "12:00 AM"
+//                                   ).hours) *
+//                                 50
+//                               }px`,
+//                               width: "100%",
+//                             }}
+//                           />
+//                         </div>
+//                       ))
+//                     ) : (
+//                       <div className="h-full border-l dark:border-l-neutral-700"></div> // Blank div if no event found
+//                     )}
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           );
+//         })}
+//       </div>
+//     </>
+//   );
+// };
+
 const EventList = ({
   date: selectedDate = {},
   getEventsForDay = () => [],
@@ -793,7 +1006,7 @@ const EventList = ({
     <>
       <div className="grid grid-cols-8">
         <div className="col-span-1"></div>
-        {weekDates.map((date) => {
+        {weekDates.map((date, dateIndex) => {
           const currentDate = date.getDate();
           const currentMonth = date.getMonth();
           const currentYear = date.getFullYear();
@@ -815,47 +1028,37 @@ const EventList = ({
           );
 
           return (
-            <div key={date.toISOString()} className="px-2">
+            <div key={`date-${dateIndex}`} className="px-2">
               <div
                 className={cn(
                   "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square",
                   selection &&
-                    selectedDate.date == currentDate &&
+                    selectedDate.date === currentDate &&
                     "bg-violet-500 dark:bg-violet-500 text-white"
                 )}
               >
                 <div>
-                  <h2
-                    className={cn(
-                      "text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate",
-                      selection &&
-                        selectedDate.date == currentDate &&
-                        "text-slate-100 dark:text-slate-100"
-                    )}
-                  >
+                  <h2 className="text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate">
                     {Days[currentDay]}
                   </h2>
                   <h2 className="text-4xl font-bold text-center mt-2">
                     {currentDate}
-
-                    {/* {`${Months[currentMonth].slice(0, 3)} ${currentDate}`} */}
                   </h2>
                 </div>
-                {untimedEvents.length != 0 && (
+
+                {untimedEvents.length > 0 && (
                   <>
                     <h3 className="font-semibold text-center mt-4">
                       Untimed Events
                     </h3>
                     {untimedEvents.map((event, index) => (
-                      <div className="">
-                        <Event
-                          key={`untimed-${index}`}
-                          event={event}
-                          selected={
-                            selection && selectedDate.date == currentDate
-                          }
-                        />
-                      </div>
+                      <Event
+                        key={`untimed-${event.name}-${index}`}
+                        event={event}
+                        selected={
+                          selection && selectedDate.date === currentDate
+                        }
+                      />
                     ))}
                   </>
                 )}
@@ -868,8 +1071,8 @@ const EventList = ({
       <div className="grid grid-cols-8 bg-slate-50 dark:bg-neutral-800 rounded-lg py-5 mt-5">
         <div className="col-span-1">
           <div className="grid grid-rows-subgrid">
-            {hours.map((hour) => (
-              <div key={hour} className="col-span-1 h-16">
+            {hours.map((hour, hourIndex) => (
+              <div key={`hour-${hourIndex}`} className="col-span-1 h-16">
                 <div className="text-center text-sm text-gray-600 dark:text-gray-400">
                   {hour}
                 </div>
@@ -877,89 +1080,89 @@ const EventList = ({
             ))}
           </div>
         </div>
-        {weekDates.map((date) => {
+
+        {weekDates.map((date, dateIndex) => {
           const currentDate = date.getDate();
           const currentMonth = date.getMonth();
           const currentYear = date.getFullYear();
-          const currentDay = date.getDay();
           const dayEvents = getEventsForDay({
             day: currentDate,
             month: currentMonth,
             year: currentYear,
           });
 
-          const [timedEvents, untimedEvents] = dayEvents.reduce(
-            ([timed, untimed], event) => {
+          const [timedEvents] = dayEvents.reduce(
+            ([timed], event) => {
               if (event.startTime || event.endTime || event.time)
                 timed.push(event);
-              else untimed.push(event);
-              return [timed, untimed];
+              return [timed];
             },
-            [[], []]
+            [[]]
           );
 
+          // console.log(
+          //   "Date:",
+          //   `${currentMonth}-${currentDate}-${currentYear}`,
+          //   "Timed Events:",
+          //   timedEvents
+          // );
           return (
-            <div key={`${date.toISOString()}`}>
-              {/* <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                {date.getDate()}
-              </div> */}
-
-              {hours.map((hour) => {
+            <div key={`date-${dateIndex}-events`}>
+              {hours.map((hour, hourIndex) => {
                 const currentHour = parseInt(hour);
 
-                // Filter events that match the current hour or span between this hour and the next
                 const matchingEvents = timedEvents.filter((event) => {
-                  const { hours: startHour, minutes: startMinute } = parseTime(
+                  const { hours: startHour } = parseTime(
                     event.startTime || event.time || "12:00 AM"
                   );
                   const { hours: endHour } = parseTime(
                     event.endTime || event.time || "12:00 AM"
                   );
 
-                  // Case 1: Events with only 'time' key (point-in-time events)
-                  if (event.time) {
-                    return startHour === currentHour;
-                  }
-
-                  // Case 2: Events with 'startTime' and 'endTime' (span events)
-                  return (
-                    startHour <= currentHour &&
-                    (endHour > currentHour ||
-                      (endHour === currentHour && startMinute === 0))
-                  );
+                  if (event.time) return startHour === currentHour;
+                  return startHour <= currentHour && currentHour < endHour;
                 });
 
-                // Render the events or a blank div if no matching events found
                 return (
                   <div
-                    key={`${date.toISOString()}-${hour}`}
+                    key={`hour-${hourIndex}-date-${dateIndex}`}
                     className="col-span-1 h-16 relative"
                   >
                     {matchingEvents.length > 0 ? (
-                      matchingEvents.map((event, index) => (
-                        <div className="border-l dark:border-l-neutral-700 h-full px-2">
+                      matchingEvents.map((event, eventIndex) => (
+                        <div
+                          key={`event-${event.name}-${eventIndex}`}
+                          className="border-l dark:border-l-neutral-700 h-full px-2"
+                        >
                           <DetailedEvent
-                            key={`timed-${hour}-${index}`}
                             event={event}
                             style={{
                               position: "absolute",
                               top: 0,
                               height: `${
-                                (parseTime(
-                                  event.endTime || event.time || "12:00 AM"
-                                ).hours -
-                                  parseTime(
-                                    event.startTime || event.time || "12:00 AM"
-                                  ).hours) *
+                                (parseTime(event.endTime || "12:00 AM").hours -
+                                  parseTime(event.startTime || "12:00 AM")
+                                    .hours) *
                                 50
                               }px`,
                               width: "100%",
+                            }}
+                            onClick={() => {
+                              console.log(
+                                "Day clicked:",
+                                date.getDate(),
+                                "-",
+                                date.getMonth(),
+                                "-",
+                                date.getFullYear()
+                              );
+                              console.log("Event clicked:", event);
                             }}
                           />
                         </div>
                       ))
                     ) : (
-                      <div className="h-full border-l dark:border-l-neutral-700"></div> // Blank div if no event found
+                      <div className="h-full border-l dark:border-l-neutral-700"></div>
                     )}
                   </div>
                 );
