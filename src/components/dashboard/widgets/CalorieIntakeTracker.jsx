@@ -8,18 +8,30 @@ import {
 import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { BsFillLightningChargeFill } from "react-icons/bs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 
-export const CalorieIntakeTracker = ({ intake = 0, goal = 10000 }) => {
+export const CalorieIntakeTracker = ({
+  intake = 0,
+  goal = 10000,
+  step: defaultStep = 100,
+}) => {
+  const [step, setStep] = useState(defaultStep);
   const [caloriesIntake, setCaloriesIntake] = useState(intake);
   const [percentage, setPercentage] = useState(0);
 
   // Handlers to increase or decrease calories intake
   const increaseCalorieIntake = () => {
-    if (caloriesIntake < goal) setCaloriesIntake(caloriesIntake + 100);
+    setCaloriesIntake(caloriesIntake + step);
   };
 
   const decreaseCalorieIntake = () => {
-    if (caloriesIntake > 0) setCaloriesIntake(caloriesIntake - 100);
+    if (caloriesIntake - step >= 0) setCaloriesIntake(caloriesIntake - step);
+    else setCaloriesIntake(0);
   };
 
   useLayoutEffect(() => {
@@ -48,10 +60,23 @@ export const CalorieIntakeTracker = ({ intake = 0, goal = 10000 }) => {
           </div>
         </ProgressRing>
       </CardContent>
-      <CardFooter className="flex justify-center gap-10">
+      <CardFooter className="flex justify-center gap-6">
         <button onClick={decreaseCalorieIntake}>
           <MinusCircleIcon size={28} />
         </button>
+        <Select
+          onValueChange={(value) => {
+            setStep(value);
+          }}
+        >
+          <SelectTrigger className="w-fit">{step}x</SelectTrigger>
+          <SelectContent>
+            <SelectItem value={1}>1x</SelectItem>
+            <SelectItem value={10}>10x</SelectItem>
+            <SelectItem value={100}>100x</SelectItem>
+            <SelectItem value={1000}>1000x</SelectItem>
+          </SelectContent>
+        </Select>
         <button onClick={increaseCalorieIntake}>
           <PlusCircleIcon size={28} />
         </button>

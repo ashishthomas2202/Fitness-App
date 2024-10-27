@@ -8,18 +8,30 @@ import {
 import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { FaFire } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 
-export const DistanceTracker = ({ distance = 0, goal = 10000 }) => {
+export const DistanceTracker = ({
+  distance = 0,
+  goal = 10000,
+  step: defaultStep = 0.01,
+}) => {
+  const [step, setStep] = useState(defaultStep);
   const [distanceCovered, setDistanceCovered] = useState(distance);
   const [percentage, setPercentage] = useState(0);
 
   // Handlers to increase or decrease distance covered
   const increaseDistanceCovered = () => {
-    if (distanceCovered < goal) setDistanceCovered(distanceCovered + 0.1);
+    setDistanceCovered(distanceCovered + step);
   };
 
   const decreaseDistanceCovered = () => {
-    if (distanceCovered > 0) setDistanceCovered(distanceCovered - 0.1);
+    if (distanceCovered - step >= 0) setDistanceCovered(distanceCovered - step);
+    else setDistanceCovered(0);
   };
 
   useLayoutEffect(() => {
@@ -42,16 +54,29 @@ export const DistanceTracker = ({ distance = 0, goal = 10000 }) => {
                 {distanceCovered.toFixed(2)}
               </p>
               <p className="font-light text-center text-base opacity-30">
-                / {goal} miles
+                / {goal.toFixed(2)} miles
               </p>
             </div>
           </div>
         </ProgressRing>
       </CardContent>
-      <CardFooter className="flex justify-center gap-10">
+      <CardFooter className="flex justify-center gap-6">
         <button onClick={decreaseDistanceCovered}>
           <MinusCircleIcon size={28} />
         </button>
+        <Select
+          onValueChange={(value) => {
+            setStep(value);
+          }}
+        >
+          <SelectTrigger className="w-fit">{step}x</SelectTrigger>
+          <SelectContent>
+            <SelectItem value={0.01}>0.01x</SelectItem>
+            <SelectItem value={0.1}>0.1x</SelectItem>
+            <SelectItem value={1}>1x</SelectItem>
+            <SelectItem value={10}>10x</SelectItem>
+          </SelectContent>
+        </Select>
         <button onClick={increaseDistanceCovered}>
           <PlusCircleIcon size={28} />
         </button>
