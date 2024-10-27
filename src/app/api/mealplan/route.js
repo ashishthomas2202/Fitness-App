@@ -1,56 +1,57 @@
-import { getServerAuthSession } from "@/lib/auth";
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
+import { getToken } from "next-auth/jwt";
 
-export async function GET(req, res) {
+export async function GET(req) {
     try {
-        console.log("Connecting to the database...");
         await connectDB();
 
-        // Use getServerAuthSession to get the session
-        const session = await getServerAuthSession(req, res);
-        console.log("Session details:", session);
-
-        if (!session || !session.user) {
-            return new Response(
-                JSON.stringify({ success: false, message: "Unauthorized" }),
-                { status: 401 }
-            );
+        // Parse user token
+        const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+        if (!token) {
+            return new Response(JSON.stringify({ success: false, message: "Unauthorized" }), { status: 401 });
         }
 
-        const userId = session.user.id;
+        // Extract date from request params
         const dateParam = new URL(req.url).searchParams.get('date');
-        const selectedDate = new Date(dateParam);
-
-        console.log("Querying meal plan for userId:", userId, "on date:", selectedDate);
-
-        const startOfDay = new Date(selectedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(selectedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const mealPlan = await MealPlan.find({
-            userId,
-            "meals.date": { $gte: startOfDay, $lte: endOfDay },
-        }).populate("meals.meal");
-
-        if (!mealPlan || mealPlan.length === 0) {
-            return new Response(
-                JSON.stringify({ success: true, data: [] }),
-                { status: 200 }
-            );
+        if (!dateParam) {
+            return new Response(JSON.stringify({ success: false, message: "Date is required" }), { status: 400 });
         }
 
-        console.log("Meal plan fetched:", mealPlan);
-        return new Response(
-            JSON.stringify({ success: true, data: mealPlan }),
-            { status: 200 }
-        );
+        // Convert the date string into a suitable format
+        const selectedDate = new Date(dateParam);
+        const dayString = selectedDate.toLocaleString("en-US", { weekday: "long" });
+
+        // Query meal plans for the user on the specific day
+        const mealPlan = await MealPlan.findOne({
+            userId: token.sub,
+            "days.day": dayString,
+        }).populate({
+            path: "days.meals.mealId",
+            model: "Meal"
+        });
+
+        // Check if mealPlan exists and structure the response correctly
+        if (!mealPlan) {
+            return new Response(JSON.stringify({ success: true, data: [] }), { status: 200 });
+        }
+
+        // Ensure dates are valid ISO strings
+        mealPlan.days.forEach(day => {
+            day.meals.forEach(meal => {
+                if (meal.date && !isNaN(new Date(meal.date))) {
+                    meal.date = new Date(meal.date).toISOString(); // Only set if it's valid
+                } else {
+                    console.warn("Invalid date found in meal:", meal); // Log any invalid dates
+                    meal.date = null; // Set to null or handle accordingly
+                }
+            });
+        });
+
+        return new Response(JSON.stringify({ success: true, data: mealPlan }), { status: 200 });
     } catch (error) {
         console.error("Error fetching meal plan:", error);
-        return new Response(
-            JSON.stringify({ success: false, message: "Internal Server Error" }),
-            { status: 500 }
-        );
+        return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), { status: 500 });
     }
 }
+

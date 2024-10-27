@@ -1,3 +1,4 @@
+// src/app/api/mealplan/add/route.js
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
 import Meal from "@/db/models/Meal";
@@ -7,64 +8,64 @@ export async function POST(req) {
     try {
         await connectDB();
 
-        const { mealId, date, mealType, userId } = await req.json();
-        console.log("Incoming Meal ID:", mealId);
-        console.log("Incoming data:", { mealId, date, mealType, userId });
+        const { mealId, date, mealType, userId, planName } = await req.json();
 
-        if (!mealId || !mealType || !date || !userId) {
-            return new Response(JSON.stringify({ success: false, message: "Invalid meal selection or missing data" }), {
-                status: 400,
-            });
+        // Check if all required fields are present
+        if (!mealId || !date || !mealType || !userId || !planName) {
+            return new Response(JSON.stringify({ success: false, message: "All fields are required" }), { status: 400 });
         }
 
-        // Ensure the mealId is a valid ObjectId
-        if (!mongoose.Types.ObjectId.isValid(mealId)) {
-            return new Response(
-                JSON.stringify({ success: false, message: "Invalid mealId format" }),
-                { status: 400 }
-            );
-        }
+        // Convert date to the name of the day
+        const dayName = new Date(date).toLocaleDateString("en-US", { weekday: "long" });
 
-        // Find the meal by its ID in the database
+        // Retrieve meal details by mealId
         const meal = await Meal.findById(mealId);
         if (!meal) {
-            return new Response(JSON.stringify({ success: false, message: "Meal not found" }), {
-                status: 404,
-            });
+            return new Response(JSON.stringify({ success: false, message: "Meal not found" }), { status: 404 });
         }
 
-        // Get start of the week date (Monday)
-        const startOfWeek = new Date(date);
-        const dayOfWeek = startOfWeek.getDay();
-        const distanceToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust if Sunday
-        startOfWeek.setDate(startOfWeek.getDate() - distanceToMonday);
-        startOfWeek.setHours(0, 0, 0, 0);
+        const mealData = {
+            mealId: meal._id,
+            mealType,
+            name: meal.name,
+            category: meal.category,
+            diet: meal.diet,
+            macros: meal.macros,
+            calories: meal.calories,
+            ingredients: meal.ingredients,
+            steps: meal.steps.map((step) => ({ description: step.description })),
+            preparation_time_min: meal.preparation_time_min,
+            order: 0, // or another default value if needed
+            date: new Date(date).toISOString(), // Convert date to ISO string
+        };
 
-        // Find or create the meal plan for the week
+        // Update or create the meal plan document
         const mealPlan = await MealPlan.findOneAndUpdate(
-            { userId: new mongoose.Types.ObjectId(userId), weekStartDate: startOfWeek },
-            { $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), weekStartDate: startOfWeek, meals: [] } },
+            { userId: new mongoose.Types.ObjectId(userId), planName },
+            {
+                $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), planName, startDate: new Date(date) },
+                $set: { status: "in progress" },
+                $addToSet: { days: { day: dayName, meals: [] } }, // Ensure the day entry exists
+            },
             { upsert: true, new: true }
         );
 
-        // Add the mealId and other meal plan details to the meal plan
-        mealPlan.meals.push({
-            meal: meal._id,
-            mealType,
-            date,
-        });
-
-        await mealPlan.save();
-
-        return new Response(
-            JSON.stringify({ success: true, data: mealPlan.meals[mealPlan.meals.length - 1] }),
-            { status: 200 }
+        // Now push the meal to the specified day
+        const updatedMealPlan = await MealPlan.findOneAndUpdate(
+            {
+                userId: new mongoose.Types.ObjectId(userId),
+                planName,
+                "days.day": dayName,
+            },
+            {
+                $push: { "days.$.meals": mealData },
+            },
+            { new: true }
         );
+
+        return new Response(JSON.stringify({ success: true, data: updatedMealPlan }), { status: 200 });
     } catch (error) {
         console.error("Error adding meal to meal plan:", error);
-        return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), {
-            status: 500,
-        });
+        return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), { status: 500 });
     }
 }
-
