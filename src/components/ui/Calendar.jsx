@@ -63,6 +63,30 @@ const getCurrentWeek = (selectedDate) => {
   });
 };
 
+const Months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const Days = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 export const Calendar = ({
   value = new Date(),
   onChange = () => {},
@@ -75,6 +99,7 @@ export const Calendar = ({
       name: "Daily Event",
       color: "#f59e0b",
       start: "2024-10-01",
+      time: "3:00 PM",
     },
     // Weekly recurring event on Monday and Wednesday starting from a specific date
     {
@@ -118,35 +143,21 @@ export const Calendar = ({
       name: "Weekend Event",
       color: "#8b5cf6",
       start: "2024-09-20",
+      time: "10:00 AM",
+    },
+    {
+      repeat: "weekly",
+      days: ["Friday", "Saturday"],
+      name: "Personal Event",
+      color: "#8b5446",
+      start: "2024-09-20",
+      end: "2024-10-15",
+      startTime: "11:00 AM",
+      endTime: "12:00 PM",
     },
   ],
   selection = true,
 }) => {
-  const Months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  const Days = [
-    "Sunday",
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-  ];
-
   const [year, setYear] = useState(value.getFullYear());
   const [month, setMonth] = useState(value.getMonth());
   const [date, setDate] = useState(value.getDate());
@@ -156,8 +167,6 @@ export const Calendar = ({
   const [daysInMonth, setDaysInMonth] = useState([]);
   const [postDays, setPostDays] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  const { xs, sm, md, lg, xl, xxl } = useScreenSize();
 
   const getDaysInMonth = (year, month) => {
     return new Date(year, month + 1, 0).getDate();
@@ -198,9 +207,15 @@ export const Calendar = ({
     setWeekDates(getCurrentWeek(new Date(year, month, date)));
   };
 
-  const getEventsForDay = ({ day, isPre = false, isPost = false }) => {
-    let eventYear = year;
-    let eventMonth = month;
+  const getEventsForDay = ({
+    day,
+    month: specifiedMonth,
+    year: specifiedYear,
+    isPre = false,
+    isPost = false,
+  }) => {
+    let eventYear = specifiedYear || year;
+    let eventMonth = specifiedMonth || month;
 
     // Adjust the year and month for pre and post days
     if (isPre) {
@@ -322,14 +337,14 @@ export const Calendar = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-7 mb-2 sm:gap-2">
+      {/* <div className="grid grid-cols-7 mb-2 sm:gap-2">
         {Days.map((day) => (
           <DayBlock
             key={`days-${day}`}
             day={xs ? day.slice(0, 1) : sm || md ? day.slice(0, 3) : day}
           />
         ))}
-      </div>
+      </div> */}
       {mode == "month" && (
         <MonthView
           preDays={preDays}
@@ -385,35 +400,56 @@ const WeekView = ({
   selection = false,
 }) => {
   return (
-    <div className="grid grid-cols-7 sm:gap-2">
-      {weekDates.map((date) => (
-        <DateBlock
-          key={date.toISOString()}
-          day={date.getDate()}
-          selected={
-            selection &&
-            date.getDate() == selectedDate?.date &&
-            date.getMonth() == selectedDate?.month &&
-            date.getFullYear() == selectedDate?.year
-          }
-          onClick={() => {
-            const selectedDate = new Date(date);
-            setDate?.year(selectedDate.getFullYear());
-            setDate?.month(selectedDate.getMonth());
-            setDate?.date(selectedDate.getDate());
-            onChange(selectedDate);
-          }}
-        >
-          {getEventsForDay({ day: date.getDate() }).map((event, index) => (
-            <Event
-              key={`event-${index}`}
-              event={event}
-              onClick={() => handleEventClick({ day: date.getDate(), event })}
-            />
-          ))}
-        </DateBlock>
-      ))}
-    </div>
+    <>
+      {/* <div className="grid grid-cols-7 sm:gap-2 pl-10">
+        {weekDates.map((date) => {
+          const day = date.getDate();
+          const month = date.getMonth(); // Track the correct month
+          const year = date.getFullYear(); // Track the correct year
+
+          return (
+            <DateBlock
+              key={date.toISOString()}
+              day={date.getDate()}
+              selected={
+                selection &&
+                date.getDate() == selectedDate?.date &&
+                date.getMonth() == selectedDate?.month &&
+                date.getFullYear() == selectedDate?.year
+              }
+              onClick={() => {
+                const selectedDate = new Date(date);
+                setDate?.year(selectedDate.getFullYear());
+                setDate?.month(selectedDate.getMonth());
+                setDate?.date(selectedDate.getDate());
+                onChange(selectedDate);
+              }}
+            >
+              {getEventsForDay({ day, month, year }).map((event, index) => (
+                <Event
+                  key={`event-${index}`}
+                  event={event}
+                  onClick={() =>
+                    handleEventClick({ day: date.getDate(), event })
+                  }
+                />
+              ))}
+            </DateBlock>
+          );
+        })}
+      </div> */}
+
+      <EventList
+        date={{
+          year: selectedDate.year,
+          month: selectedDate.month,
+          date: selectedDate.date,
+        }}
+        getEventsForDay={getEventsForDay}
+        weekDates={weekDates}
+        selection={selection}
+      />
+    </>
   );
 };
 const MonthView = ({
@@ -428,93 +464,106 @@ const MonthView = ({
   onChange = () => {},
   selection = false,
 }) => {
+  const { xs, sm, md, lg, xl, xxl } = useScreenSize();
+
   return (
-    <div className="grid grid-cols-7 sm:gap-2">
-      {preDays.map((day) => (
-        <DateBlock
-          key={`pre-day-${day}`}
-          day={day}
-          fade
-          onClick={() => {
-            const preYear = date?.month === 0 ? date?.year - 1 : date?.year;
-            const preMonth = date?.month === 0 ? 11 : date?.month - 1;
-            const selectedDate = new Date(date?.year, preMonth, day);
+    <>
+      <div className="grid grid-cols-7 mb-2 sm:gap-2">
+        {Days.map((day) => (
+          <DayBlock
+            key={`days-${day}`}
+            day={xs ? day.slice(0, 1) : sm || md ? day.slice(0, 3) : day}
+          />
+        ))}
+      </div>
+      <div className="grid grid-cols-7 sm:gap-2">
+        {preDays.map((day) => (
+          <DateBlock
+            key={`pre-day-${day}`}
+            day={day}
+            fade
+            onClick={() => {
+              const preYear = date?.month === 0 ? date?.year - 1 : date?.year;
+              const preMonth = date?.month === 0 ? 11 : date?.month - 1;
+              const selectedDate = new Date(date?.year, preMonth, day);
 
-            setDate?.year(preYear);
-            setDate?.month(preMonth);
-            setDate?.date(selectedDate.getDate());
-            onChange(selectedDate);
-          }}
-        >
-          {getEventsForDay({ day, isPre: true }).map((event, index) => (
-            <Event
-              key={`event-${index}`}
-              event={event}
-              onClick={() => {
-                handleEventClick({ day, event });
-              }}
-            />
-          ))}
-        </DateBlock>
-      ))}
+              setDate?.year(preYear);
+              setDate?.month(preMonth);
+              setDate?.date(selectedDate.getDate());
+              onChange(selectedDate);
+            }}
+          >
+            {getEventsForDay({ day, isPre: true }).map((event, index) => (
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+              />
+            ))}
+          </DateBlock>
+        ))}
 
-      {daysInMonth.map((day) => (
-        <DateBlock
-          key={`day-${day}`}
-          day={day}
-          highlight={
-            day === currentDate.getDate() &&
-            date?.month === currentDate.getMonth() &&
-            date?.year === currentDate.getFullYear()
-          }
-          highlightText="Today"
-          // tr={console.log(day)}
-          selected={selection && day == date?.date}
-          onClick={() => {
-            const selectedDate = new Date(date?.year, date?.month, day);
-            setDate?.date(selectedDate.getDate());
-            onChange(selectedDate);
-          }}
-        >
-          {getEventsForDay({ day }).map((event, index) => (
-            <Event
-              key={`event-${index}`}
-              event={event}
-              onClick={() => {
-                handleEventClick({ day, event });
-              }}
-            />
-          ))}
-        </DateBlock>
-      ))}
+        {daysInMonth.map((day) => (
+          <DateBlock
+            key={`day-${day}`}
+            day={day}
+            highlight={
+              day === currentDate.getDate() &&
+              date?.month === currentDate.getMonth() &&
+              date?.year === currentDate.getFullYear()
+            }
+            highlightText="Today"
+            // tr={console.log(day)}
+            selected={selection && day == date?.date}
+            onClick={() => {
+              const selectedDate = new Date(date?.year, date?.month, day);
+              setDate?.date(selectedDate.getDate());
+              onChange(selectedDate);
+            }}
+          >
+            {getEventsForDay({ day }).map((event, index) => (
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+                selected={selection && day == date?.date}
+              />
+            ))}
+          </DateBlock>
+        ))}
 
-      {postDays.map((day) => (
-        <DateBlock
-          key={`post-day-${day}`}
-          day={day}
-          fade
-          onClick={() => {
-            const postYear = date?.month === 11 ? date?.year + 1 : date?.year;
-            const postMonth = date?.month === 11 ? 0 : date?.month + 1;
-            const selectedDate = new Date(date?.year, postMonth, day);
-            setDate?.year(postYear);
-            setDate?.month(postMonth);
-            setDate?.date(selectedDate.getDate());
-            onChange(selectedDate);
-          }}
-        >
-          {getEventsForDay({ day, isPost: true }).map((event, index) => (
-            <Event
-              key={`event-${index}`}
-              event={event}
-              onClick={() => {
-                handleEventClick({ day, event });
-              }}
-            />
-          ))}
-        </DateBlock>
-      ))}
-    </div>
+        {postDays.map((day) => (
+          <DateBlock
+            key={`post-day-${day}`}
+            day={day}
+            fade
+            onClick={() => {
+              const postYear = date?.month === 11 ? date?.year + 1 : date?.year;
+              const postMonth = date?.month === 11 ? 0 : date?.month + 1;
+              const selectedDate = new Date(date?.year, postMonth, day);
+              setDate?.year(postYear);
+              setDate?.month(postMonth);
+              setDate?.date(selectedDate.getDate());
+              onChange(selectedDate);
+            }}
+          >
+            {getEventsForDay({ day, isPost: true }).map((event, index) => (
+              <Event
+                key={`event-${index}`}
+                event={event}
+                onClick={() => {
+                  handleEventClick({ day, event });
+                }}
+              />
+            ))}
+          </DateBlock>
+        ))}
+      </div>
+    </>
   );
 };
 const ModeSelector = ({ mode, setMode }) => {
@@ -679,7 +728,7 @@ const DateBlock = ({
   );
 };
 
-const Event = ({ event, onClick = () => {} }) => (
+const Event = ({ event, selected = false, onClick = () => {} }) => (
   <div
     className="px-1 rounded text-black dark:text-white text-[10px] lg:text-sm font-light  flex items-center gap-2 cursor-pointer transition-all duration-75"
     // style={{ backgroundColor: event.color }}
@@ -695,6 +744,230 @@ const Event = ({ event, onClick = () => {} }) => (
       className="h-3 w-3 rounded-full border border-neutral-700"
       style={{ backgroundColor: event.color }}
     ></div>{" "}
+    <span className={cn("truncate flex-1 leading-5", selected && "text-white")}>
+      {event.name}
+    </span>
+  </div>
+);
+
+const DetailedEvent = ({ event, onClick = () => {} }) => (
+  <div
+    className="h-full p-2 rounded-lg shadow border dark:border-neutral-800 text-white text-[10px] lg:text-sm font-light cursor-pointer transition-all duration-75"
+    style={{ backgroundColor: event.color }}
+    // onMouseEnter={(e) => {
+    //   e.currentTarget.style.backgroundColor = event.color; // Darken on hover
+    // }}
+    // onMouseLeave={(e) => {
+    //   e.currentTarget.style.backgroundColor = "transparent"; // Revert on mouse leave
+    // }}
+    onClick={onClick}
+  >
+    {/* <div
+      className="h-3 w-3 rounded-full border border-neutral-700"
+      style={{ backgroundColor: event.color }}
+    ></div>{" "} */}
     <span className="truncate flex-1 leading-5">{event.name}</span>
   </div>
 );
+
+/**
+ * Displays events with and without specific times.
+ */
+const EventList = ({
+  date: selectedDate = {},
+  getEventsForDay = () => [],
+  weekDates,
+  selection = false,
+}) => {
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+  const parseTime = (timeString) => {
+    const [time, modifier] = timeString.split(" ");
+    let [hours, minutes] = time.split(":");
+    if (modifier === "PM" && hours !== "12") hours = parseInt(hours) + 12;
+    if (modifier === "AM" && hours === "12") hours = 0;
+    return { hours: parseInt(hours), minutes: parseInt(minutes) };
+  };
+
+  return (
+    <>
+      <div className="grid grid-cols-8">
+        <div className="col-span-1"></div>
+        {weekDates.map((date) => {
+          const currentDate = date.getDate();
+          const currentMonth = date.getMonth();
+          const currentYear = date.getFullYear();
+          const currentDay = date.getDay();
+          const dayEvents = getEventsForDay({
+            day: currentDate,
+            month: currentMonth,
+            year: currentYear,
+          });
+
+          const [timedEvents, untimedEvents] = dayEvents.reduce(
+            ([timed, untimed], event) => {
+              if (event.startTime || event.endTime || event.time)
+                timed.push(event);
+              else untimed.push(event);
+              return [timed, untimed];
+            },
+            [[], []]
+          );
+
+          return (
+            <div key={date.toISOString()} className="px-2">
+              <div
+                className={cn(
+                  "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square",
+                  selection &&
+                    selectedDate.date == currentDate &&
+                    "bg-violet-500 dark:bg-violet-500 text-white"
+                )}
+              >
+                <div>
+                  <h2
+                    className={cn(
+                      "text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate",
+                      selection &&
+                        selectedDate.date == currentDate &&
+                        "text-slate-100 dark:text-slate-100"
+                    )}
+                  >
+                    {Days[currentDay]}
+                  </h2>
+                  <h2 className="text-4xl font-bold text-center mt-2">
+                    {currentDate}
+
+                    {/* {`${Months[currentMonth].slice(0, 3)} ${currentDate}`} */}
+                  </h2>
+                </div>
+                {untimedEvents.length != 0 && (
+                  <>
+                    <h3 className="font-semibold text-center mt-4">
+                      Untimed Events
+                    </h3>
+                    {untimedEvents.map((event, index) => (
+                      <div className="">
+                        <Event
+                          key={`untimed-${index}`}
+                          event={event}
+                          selected={
+                            selection && selectedDate.date == currentDate
+                          }
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-8 bg-slate-50 dark:bg-neutral-800 rounded-lg py-5 mt-5">
+        <div className="col-span-1">
+          <div className="grid grid-rows-subgrid">
+            {hours.map((hour) => (
+              <div key={hour} className="col-span-1 h-16">
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  {hour}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {weekDates.map((date) => {
+          const currentDate = date.getDate();
+          const currentMonth = date.getMonth();
+          const currentYear = date.getFullYear();
+          const currentDay = date.getDay();
+          const dayEvents = getEventsForDay({
+            day: currentDate,
+            month: currentMonth,
+            year: currentYear,
+          });
+
+          const [timedEvents, untimedEvents] = dayEvents.reduce(
+            ([timed, untimed], event) => {
+              if (event.startTime || event.endTime || event.time)
+                timed.push(event);
+              else untimed.push(event);
+              return [timed, untimed];
+            },
+            [[], []]
+          );
+
+          return (
+            <div key={`${date.toISOString()}`}>
+              {/* <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                {date.getDate()}
+              </div> */}
+
+              {hours.map((hour) => {
+                const currentHour = parseInt(hour);
+
+                // Filter events that match the current hour or span between this hour and the next
+                const matchingEvents = timedEvents.filter((event) => {
+                  const { hours: startHour, minutes: startMinute } = parseTime(
+                    event.startTime || event.time || "12:00 AM"
+                  );
+                  const { hours: endHour } = parseTime(
+                    event.endTime || event.time || "12:00 AM"
+                  );
+
+                  // Case 1: Events with only 'time' key (point-in-time events)
+                  if (event.time) {
+                    return startHour === currentHour;
+                  }
+
+                  // Case 2: Events with 'startTime' and 'endTime' (span events)
+                  return (
+                    startHour <= currentHour &&
+                    (endHour > currentHour ||
+                      (endHour === currentHour && startMinute === 0))
+                  );
+                });
+
+                // Render the events or a blank div if no matching events found
+                return (
+                  <div
+                    key={`${date.toISOString()}-${hour}`}
+                    className="col-span-1 h-16 relative"
+                  >
+                    {matchingEvents.length > 0 ? (
+                      matchingEvents.map((event, index) => (
+                        <div className="border-l dark:border-l-neutral-700 h-full px-2">
+                          <DetailedEvent
+                            key={`timed-${hour}-${index}`}
+                            event={event}
+                            style={{
+                              position: "absolute",
+                              top: 0,
+                              height: `${
+                                (parseTime(
+                                  event.endTime || event.time || "12:00 AM"
+                                ).hours -
+                                  parseTime(
+                                    event.startTime || event.time || "12:00 AM"
+                                  ).hours) *
+                                50
+                              }px`,
+                              width: "100%",
+                            }}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="h-full border-l dark:border-l-neutral-700"></div> // Blank div if no event found
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+};
