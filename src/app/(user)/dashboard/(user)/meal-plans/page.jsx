@@ -16,27 +16,35 @@ export default function MealPlans() {
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarEvents, setCalendarEvents] = useState([]); // For calendar data
+  const [calendarEvents, setCalendarEvents] = useState([]);
 
   const handleDateSelect = (date) => setSelectedDate(date);
   const goToPreviousDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
   const goToNextDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
 
-  // Extract all meals for the calendar
+  // Extract meals for calendar with date validation
   const extractMealsForCalendar = (days) => {
-    return days.map(day => ({
-      title: `Meals for ${day.day}`, // You can customize this title to show meal names, etc.
-      start: new Date(day.date), // Assuming 'date' is stored as a Date object or in ISO format
-      end: new Date(day.date), // Use the same date for start and end for a single-day event
-      meals: day.meals.map(meal => ({
-        name: meal.name,
-        mealType: meal.mealType,
-        calories: meal.calories,
-        macros: meal.macros,
-        date: new Date(meal.date),
-      })),
-    }));
+    return days.flatMap(day => {
+      return day.meals.map(meal => {
+        const mealDate = meal.date ? new Date(Date.parse(meal.date)) : new Date();
+        if (isNaN(mealDate.getTime())) {
+          console.error("Invalid date found in meal data:", meal);
+          return null;
+        }
+
+        return {
+          title: `${meal.name} (${meal.mealType})`,
+          start: mealDate,
+          end: mealDate,
+          allDay: true,
+          calories: meal.calories,
+          macros: meal.macros,
+        };
+      }).filter(event => event !== null);  // Filter out invalid date entries
+    });
   };
+
+
 
   // Fetch the meal plan for the selected date
   const fetchMealPlan = async () => {
@@ -44,6 +52,8 @@ export default function MealPlans() {
       setError("User not authenticated.");
       return;
     }
+
+    console.log("Fetching meal plan for date:", selectedDate.toISOString()); // Check if this date is correct
 
     try {
       const response = await axios.get("/api/mealplan", {
@@ -53,32 +63,35 @@ export default function MealPlans() {
         },
       });
 
-      console.log("Fetched meal plan data:", response.data);
-
       const mealPlanData = response.data?.data;
-
       if (mealPlanData && mealPlanData.days && mealPlanData.days.length > 0) {
         const mealsByType = organizeMealsByType(mealPlanData.days);
-        const calendarMeals = extractMealsForCalendar(mealPlanData.days); // Format for calendar
-
-        console.log("Meals organized by type:", mealsByType);
-        console.log("Calendar meals:", calendarMeals);
+        const calendarMeals = extractMealsForCalendar(mealPlanData.days);
 
         setMealPlan((prevMealPlan) => ({
           ...prevMealPlan,
           [selectedDate.toDateString()]: mealsByType,
         }));
-
-        setCalendarEvents(calendarMeals); // Set events for the calendar
+        setCalendarEvents(calendarMeals);
       } else {
-        console.log("No meal plan data found.");
-        setError("Failed to fetch meal plan data.");
+        setMealPlan((prevMealPlan) => ({
+          ...prevMealPlan,
+          [selectedDate.toDateString()]: {
+            Breakfast: [],
+            Lunch: [],
+            Dinner: [],
+            Snack: [],
+          },
+        }));
+        setCalendarEvents([]);
+        setError("No meal plan data found.");
       }
     } catch (error) {
       setError("Error fetching meal plan.");
       console.error("Error fetching meal plan:", error);
     }
   };
+
 
   const organizeMealsByType = (days) => {
     const organizedMeals = {
@@ -88,7 +101,9 @@ export default function MealPlans() {
       Snack: [],
     };
 
+    // Find the meals for the selected day
     const selectedDay = days.find(day => day.day === selectedDate.toLocaleString('en-us', { weekday: 'long' }));
+
     if (selectedDay) {
       selectedDay.meals.forEach((mealEntry) => {
         if (organizedMeals.hasOwnProperty(mealEntry.mealType)) {
@@ -97,8 +112,10 @@ export default function MealPlans() {
       });
     }
 
+    console.log("Organized meals by type:", organizedMeals); // Add this log to verify
     return organizedMeals;
   };
+
 
   // Fetch all meals for the search dropdown
   useEffect(() => {
@@ -126,7 +143,7 @@ export default function MealPlans() {
           "/api/mealplan/add",
           {
             mealId: selectedMeal.id,
-            date: selectedDate,
+            date: selectedDate.toISOString(), // Ensures ISO format for the backend
             mealType,
             userId: session?.user.id,
             planName: "My Meal Plan",
@@ -155,14 +172,17 @@ export default function MealPlans() {
   };
 
   const removeMealFromPlan = async (mealId, mealType) => {
-    if (!mealId) return;
+    if (!mealId || !session?.user?.id) {
+      setError("User is not authenticated or meal ID is missing.");
+      return;
+    }
 
     try {
       const response = await axios.post(
         "/api/mealplan/delete",
         {
           mealId,
-          date: selectedDate,
+          date: selectedDate.toLocaleString('en-us', { weekday: 'long' }), // Send the day name if backend expects it
           userId: session.user.id,
         },
         {
@@ -175,12 +195,14 @@ export default function MealPlans() {
       if (!response.data.success) {
         setError("Error removing meal from the plan.");
       } else {
-        fetchMealPlan(); // Refresh meal plan after removal
+        fetchMealPlan(); // Refresh meal plan after successful removal
       }
     } catch (error) {
       setError("Error removing meal from the plan.");
+      console.error("Error removing meal from the plan:", error);
     }
   };
+
 
   const handleSearchChange = (e) => {
     const term = e.target.value;
@@ -290,13 +312,13 @@ export default function MealPlans() {
               <h4 className="text-gray-500 font-semibold mb-2">{type}</h4>
               {mealPlan[selectedDate.toDateString()]?.[type]?.length > 0 ? (
                 <div className="space-y-4">
-                  {mealPlan[selectedDate.toDateString()][type].map((plan, idx) => (
+                  {mealPlan[selectedDate.toDateString()]?.[type]?.map((plan, idx) => (
                     <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md">
                       <div><span className="font-semibold">Name:</span> {plan.name}</div>
                       <div><span className="font-semibold">Calories:</span> {plan.calories} kcal</div>
                       <div><span className="font-semibold">Macros:</span> Protein: {plan.macros.protein}g, Carbs: {plan.macros.carbs}g, Fat: {plan.macros.fat}g</div>
                       <div><span className="font-semibold">Preparation Time:</span> {plan.preparation_time_min} minutes</div>
-                      <button onClick={() => removeMealFromPlan(plan.id, type)} className="text-red-500 hover:text-red-700 mt-2">
+                      <button onClick={() => removeMealFromPlan(plan._id, type)} className="text-red-500 hover:text-red-700 mt-2">
                         <X size={24} strokeWidth={4} />
                       </button>
                     </div>

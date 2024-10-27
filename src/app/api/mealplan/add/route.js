@@ -45,7 +45,7 @@ export async function POST(req) {
             {
                 $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), planName, startDate: new Date(date) },
                 $set: { status: "in progress" },
-                $addToSet: { days: { day: dayName, meals: [] } }, // Ensure the day entry exists
+                $addToSet: { days: { day: new Date(date), meals: [] } }, // Ensure `day` is accurately stored
             },
             { upsert: true, new: true }
         );

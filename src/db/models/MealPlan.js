@@ -15,7 +15,7 @@ const MealPlanSchema = new Schema(
         days: [
             {
                 day: {
-                    type: String, 
+                    type: String,
                     required: true,
                 },
                 meals: [
@@ -28,6 +28,10 @@ const MealPlanSchema = new Schema(
                         mealType: {
                             type: String,
                             enum: ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"],
+                            required: true,
+                        },
+                        date: {
+                            type: Date, // Single date field
                             required: true,
                         },
                         name: {
@@ -43,41 +47,26 @@ const MealPlanSchema = new Schema(
                             default: [],
                         },
                         macros: {
-                            protein: {
-                                type: Number,
-                                required: true,
-                            },
-                            carbs: {
-                                type: Number,
-                                required: true,
-                            },
-                            fat: {
-                                type: Number,
-                                required: true,
-                            },
+                            protein: { type: Number, required: true },
+                            carbs: { type: Number, required: true },
+                            fat: { type: Number, required: true },
                         },
                         calories: {
                             type: Number,
                             required: true,
                         },
-                        ingredients: {
-                            type: [
-                                {
-                                    name: { type: String },
-                                    amount: { type: Number },
-                                    unit: { type: String },
-                                },
-                            ],
-                            required: true,
-                        },
-                        steps: {
-                            type: [
-                                {
-                                    description: { type: String, required: true },
-                                },
-                            ],
-                            required: true,
-                        },
+                        ingredients: [
+                            {
+                                name: { type: String },
+                                amount: { type: Number },
+                                unit: { type: String },
+                            },
+                        ],
+                        steps: [
+                            {
+                                description: { type: String, required: true },
+                            },
+                        ],
                         preparation_time_min: {
                             type: Number,
                             required: true,
@@ -91,15 +80,6 @@ const MealPlanSchema = new Schema(
                 ],
             },
         ],
-        startDate: {
-            type: Date,
-            required: true,
-            default: Date.now,
-        },
-        endDate: {
-            type: Date,
-            nullable: true,
-        },
         status: {
             type: String,
             enum: ["complete", "in progress"],

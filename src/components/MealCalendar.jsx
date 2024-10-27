@@ -6,34 +6,13 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 const localizer = momentLocalizer(moment);
 
 const MealCalendar = ({ mealPlan }) => {
-    const events = mealPlan.flatMap((plan) => {
-        if (!plan.meals || plan.meals.length === 0) {
-            console.error("No meals found for plan:", plan);
-            return [];
-        }
-
-        return plan.meals.map((meal) => {
-            const mealDate = new Date(meal.date); // Now, it should be a valid ISO string
-
-            if (isNaN(mealDate.getTime())) {
-                console.error("Invalid date for meal:", meal);
-                return null;
-            }
-
-            return {
-                title: `${meal.name} (${meal.mealType})`,
-                start: mealDate,
-                end: mealDate,
-                allDay: true,
-            };
-        }).filter(event => event !== null);
-    });
+    console.log("Meal plan received:", mealPlan); // Check if future dates are correct here
 
     return (
         <div style={{ height: 500 }}>
             <Calendar
                 localizer={localizer}
-                events={events}
+                events={mealPlan}
                 startAccessor="start"
                 endAccessor="end"
                 style={{ height: "100%" }}
