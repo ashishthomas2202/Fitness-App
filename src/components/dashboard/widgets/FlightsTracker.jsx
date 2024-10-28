@@ -8,18 +8,30 @@ import {
 import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { TbStairs } from "react-icons/tb";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 
-export const FlightsTracker = ({ flights = 0, goal = 10000 }) => {
+export const FlightsTracker = ({
+  flights = 0,
+  goal = 10000,
+  step: defaultStep = 10,
+}) => {
+  const [step, setStep] = useState(defaultStep);
   const [flightsClimbed, setFlightsClimbed] = useState(flights);
   const [percentage, setPercentage] = useState(0);
 
   // Handlers to increase or decrease flights climbed
   const increaseFlightsClimbed = () => {
-    if (flightsClimbed < goal) setFlightsClimbed(flightsClimbed + 10);
+    setFlightsClimbed(flightsClimbed + step);
   };
 
   const decreaseFlightsClimbed = () => {
-    if (flightsClimbed > 0) setFlightsClimbed(flightsClimbed - 10);
+    if (flightsClimbed - step >= 0) setFlightsClimbed(flightsClimbed - step);
+    else setFlightsClimbed(0);
   };
 
   useLayoutEffect(() => {
@@ -48,10 +60,23 @@ export const FlightsTracker = ({ flights = 0, goal = 10000 }) => {
           </div>
         </ProgressRing>
       </CardContent>
-      <CardFooter className="flex justify-center gap-10">
+      <CardFooter className="flex justify-center gap-6">
         <button onClick={decreaseFlightsClimbed}>
           <MinusCircleIcon size={28} />
         </button>
+        <Select
+          onValueChange={(value) => {
+            setStep(value);
+          }}
+        >
+          <SelectTrigger className="w-fit">{step}x</SelectTrigger>
+          <SelectContent>
+            <SelectItem value={1}>1x</SelectItem>
+            <SelectItem value={10}>10x</SelectItem>
+            <SelectItem value={100}>100x</SelectItem>
+            <SelectItem value={1000}>1000x</SelectItem>
+          </SelectContent>
+        </Select>
         <button onClick={increaseFlightsClimbed}>
           <PlusCircleIcon size={28} />
         </button>

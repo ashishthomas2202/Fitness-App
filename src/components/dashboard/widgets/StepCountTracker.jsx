@@ -8,18 +8,32 @@ import {
 import { MinusCircleIcon, PlusCircleIcon } from "lucide-react";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { IoFootsteps } from "react-icons/io5";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
 
-export const StepCountTracker = ({ steps = 0, goal = 10000 }) => {
+export const StepCountTracker = ({
+  steps = 0,
+  goal = 10000,
+  step: defaultStep = 100,
+}) => {
+  const [step, setStep] = useState(defaultStep);
   const [currentSteps, setCurrentSteps] = useState(steps);
   const [percentage, setPercentage] = useState(0);
 
   // Handlers to increase or decrease steps
   const increaseSteps = () => {
-    if (currentSteps < goal) setCurrentSteps(currentSteps + 1000); // Increment by 500 steps
+    setCurrentSteps(currentSteps + step); // Increment by step
   };
 
   const decreaseSteps = () => {
-    if (currentSteps > 0) setCurrentSteps(currentSteps - 1000); // Decrement by 500 steps
+    if (currentSteps - step >= 0)
+      setCurrentSteps(currentSteps - step); // Decrement by step
+    else setCurrentSteps(0);
+    // if (currentSteps > 0) setCurrentSteps(currentSteps - 1000); // Decrement by 500 steps
   };
 
   useLayoutEffect(() => {
@@ -50,10 +64,23 @@ export const StepCountTracker = ({ steps = 0, goal = 10000 }) => {
           </div>
         </ProgressRing>
       </CardContent>
-      <CardFooter className="flex justify-center gap-10">
+      <CardFooter className="flex justify-center gap-6">
         <button onClick={decreaseSteps}>
           <MinusCircleIcon size={28} />
         </button>
+        <Select
+          onValueChange={(value) => {
+            setStep(value);
+          }}
+        >
+          <SelectTrigger className="w-fit">{step}x</SelectTrigger>
+          <SelectContent>
+            <SelectItem value={1}>1x</SelectItem>
+            <SelectItem value={10}>10x</SelectItem>
+            <SelectItem value={100}>100x</SelectItem>
+            <SelectItem value={1000}>1000x</SelectItem>
+          </SelectContent>
+        </Select>
         <button onClick={increaseSteps}>
           <PlusCircleIcon size={28} />
         </button>
