@@ -19,32 +19,36 @@ export default function MealPlans() {
   const [calendarEvents, setCalendarEvents] = useState([]);
 
   const handleDateSelect = (date) => setSelectedDate(date);
-  const goToPreviousDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
-  const goToNextDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
+  const goToPreviousDay = () =>
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
+  const goToNextDay = () =>
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
 
   // Extract meals for calendar with date validation
   const extractMealsForCalendar = (days) => {
-    return days.flatMap(day => {
-      return day.meals.map(meal => {
-        const mealDate = meal.date ? new Date(Date.parse(meal.date)) : new Date();
-        if (isNaN(mealDate.getTime())) {
-          console.error("Invalid date found in meal data:", meal);
-          return null;
-        }
+    return days.flatMap((day) => {
+      return day.meals
+        .map((meal) => {
+          const mealDate = meal.date
+            ? new Date(Date.parse(meal.date))
+            : new Date();
+          if (isNaN(mealDate.getTime())) {
+            console.error("Invalid date found in meal data:", meal);
+            return null;
+          }
 
-        return {
-          title: `${meal.name} (${meal.mealType})`,
-          start: mealDate,
-          end: mealDate,
-          allDay: true,
-          calories: meal.calories,
-          macros: meal.macros,
-        };
-      }).filter(event => event !== null);  // Filter out invalid date entries
+          return {
+            title: `${meal.name} (${meal.mealType})`,
+            start: mealDate,
+            end: mealDate,
+            allDay: true,
+            calories: meal.calories,
+            macros: meal.macros,
+          };
+        })
+        .filter((event) => event !== null); // Filter out invalid date entries
     });
   };
-
-
 
   // Fetch the meal plan for the selected date
   const fetchMealPlan = async () => {
@@ -92,7 +96,6 @@ export default function MealPlans() {
     }
   };
 
-
   const organizeMealsByType = (days) => {
     const organizedMeals = {
       Breakfast: [],
@@ -102,7 +105,10 @@ export default function MealPlans() {
     };
 
     // Find the meals for the selected day
-    const selectedDay = days.find(day => day.day === selectedDate.toLocaleString('en-us', { weekday: 'long' }));
+    const selectedDay = days.find(
+      (day) =>
+        day.day === selectedDate.toLocaleString("en-us", { weekday: "long" })
+    );
 
     if (selectedDay) {
       selectedDay.meals.forEach((mealEntry) => {
@@ -115,7 +121,6 @@ export default function MealPlans() {
     console.log("Organized meals by type:", organizedMeals); // Add this log to verify
     return organizedMeals;
   };
-
 
   // Fetch all meals for the search dropdown
   useEffect(() => {
@@ -139,6 +144,12 @@ export default function MealPlans() {
   const addToMealPlan = async () => {
     if (selectedMeal) {
       try {
+        console.log(
+          "Adding meal to the plan:",
+          selectedMeal,
+          mealType,
+          selectedDate
+        );
         const response = await axios.post(
           "/api/mealplan/add",
           {
@@ -182,7 +193,7 @@ export default function MealPlans() {
         "/api/mealplan/delete",
         {
           mealId,
-          date: selectedDate.toLocaleString('en-us', { weekday: 'long' }), // Send the day name if backend expects it
+          date: selectedDate.toLocaleString("en-us", { weekday: "long" }), // Send the day name if backend expects it
           userId: session.user.id,
         },
         {
@@ -203,14 +214,16 @@ export default function MealPlans() {
     }
   };
 
-
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
 
     const filtered = meals.filter((meal) => {
-      const matchesSearch = meal.name.toLowerCase().includes(term.toLowerCase());
-      const matchesCategory = categoryFilter === "All" || meal.category === categoryFilter;
+      const matchesSearch = meal.name
+        .toLowerCase()
+        .includes(term.toLowerCase());
+      const matchesCategory =
+        categoryFilter === "All" || meal.category === categoryFilter;
       return matchesSearch && matchesCategory;
     });
 
@@ -235,15 +248,31 @@ export default function MealPlans() {
       {error && <p className="text-red-500">{error}</p>}
 
       <div className="flex justify-between items-center mb-4">
-        <button onClick={goToPreviousDay} className="px-4 py-2 bg-gray-500 text-white rounded">Previous Day</button>
-        <div><span className="font-semibold">Meals for {selectedDate.toLocaleDateString()}</span></div>
-        <button onClick={goToNextDay} className="px-4 py-2 bg-gray-500 text-white rounded">Next Day</button>
+        <button
+          onClick={goToPreviousDay}
+          className="px-4 py-2 bg-gray-500 text-white rounded"
+        >
+          Previous Day
+        </button>
+        <div>
+          <span className="font-semibold">
+            Meals for {selectedDate.toLocaleDateString()}
+          </span>
+        </div>
+        <button
+          onClick={goToNextDay}
+          className="px-4 py-2 bg-gray-500 text-white rounded"
+        >
+          Next Day
+        </button>
       </div>
 
       <div className="mb-4">
         <div className="flex flex-col md:flex-row md:space-x-4">
           <div className="flex-grow mb-4 md:mb-0 relative">
-            <label htmlFor="searchMeal" className="block mb-2">Search for a Meal</label>
+            <label htmlFor="searchMeal" className="block mb-2">
+              Search for a Meal
+            </label>
             <input
               id="searchMeal"
               type="text"
@@ -269,7 +298,9 @@ export default function MealPlans() {
           </div>
 
           <div className="flex-grow">
-            <label htmlFor="filterCategory" className="block mb-2">Filter by Category</label>
+            <label htmlFor="filterCategory" className="block mb-2">
+              Filter by Category
+            </label>
             <select
               id="filterCategory"
               value={categoryFilter}
@@ -288,7 +319,9 @@ export default function MealPlans() {
       </div>
 
       <div className="mb-4">
-        <label htmlFor="mealType" className="block mb-2">Meal Type</label>
+        <label htmlFor="mealType" className="block mb-2">
+          Meal Type
+        </label>
         <select
           id="mealType"
           value={mealType}
@@ -302,30 +335,65 @@ export default function MealPlans() {
         </select>
       </div>
 
-      <button onClick={addToMealPlan} className="px-4 py-2 bg-purple-500 text-white rounded mb-6">Add to Meal Plan</button>
+      <button
+        onClick={addToMealPlan}
+        className="px-4 py-2 bg-purple-500 text-white rounded mb-6"
+      >
+        Add to Meal Plan
+      </button>
 
       <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-4">Your Meal Plan for {selectedDate.toLocaleDateString()}</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          Your Meal Plan for {selectedDate.toLocaleDateString()}
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {["Breakfast", "Lunch", "Dinner", "Snack"].map((type) => (
-            <div key={type} className="bg-white shadow-md rounded-lg p-4 border border-gray-200 transition-all duration-300">
+            <div
+              key={type}
+              className="bg-white shadow-md rounded-lg p-4 border border-gray-200 transition-all duration-300"
+            >
               <h4 className="text-gray-500 font-semibold mb-2">{type}</h4>
               {mealPlan[selectedDate.toDateString()]?.[type]?.length > 0 ? (
                 <div className="space-y-4">
-                  {mealPlan[selectedDate.toDateString()]?.[type]?.map((plan, idx) => (
-                    <div key={idx} className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md">
-                      <div><span className="font-semibold">Name:</span> {plan.name}</div>
-                      <div><span className="font-semibold">Calories:</span> {plan.calories} kcal</div>
-                      <div><span className="font-semibold">Macros:</span> Protein: {plan.macros.protein}g, Carbs: {plan.macros.carbs}g, Fat: {plan.macros.fat}g</div>
-                      <div><span className="font-semibold">Preparation Time:</span> {plan.preparation_time_min} minutes</div>
-                      <button onClick={() => removeMealFromPlan(plan._id, type)} className="text-red-500 hover:text-red-700 mt-2">
-                        <X size={24} strokeWidth={4} />
-                      </button>
-                    </div>
-                  ))}
+                  {mealPlan[selectedDate.toDateString()]?.[type]?.map(
+                    (plan, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md"
+                      >
+                        <div>
+                          <span className="font-semibold">Name:</span>{" "}
+                          {plan.name}
+                        </div>
+                        <div>
+                          <span className="font-semibold">Calories:</span>{" "}
+                          {plan.calories} kcal
+                        </div>
+                        <div>
+                          <span className="font-semibold">Macros:</span>{" "}
+                          Protein: {plan.macros.protein}g, Carbs:{" "}
+                          {plan.macros.carbs}g, Fat: {plan.macros.fat}g
+                        </div>
+                        <div>
+                          <span className="font-semibold">
+                            Preparation Time:
+                          </span>{" "}
+                          {plan.preparation_time_min} minutes
+                        </div>
+                        <button
+                          onClick={() => removeMealFromPlan(plan._id, type)}
+                          className="text-red-500 hover:text-red-700 mt-2"
+                        >
+                          <X size={24} strokeWidth={4} />
+                        </button>
+                      </div>
+                    )
+                  )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">No {type.toLowerCase()} planned.</p>
+                <p className="text-sm text-gray-500">
+                  No {type.toLowerCase()} planned.
+                </p>
               )}
             </div>
           ))}
