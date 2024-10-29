@@ -15,35 +15,74 @@ import {
   HelpCircle,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import CommentsSection from "@/components/ui/CommentsSection";
-
+/* TODO Fix the comments visibitlity
+TODO Add linking to the buttons
+TODO*/
 // Sample data for posts and sidebar items
-const posts = [
-  {
-    id: 1,
-    user: "John Doe",
-    activity: "Completed a 5k run",
-    time: "10 min ago",
-    description: "Just finished an amazing run with my fitness buddy @JoeyB !",
-    likes: 230,
-    comments: 6,
-    shares: 4,
-  },
-  {
-    id: 2,
-    user: "Kat Harpey",
-    activity: "Created a workout group",
-    time: "Thursday, 17 August 10:40 AM",
-    description: "Sell or swap your workout gear. Let's connect!",
-    likes: 18,
-    comments: 2,
-    shares: 2,
-  },
-];
+// const posts = [
+//   {
+//     id: 1,
+//     user: "John Doe",
+//     activity: "Completed a 5k run",
+//     time: "10 min ago",
+//     description: "Just finished an amazing run with my fitness buddy @JoeyB !",
+//     likes: 230,
+//     comments: 6,
+//     shares: 4,
+//   },
+//   {
+//     id: 2,
+//     user: "Kat Harpey",
+//     activity: "Created a workout group",
+//     time: "Thursday, 17 August 10:40 AM",
+//     description: "Sell or swap your workout gear. Let's connect!",
+//     likes: 18,
+//     comments: 2,
+//     shares: 2,
+//   },
+// ];
 
-
+const postsData=[
+  {userId:{
+    id:"871364873",
+    firstName:"Declan",
+    lastName:"Belfield"
+  },
+  id: "11234",
+  title: "Hello",
+  description:"I am saying Hello",
+  likes:[{userId:"diucbsdibvcisdjn"},{userId:"13215376125"},{userId:"23621763287"}],
+  comments:[{userId:{
+    id:"0938598",
+    firstName:"will",
+    lastName:"gamble"
+  },comment:"finally this",subComments:{userId:{
+    id:"981364872",
+    firstName:"Gok",
+    lastName:"U"
+  },comment:"cool",child:null}},]
+  },
+  {userId:{
+    id:"928798275",
+    firstName:"John",
+    lastName:"Cena"
+  },
+    id: "287863",
+    title: "This is cool",
+    description:"jwfiodoinwo",
+    likes:[{userId:"78136287136872"},{userId:"3687467832"},{userId:"172y734"}],
+    comments:[{userId:{
+      id:"2795983475983",
+      firstName:"Derek",
+      lastName:"Key"
+    },comment:"Thats neat",subComm:{userId:"89198327",comment:"awe",child:null}},]
+    }
+]
+  
 const CommunityPage = () => {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [isPostWindowOpen, setIsPostWindowOpen] = useState(false);
@@ -53,8 +92,42 @@ const CommunityPage = () => {
   const [activeCommentPostId, setActiveCommentPostId] = useState(null); 
   const [newCommentText, setNewCommentText] = useState("");
   const [visibleComments, setVisibleComments] = useState({}); 
-
-  const openPostWindow = () => {
+  const {data:session}=useSession();
+ 
+  const fetchPosts=() => {
+    setPosts(postsData)
+    return postsData
+  }
+  const checklike = (post) => {
+    return post?.likes?.some(like => like?.userId === session?.user?.id);
+  };  
+  const countComments = (post) => {
+    const countNestedComments = (comment) => {
+      // Count the current comment
+      let count = 1;
+  
+      // Recursively count sub-comments if they exist
+      if (comment.subComments) {
+        count += countNestedComments(comment.subComments);
+      }
+  
+      return count;
+    };
+  
+    // Sum up all comments and nested comments
+    return post.comments.reduce((total, comment) => total + countNestedComments(comment), 0);
+  };
+  const handleAddComment = (updatedPost) => {
+    // Update the post in the posts array
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === updatedPost.id ? { ...updatedPost } : post
+      )
+    );
+  };
+  
+  // const checklike=(post)=>{return post?.likes.find(like=>{like?.userId==session?.user?.id}).length>0}
+   const openPostWindow = () => {
     setIsPostWindowOpen(true);
   };
 
@@ -62,19 +135,23 @@ const CommunityPage = () => {
     setIsPostWindowOpen(false);
   };
   
-  const handleLike = (id) => {
+  const handleLike = (post) => {
+    const isliked = checklike(post);
+  
     setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === id
+      prevPosts.map((p) =>
+        p.id === post.id
           ? {
-              ...post,
-              liked: !post.liked, // Toggle like status
-              likes: post.liked ? post.likes - 1 : post.likes + 1, 
+              ...p,
+              likes: isliked
+                ? p.likes.filter((like) => like.userId !== session?.user?.id) // Remove like
+                : [...p.likes, { userId: session?.user?.id }], // Add like
             }
-          : post
+          : p
       )
     );
   };
+  
 
   const handlePostSubmit = () => {
     if (postTitle && newPostText) {
@@ -123,6 +200,9 @@ const toggleCommentsVisibility = (postId) => {
     [postId]: !prevState[postId], 
   }));
 };
+useEffect(()=>{
+  fetchPosts()
+},[])
   return (
     
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
@@ -189,7 +269,7 @@ const toggleCommentsVisibility = (postId) => {
             <Activity className="text-gray-600 dark:text-gray-300" />
             <span>Feed</span>
           </li>
-          <li
+          {/* <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Stories"
                 ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
@@ -199,7 +279,7 @@ const toggleCommentsVisibility = (postId) => {
           >
             <Star className="text-gray-600 dark:text-gray-300" />
             <span>Stories</span>
-          </li>
+          </li> */}
           <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Events"
@@ -346,36 +426,36 @@ const toggleCommentsVisibility = (postId) => {
         {/* Posts Section */}
         <section className="space-y-6">
           
-          {posts.map((post) => (
+          {posts.map((post) => ( 
             <div
-              key={post.id}
-              className="bg-white dark:bg-neutral-700 p-6 rounded-lg shadow relative"
-            >
+               key={post?.id}
+               className="bg-white dark:bg-neutral-700 p-6 rounded-lg shadow relative"
+             >
               <header className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold">{post.user}</h3>
-                  <p className="text-gray-500 text-sm">{post.activity}</p>
-                </div>
-              </header>
-              <p className="mt-4">{post.description}</p>
-              <footer className="flex justify-between items-center mt-4">
-                <div className="flex space-x-4">
-                <button
+                 <div>
+                   <h3 className="text-xl font-semibold">{post?.userId?.firstName} {post?.userId?.lastName}</h3>
+                   <p className="text-gray-500 text-sm">{post?.title}</p>
+                 </div>
+               </header>
+               <p className="mt-4">{post?.description}</p>
+               <footer className="flex justify-between items-center mt-4">
+                 <div className="flex space-x-4">
+                 <button
                     className="flex items-center space-x-1"
-                    onClick={() => handleLike(post.id)}
+                    onClick={() => handleLike(post)}
                   >
                     <Heart
-                      className={post.liked ? "text-red-600" : "text-red-600"}
-                      fill={post.liked ? "currentColor" : "none"}
+                      className={checklike(post) ? "text-red-600" : "text-red-600"}
+                      fill={checklike(post) ? "currentColor" : "none"}
                     />
-                    <span>{post.likes}</span>
+                    <span>{post?.likes?.length || 0}</span>
                   </button>
                   <button 
                  className="flex items-center space-x-1"
                    onClick={() => toggleCommentWindow(post.id)} 
                 >
                <MessageSquare />
-                 <span>{post.comments.length}</span> {}
+                 <span>{countComments(post)}</span> {}
                   </button>
                   <button className="flex items-center space-x-1">
                     <Share />
@@ -388,29 +468,31 @@ const toggleCommentsVisibility = (postId) => {
                 </p>
                 
               </footer>
-         {/* Comments Button */}
+         {/* Comments Button
            <div className="flex justify-center mt-4 -mt-8">
           <button
           className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
-          onClick={() => toggleCommentsVisibility(post.id)}
+          onClick={() => toggleComments(post.id)}
           >
           {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
         </button>
-      </div>
+      </div> */}
 <div>
             {/* Comments Section */}
             {activeCommentPostId === post.id && (
               <CommentsSection
-                postId={post.id}
-                comments={post.comments || []}
-                handleCommentSubmit={handleCommentSubmit}
-                isCommentSectionVisible={() => toggleCommentWindow(post.id)}
+              post={post}
+              handleAddComment={handleAddComment}
+                // postId={post.id}
+                // comments={post.comments || []}
+                // handleCommentSubmit={handleCommentSubmit}
+                // isCommentSectionVisible={() => toggleCommentWindow(post.id)}
               />
             )}
           </div>
-                  ))
+                
               {/* Comment Input Window */}
-              {activeCommentPostId === post.id && (
+              {/* {activeCommentPostId === post.id && (
                 <div className="mt-4">
                   <textarea
                     value={newCommentText}
@@ -426,8 +508,8 @@ const toggleCommentsVisibility = (postId) => {
                     Submit Comment
                   </button>
                 </div>
-              )}
-            </div>
+              )} */}
+             </div>
           ))}
         </section>
       </main>
@@ -462,7 +544,7 @@ const toggleCommentsVisibility = (postId) => {
               rows={5}
             ></textarea>
 
-            {/* Submit Button */}
+            Submit Button
             <button
               onClick={handlePostSubmit}
               className="w-full py-2 bg-blue-500 text-white rounded-lg"
