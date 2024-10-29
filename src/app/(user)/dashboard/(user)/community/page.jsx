@@ -19,6 +19,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import CommentsSection from "@/components/ui/CommentsSection";
+import Link from 'next/link'
 /* TODO Fix the comments visibitlity
 TODO Add linking to the buttons
 TODO*/
@@ -210,17 +211,20 @@ useEffect(()=>{
       <aside className="w-1/5 bg-white dark:bg-neutral-800 p-6 space-y-4 rounded-lg shadow-lg">
         <h2 className="text-xl font-semibold">Community Hub</h2>
         <nav className="space-y-3">
-          <button
-            className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Home"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Home")}
-          >
-            <Home className="text-gray-600 dark:text-gray-300" />
-            <span>Home</span>
-          </button>
+        <Link href="/dashboard" passHref>
+        <button
+         className={`w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
+          selectedFilter === "Home"
+        ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
+        : "text-gray-700 dark:text-gray-200"
+       }`}
+    onClick={() => setSelectedFilter("Home")}
+            >
+          <Home className="text-gray-600 dark:text-gray-300" />
+          <span>Home</span>
+        </button>
+      </Link>
+       <Link href="/dashboard/profile"passHref>
           <button
             className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Profile"
@@ -232,6 +236,7 @@ useEffect(()=>{
             <User className="text-gray-600 dark:text-gray-300" />
             <span>Profile</span>
           </button>
+          </Link>
         </nav>
 
         <h3 className="font-semibold mt-8">Favorites</h3>
@@ -258,7 +263,7 @@ useEffect(()=>{
             <Users className="text-gray-600 dark:text-gray-300" />
             <span>Friends</span>
           </li>
-          <li
+          {/* <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Feed"
                 ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
@@ -268,7 +273,7 @@ useEffect(()=>{
           >
             <Activity className="text-gray-600 dark:text-gray-300" />
             <span>Feed</span>
-          </li>
+          </li> */}
           {/* <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Stories"
