@@ -19,7 +19,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import CommentsSection from "@/components/ui/CommentsSection";
-import Link from 'next/link'
+import Link from "next/link";
 /* TODO Fix the comments visibitlity
 TODO Add linking to the buttons
 TODO*/
@@ -47,76 +47,105 @@ TODO*/
 //   },
 // ];
 
-const postsData=[
-  {userId:{
-    id:"871364873",
-    firstName:"Declan",
-    lastName:"Belfield"
+const postsData = [
+  {
+    userId: {
+      id: "871364873",
+      firstName: "Declan",
+      lastName: "Belfield",
+    },
+    id: "11234",
+    title: "Hello",
+    description: "I am saying Hello",
+    likes: [
+      { userId: "diucbsdibvcisdjn" },
+      { userId: "13215376125" },
+      { userId: "23621763287" },
+    ],
+    comments: [
+      {
+        userId: {
+          id: "0938598",
+          firstName: "will",
+          lastName: "gamble",
+        },
+        comment: "finally this",
+        subComments: {
+          userId: {
+            id: "981364872",
+            firstName: "Gok",
+            lastName: "U",
+          },
+          comment: "cool",
+          child: null,
+        },
+      },
+    ],
   },
-  id: "11234",
-  title: "Hello",
-  description:"I am saying Hello",
-  likes:[{userId:"diucbsdibvcisdjn"},{userId:"13215376125"},{userId:"23621763287"}],
-  comments:[{userId:{
-    id:"0938598",
-    firstName:"will",
-    lastName:"gamble"
-  },comment:"finally this",subComments:{userId:{
-    id:"981364872",
-    firstName:"Gok",
-    lastName:"U"
-  },comment:"cool",child:null}},]
-  },
-  {userId:{
-    id:"928798275",
-    firstName:"John",
-    lastName:"Cena"
-  },
+  {
+    userId: {
+      id: "928798275",
+      firstName: "John",
+      lastName: "Cena",
+    },
     id: "287863",
     title: "This is cool",
-    description:"jwfiodoinwo",
-    likes:[{userId:"78136287136872"},{userId:"3687467832"},{userId:"172y734"}],
-    comments:[{userId:{
-      id:"2795983475983",
-      firstName:"Derek",
-      lastName:"Key"
-    },comment:"Thats neat",subComm:{userId:"89198327",comment:"awe",child:null}},]
-    }
-]
-  
+    description: "jwfiodoinwo",
+    likes: [
+      { userId: "78136287136872" },
+      { userId: "3687467832" },
+      { userId: "172y734" },
+    ],
+    comments: [
+      {
+        userId: {
+          id: "2795983475983",
+          firstName: "Derek",
+          lastName: "Key",
+        },
+        comment: "Thats neat",
+        subComm: { userId: "89198327", comment: "awe", child: null },
+      },
+    ],
+  },
+];
+
 const CommunityPage = () => {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [isPostWindowOpen, setIsPostWindowOpen] = useState(false);
   const [newPostText, setNewPostText] = useState("");
   const [postTitle, setPostTitle] = useState("");
-  const [posts, setPosts] = useState([]); 
-  const [activeCommentPostId, setActiveCommentPostId] = useState(null); 
+  const [posts, setPosts] = useState([]);
+  const [activeCommentPostId, setActiveCommentPostId] = useState(null);
   const [newCommentText, setNewCommentText] = useState("");
-  const [visibleComments, setVisibleComments] = useState({}); 
-  const {data:session}=useSession();
- 
-  const fetchPosts=() => {
-    setPosts(postsData)
-    return postsData
-  }
+  const [visibleComments, setVisibleComments] = useState({});
+  const { data: session } = useSession();
+
+  const fetchPosts = () => {
+    setPosts(postsData);
+    return postsData;
+  };
   const checklike = (post) => {
-    return post?.likes?.some(like => like?.userId === session?.user?.id);
-  };  
+    return post?.likes?.some((like) => like?.userId === session?.user?.id);
+  };
   const countComments = (post) => {
     const countNestedComments = (comment) => {
       // Count the current comment
       let count = 1;
-  
+
       // Recursively count sub-comments if they exist
       if (comment.subComments) {
         count += countNestedComments(comment.subComments);
       }
-  
+
       return count;
     };
-  
+
     // Sum up all comments and nested comments
-    return post.comments.reduce((total, comment) => total + countNestedComments(comment), 0);
+    return post.comments.reduce(
+      (total, comment) => total + countNestedComments(comment),
+      0
+    );
   };
   const handleAddComment = (updatedPost) => {
     // Update the post in the posts array
@@ -126,19 +155,19 @@ const CommunityPage = () => {
       )
     );
   };
-  
+
   // const checklike=(post)=>{return post?.likes.find(like=>{like?.userId==session?.user?.id}).length>0}
-   const openPostWindow = () => {
+  const openPostWindow = () => {
     setIsPostWindowOpen(true);
   };
 
   const closePostWindow = () => {
     setIsPostWindowOpen(false);
   };
-  
+
   const handleLike = (post) => {
     const isliked = checklike(post);
-  
+
     setPosts((prevPosts) =>
       prevPosts.map((p) =>
         p.id === post.id
@@ -152,90 +181,90 @@ const CommunityPage = () => {
       )
     );
   };
-  
 
   const handlePostSubmit = () => {
     if (postTitle && newPostText) {
       const newPost = {
+        userId: session?.user,
         id: posts.length + 1,
-        user: "Current User", 
-        activity: "Posted an update",
-        time: "Just now",
+        title: postTitle,
         description: newPostText,
-        likes: 0,
-        comments: 0,
+        likes: [],
+        comments: [],
         shares: 0,
       };
 
-    setPosts([...posts, newPost]); 
-    closePostWindow();
+      setPosts([...posts, newPost]);
+      closePostWindow();
+    }
   };
-}
-const toggleCommentWindow = (postId) => {
-  setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
-};
+  const toggleCommentWindow = (postId) => {
+    setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
+  };
 
-const handleCommentSubmit = (postId) => {
-  const trimmedComment = newCommentText.trim();
-  if (!trimmedComment) {
-    alert("Comment cannot be empty!");
-    return;
-  }
-  const updatedPosts = posts.map((post) =>
-    post.id === postId
-      ? {
-          ...post,
-          comments: [...(post.comments || []), { user: "Current User", comment: newCommentText }],
-        }
-      : post
-  );
-  setPosts(updatedPosts);
-  setNewCommentText(""); 
-};
-const toggleComments = (postId) => {
-  setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
-};
-const toggleCommentsVisibility = (postId) => {
-  setVisibleComments((prevState) => ({
-    ...prevState,
-    [postId]: !prevState[postId], 
-  }));
-};
-useEffect(()=>{
-  fetchPosts()
-},[])
+  const handleCommentSubmit = (postId) => {
+    const trimmedComment = newCommentText.trim();
+    if (!trimmedComment) {
+      alert("Comment cannot be empty!");
+      return;
+    }
+    const updatedPosts = posts.map((post) =>
+      post.id === postId
+        ? {
+            ...post,
+            comments: [
+              ...(post.comments || []),
+              { user: "Current User", comment: newCommentText },
+            ],
+          }
+        : post
+    );
+    setPosts(updatedPosts);
+    setNewCommentText("");
+  };
+  const toggleComments = (postId) => {
+    setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
+  };
+  const toggleCommentsVisibility = (postId) => {
+    setVisibleComments((prevState) => ({
+      ...prevState,
+      [postId]: !prevState[postId],
+    }));
+  };
+  useEffect(() => {
+    fetchPosts();
+  }, []);
   return (
-    
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
       {/* Left Sidebar */}
       <aside className="w-1/5 bg-white dark:bg-neutral-800 p-6 space-y-4 rounded-lg shadow-lg">
         <h2 className="text-xl font-semibold">Community Hub</h2>
         <nav className="space-y-3">
-        <Link href="/dashboard" passHref>
-        <button
-         className={`w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-          selectedFilter === "Home"
-        ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-        : "text-gray-700 dark:text-gray-200"
-       }`}
-    onClick={() => setSelectedFilter("Home")}
+          <Link href="/dashboard" passHref>
+            <button
+              className={`w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
+                selectedFilter === "Home"
+                  ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
+                  : "text-gray-700 dark:text-gray-200"
+              }`}
+              onClick={() => setSelectedFilter("Home")}
             >
-          <Home className="text-gray-600 dark:text-gray-300" />
-          <span>Home</span>
-        </button>
-      </Link>
-       <Link href="/dashboard/profile"passHref>
-          <button
-            className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Profile"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Profile")}
-          >
-            <User className="text-gray-600 dark:text-gray-300" />
-            <span>Profile</span>
-          </button>
+              <Home className="text-gray-600 dark:text-gray-300" />
+              <span>Home</span>
+            </button>
+          </Link>
+          <Link href="/dashboard/profile" passHref>
+            <button
+              className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
+                selectedFilter === "Profile"
+                  ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
+                  : "text-gray-700 dark:text-gray-200"
+              }`}
+              onClick={() => setSelectedFilter("Profile")}
+            >
+              <User className="text-gray-600 dark:text-gray-300" />
+              <span>Profile</span>
+            </button>
           </Link>
         </nav>
 
@@ -419,61 +448,63 @@ useEffect(()=>{
             </button>
           </div>
         </div>
-          {/* Post Button */}
-          <div>
+        {/* Post Button */}
+        <div>
           <button
-              className="px-4 py-2 bg-purple-500 text-white rounded-full"
-              onClick={openPostWindow}
-            >
-              Create Post
-            </button>
+            className="px-4 py-2 bg-purple-500 text-white rounded-full"
+            onClick={openPostWindow}
+          >
+            Create Post
+          </button>
         </div>
         {/* Posts Section */}
         <section className="space-y-6">
-          
-          {posts.map((post) => ( 
+          {posts.map((post) => (
             <div
-               key={post?.id}
-               className="bg-white dark:bg-neutral-700 p-6 rounded-lg shadow relative"
-             >
+              key={post?.id}
+              className="bg-white dark:bg-neutral-700 p-6 rounded-lg shadow relative"
+            >
               <header className="flex items-center justify-between">
-                 <div>
-                   <h3 className="text-xl font-semibold">{post?.userId?.firstName} {post?.userId?.lastName}</h3>
-                   <p className="text-gray-500 text-sm">{post?.title}</p>
-                 </div>
-               </header>
-               <p className="mt-4">{post?.description}</p>
-               <footer className="flex justify-between items-center mt-4">
-                 <div className="flex space-x-4">
-                 <button
+                <div>
+                  <h3 className="text-xl font-semibold">
+                    {post?.userId?.firstName} {post?.userId?.lastName}
+                  </h3>
+                  <p className="text-gray-500 text-sm">{post?.title}</p>
+                </div>
+              </header>
+              <p className="mt-4">{post?.description}</p>
+              <footer className="flex justify-between items-center mt-4">
+                <div className="flex space-x-4">
+                  <button
                     className="flex items-center space-x-1"
                     onClick={() => handleLike(post)}
                   >
                     <Heart
-                      className={checklike(post) ? "text-red-600" : "text-red-600"}
+                      className={
+                        checklike(post) ? "text-red-600" : "text-red-600"
+                      }
                       fill={checklike(post) ? "currentColor" : "none"}
                     />
                     <span>{post?.likes?.length || 0}</span>
                   </button>
-                  <button 
-                 className="flex items-center space-x-1"
-                   onClick={() => toggleCommentWindow(post.id)} 
-                >
-               <MessageSquare />
-                 <span>{countComments(post)}</span> {}
+                  <button
+                    className="flex items-center space-x-1"
+                    onClick={() => toggleCommentWindow(post.id)}
+                  >
+                    <MessageSquare />
+                    <span>{countComments(post)}</span> {}
                   </button>
                   <button className="flex items-center space-x-1">
                     <Share />
                     <span>{post.shares}</span>
                   </button>
                 </div>
-                
+
                 <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
                   {post.time}
                 </p>
-                
               </footer>
-         {/* Comments Button
+              {/* Comments Button
            <div className="flex justify-center mt-4 -mt-8">
           <button
           className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
@@ -482,20 +513,20 @@ useEffect(()=>{
           {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
         </button>
       </div> */}
-<div>
-            {/* Comments Section */}
-            {activeCommentPostId === post.id && (
-              <CommentsSection
-              post={post}
-              handleAddComment={handleAddComment}
-                // postId={post.id}
-                // comments={post.comments || []}
-                // handleCommentSubmit={handleCommentSubmit}
-                // isCommentSectionVisible={() => toggleCommentWindow(post.id)}
-              />
-            )}
-          </div>
-                
+              <div>
+                {/* Comments Section */}
+                {activeCommentPostId === post.id && (
+                  <CommentsSection
+                    post={post}
+                    handleAddComment={handleAddComment}
+                    // postId={post.id}
+                    // comments={post.comments || []}
+                    // handleCommentSubmit={handleCommentSubmit}
+                    // isCommentSectionVisible={() => toggleCommentWindow(post.id)}
+                  />
+                )}
+              </div>
+
               {/* Comment Input Window */}
               {/* {activeCommentPostId === post.id && (
                 <div className="mt-4">
@@ -514,7 +545,7 @@ useEffect(()=>{
                   </button>
                 </div>
               )} */}
-             </div>
+            </div>
           ))}
         </section>
       </main>
@@ -522,24 +553,22 @@ useEffect(()=>{
       {isPostWindowOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="bg-white dark:bg-neutral-800 w-full max-w-md p-6 rounded-lg shadow-lg">
-
-              <button
-                onClick={closePostWindow}
-                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                <X />
-              </button>
-      {/* Title Input */}
-      <div className="flex flex-col mb-4">
-        <input
-          type="text"
-          value={postTitle}
-          onChange={(e) => setPostTitle(e.target.value)}
-          className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
-          placeholder="Enter post title"
-        />
+            <button
+              onClick={closePostWindow}
+              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              <X />
+            </button>
+            {/* Title Input */}
+            <div className="flex flex-col mb-4">
+              <input
+                type="text"
+                value={postTitle}
+                onChange={(e) => setPostTitle(e.target.value)}
+                className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
+                placeholder="Enter post title"
+              />
             </div>
-
             {/* Post Content Input */}
             <textarea
               value={newPostText}
@@ -548,7 +577,6 @@ useEffect(()=>{
               placeholder="What's on your mind?"
               rows={5}
             ></textarea>
-
             Submit Button
             <button
               onClick={handlePostSubmit}
