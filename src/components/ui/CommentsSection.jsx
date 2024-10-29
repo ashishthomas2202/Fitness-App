@@ -41,10 +41,6 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
 
   return (
     <div className="comments-section">
-      <h3>Comments</h3>
-      <ul>
-        {renderComments(comments)}
-      </ul>
       <div className="mt-4">
         <textarea
           value={comment}
@@ -60,6 +56,10 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
           Submit Comment
         </button>
       </div>
+      <h3>Comments</h3>
+      <ul>
+        {renderComments(comments)}
+      </ul>
     </div>
   );
 };
