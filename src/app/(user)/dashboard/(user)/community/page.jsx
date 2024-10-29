@@ -138,6 +138,7 @@ const toggleCommentsVisibility = (postId) => {
             }`}
             onClick={() => setSelectedFilter("Home")}
           >
+            href: "/dashboard
             <Home className="text-gray-600 dark:text-gray-300" />
             <span>Home</span>
           </button>
@@ -162,8 +163,10 @@ const toggleCommentsVisibility = (postId) => {
                 ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
                 : "text-gray-700 dark:text-gray-200"
             }`}
+            
             onClick={() => setSelectedFilter("Messages")}
           >
+            href: "/dashboard/Profile
             <MessageCircle className="text-gray-600 dark:text-gray-300" />
             <span>Messages</span>
           </li>
@@ -175,6 +178,7 @@ const toggleCommentsVisibility = (postId) => {
             }`}
             onClick={() => setSelectedFilter("Friends")}
           >
+            href: "/dashboard
             <Users className="text-gray-600 dark:text-gray-300" />
             <span>Friends</span>
           </li>
@@ -186,10 +190,11 @@ const toggleCommentsVisibility = (postId) => {
             }`}
             onClick={() => setSelectedFilter("Feed")}
           >
+            href: "/dashboard
             <Activity className="text-gray-600 dark:text-gray-300" />
-            <span>Feed</span>
+            <span>Goals</span>
           </li>
-          <li
+          {/* <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Stories"
                 ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
@@ -199,7 +204,7 @@ const toggleCommentsVisibility = (postId) => {
           >
             <Star className="text-gray-600 dark:text-gray-300" />
             <span>Stories</span>
-          </li>
+          </li> */}
           <li
             className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
               selectedFilter === "Events"
