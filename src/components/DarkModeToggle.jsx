@@ -2,9 +2,12 @@
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { Button } from "@/components/ui/button";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
+import { useContext } from "react";
+import { ThemeContext } from "@/providers/ThemeProvider";
 
 export const DarkModeToggle = () => {
-  const [theme, toggleTheme] = useDarkMode();
+  // const [theme, toggleTheme] = useDarkMode();
+  const { theme, toggleTheme } = useContext(ThemeContext);
 
   return (
     <span className="flex justify-center items-center gap-1">

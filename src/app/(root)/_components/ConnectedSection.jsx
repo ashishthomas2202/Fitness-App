@@ -20,7 +20,7 @@ export const ConnectedSection = () => {
           Stay Connected, Anytime, Anywhere
         </h2>
         <p className="text-lg lg:text-xl font-light mb-6">
-          Whether you@&apos;re on iOS, Android, or using a wearable fitness
+          Whether you&apos;re on iOS, Android, or using a wearable fitness
           tracker, FlexFit effortlessly syncs your fitness data across all
           devices. Monitor your progress on the go, from your smartphone to your
           FlexFit dashboard, without the hassle.

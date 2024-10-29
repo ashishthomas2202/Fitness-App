@@ -11,15 +11,15 @@ import { useSession } from "next-auth/react";
 export const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const getProfile = async () => {
-    if (!session?.user) {
-      // Avoid fetching profile if session is not available
-      return profile;
-    }
+    // if (!session?.user) {
+    //   // Avoid fetching profile if session is not available
+    //   return profile;
+    // }
 
     setLoading(true);
 
@@ -37,15 +37,26 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
-  useLayoutEffect(() => {
-    if (session?.user) {
-      // Fetch profile only if session is available and profile doesn't exist
-      getProfile();
-    }
-  }, [session]);
+  // useLayoutEffect(() => {
+  //   if (session?.user) {
+  //     // Fetch profile only if session is available and profile doesn't exist
+  //     getProfile();
+  //   }
+  // }, [session]);
+
+  // useEffect(() => {
+  //   if (!session?.user) {
+  //     setProfile(null); // Clear profile if user logs out
+  //   }
+  // }, [session]);
+
+  // useLayoutEffect(() => {}, [session]);
 
   useEffect(() => {
-    if (!session?.user) {
+    if (status === "authenticated") {
+      // Fetch profile only if session is available and profile doesn't exist
+      getProfile();
+    } else {
       setProfile(null); // Clear profile if user logs out
     }
   }, [session]);

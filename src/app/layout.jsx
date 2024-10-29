@@ -7,6 +7,7 @@ import { getServerAuthSession } from "@/lib/auth";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { ProfileProvider } from "@/providers/ProfileProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,10 +34,12 @@ export default function RootLayout({ children }) {
           "min-w-76 min-h-screen dark:bg-neutral-950 text-black dark:text-white"
         )}
       >
-        <AuthProvider session={session}>
-          <ProfileProvider>{children}</ProfileProvider>
-        </AuthProvider>
-        <ToastContainer position="top-center" />
+        <ThemeProvider>
+          <AuthProvider session={session}>
+            <ProfileProvider>{children}</ProfileProvider>
+          </AuthProvider>
+          <ToastContainer position="top-center" />
+        </ThemeProvider>
       </body>
     </html>
   );
