@@ -1,3 +1,5 @@
+// src/app/api/mealplan/route.js
+
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
 import { getToken } from "next-auth/jwt";
@@ -16,15 +18,16 @@ export async function GET(req) {
             return new Response(JSON.stringify({ success: false, message: "Date is required" }), { status: 400 });
         }
 
-        const selectedDate = new Date(dateParam);
-        const dayString = selectedDate.toLocaleString("en-US", { weekday: "long" });
+        const formattedDate = new Date(dateParam).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
 
         const mealPlan = await MealPlan.findOne({
             userId: token.sub,
-            "days.day": dayString,
+            "days.day": formattedDate,
         }).populate("days.meals.mealId");
 
-        if (!mealPlan || mealPlan.length === 0) {
+        console.log("Fetched meal plan data:", mealPlan);
+
+        if (!mealPlan) {
             return new Response(JSON.stringify({ success: true, data: [] }), { status: 200 });
         }
 
@@ -34,4 +37,3 @@ export async function GET(req) {
         return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), { status: 500 });
     }
 }
-

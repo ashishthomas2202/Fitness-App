@@ -2,8 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import MealCalendar from "@/components/MealCalendar";
-import { X } from "lucide-react";
+import { X, Loader } from "lucide-react";
 
 export default function MealPlans() {
   const { data: session } = useSession();
@@ -16,78 +15,47 @@ export default function MealPlans() {
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [isAddingMeal, setIsAddingMeal] = useState(false); // Track add meal loading state
+  const [expandedMealIds, setExpandedMealIds] = useState([]);
+  const [loadingDeleteId, setLoadingDeleteId] = useState(null); // Track the deleting meal
 
-  const handleDateSelect = (date) => setSelectedDate(date);
-  const goToPreviousDay = () =>
-    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
-  const goToNextDay = () =>
-    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
+  const goToPreviousDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
+  const goToNextDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
 
-  // Extract meals for calendar with date validation
-  const extractMealsForCalendar = (days) => {
-    return days.flatMap((day) => {
-      return day.meals
-        .map((meal) => {
-          const mealDate = meal.date
-            ? new Date(Date.parse(meal.date))
-            : new Date();
-          if (isNaN(mealDate.getTime())) {
-            console.error("Invalid date found in meal data:", meal);
-            return null;
-          }
-
-          return {
-            title: `${meal.name} (${meal.mealType})`,
-            start: mealDate,
-            end: mealDate,
-            allDay: true,
-            calories: meal.calories,
-            macros: meal.macros,
-          };
-        })
-        .filter((event) => event !== null); // Filter out invalid date entries
-    });
-  };
-
-  // Fetch the meal plan for the selected date
   const fetchMealPlan = async () => {
     if (!session) {
       setError("User not authenticated.");
       return;
     }
 
-    console.log("Fetching meal plan for date:", selectedDate.toISOString()); // Check if this date is correct
-
     try {
       const response = await axios.get("/api/mealplan", {
         params: { date: selectedDate.toISOString() },
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
+        headers: { Authorization: `Bearer ${session.token}` },
       });
 
       const mealPlanData = response.data?.data;
       if (mealPlanData && mealPlanData.days && mealPlanData.days.length > 0) {
-        const mealsByType = organizeMealsByType(mealPlanData.days);
-        const calendarMeals = extractMealsForCalendar(mealPlanData.days);
+        const selectedDateString = selectedDate.toISOString().split("T")[0];
+        const selectedDayEntry = mealPlanData.days.find(day => day.day === selectedDateString);
 
-        setMealPlan((prevMealPlan) => ({
+        const mealsByType = selectedDayEntry ? organizeMealsByType([selectedDayEntry]) : {
+          Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: []
+        };
+
+        const noMealDataFound = Object.values(mealsByType).every(meals => meals.length === 0);
+        if (noMealDataFound) setError("No meal plan data found.");
+        else setError(null);
+
+        setMealPlan(prevMealPlan => ({
           ...prevMealPlan,
           [selectedDate.toDateString()]: mealsByType,
         }));
-        setCalendarEvents(calendarMeals);
       } else {
-        setMealPlan((prevMealPlan) => ({
+        setMealPlan(prevMealPlan => ({
           ...prevMealPlan,
-          [selectedDate.toDateString()]: {
-            Breakfast: [],
-            Lunch: [],
-            Dinner: [],
-            Snack: [],
-          },
+          [selectedDate.toDateString()]: { Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: [] },
         }));
-        setCalendarEvents([]);
         setError("No meal plan data found.");
       }
     } catch (error) {
@@ -97,32 +65,23 @@ export default function MealPlans() {
   };
 
   const organizeMealsByType = (days) => {
-    const organizedMeals = {
-      Breakfast: [],
-      Lunch: [],
-      Dinner: [],
-      Snack: [],
-    };
+    const organizedMeals = { Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: [] };
+    const selectedDayEntry = days.find(day => day.day === selectedDate.toISOString().split("T")[0]);
 
-    // Find the meals for the selected day
-    const selectedDay = days.find(
-      (day) =>
-        day.day === selectedDate.toLocaleString("en-us", { weekday: "long" })
-    );
-
-    if (selectedDay) {
-      selectedDay.meals.forEach((mealEntry) => {
+    if (selectedDayEntry) {
+      selectedDayEntry.meals.forEach(mealEntry => {
         if (organizedMeals.hasOwnProperty(mealEntry.mealType)) {
           organizedMeals[mealEntry.mealType].push(mealEntry);
         }
       });
+    } else {
+      console.warn("No meals found for the selected day.");
     }
 
-    console.log("Organized meals by type:", organizedMeals); // Add this log to verify
+    console.log("Organized meals by type:", organizedMeals);
     return organizedMeals;
   };
 
-  // Fetch all meals for the search dropdown
   useEffect(() => {
     const fetchMeals = async () => {
       try {
@@ -140,45 +99,43 @@ export default function MealPlans() {
     fetchMeals();
   }, []);
 
-  // Add a selected meal to the user's meal plan
   const addToMealPlan = async () => {
-    if (selectedMeal) {
-      try {
-        console.log(
-          "Adding meal to the plan:",
-          selectedMeal,
+    if (!selectedMeal) return;
+
+    setIsAddingMeal(true);
+    try {
+      const mealIdString = typeof selectedMeal.id === "object" ? selectedMeal.id.toString() : selectedMeal.id;
+
+      const response = await axios.post(
+        "/api/mealplan/add",
+        {
+          mealId: mealIdString,
+          date: selectedDate.toISOString(),
           mealType,
-          selectedDate
-        );
-        const response = await axios.post(
-          "/api/mealplan/add",
-          {
-            mealId: selectedMeal.id,
-            date: selectedDate.toISOString(), // Ensures ISO format for the backend
-            mealType,
-            userId: session?.user.id,
-            planName: "My Meal Plan",
+          userId: session?.user.id,
+          planName: "My Meal Plan",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${session?.token}`,
-            },
-          }
-        );
-
-        if (!response.data.success) {
-          setError("Error adding meal to the plan.");
-        } else {
-          await fetchMealPlan(); // Refresh the meal plan view after adding
         }
+      );
 
-        setSelectedMeal(null);
-        setSearchTerm("");
-        setFilteredMeals([]);
-      } catch (error) {
+      if (!response.data.success) {
         setError("Error adding meal to the plan.");
-        console.error("Error adding meal to the plan:", error);
+      } else {
+        await fetchMealPlan();
       }
+
+      setSelectedMeal(null);
+      setSearchTerm("");
+      setFilteredMeals([]);
+    } catch (error) {
+      setError("Error adding meal to the plan.");
+      console.error("Error adding meal to the plan:", error);
+    } finally {
+      setIsAddingMeal(false);
     }
   };
 
@@ -188,12 +145,13 @@ export default function MealPlans() {
       return;
     }
 
+    setLoadingDeleteId(mealId); // Set loading state for the specific meal
     try {
       const response = await axios.post(
         "/api/mealplan/delete",
         {
           mealId,
-          date: selectedDate.toLocaleString("en-us", { weekday: "long" }), // Send the day name if backend expects it
+          date: selectedDate.toISOString().split("T")[0], // Send date in YYYY-MM-DD format
           userId: session.user.id,
         },
         {
@@ -206,11 +164,13 @@ export default function MealPlans() {
       if (!response.data.success) {
         setError("Error removing meal from the plan.");
       } else {
-        fetchMealPlan(); // Refresh meal plan after successful removal
+        fetchMealPlan();
       }
     } catch (error) {
       setError("Error removing meal from the plan.");
       console.error("Error removing meal from the plan:", error);
+    } finally {
+      setLoadingDeleteId(null); // Clear loading state after deletion
     }
   };
 
@@ -237,6 +197,12 @@ export default function MealPlans() {
   };
 
   const handleSearchBlur = () => setTimeout(() => setFilteredMeals([]), 200);
+
+  const toggleExpand = (mealId) => {
+    setExpandedMealIds((prev) =>
+      prev.includes(mealId) ? prev.filter((id) => id !== mealId) : [...prev, mealId]
+    );
+  };
 
   useEffect(() => {
     fetchMealPlan();
@@ -332,77 +298,80 @@ export default function MealPlans() {
           <option value="Lunch">Lunch</option>
           <option value="Dinner">Dinner</option>
           <option value="Snack">Snack</option>
+          <option value="Dessert">Dessert</option>
         </select>
       </div>
 
       <button
         onClick={addToMealPlan}
-        className="px-4 py-2 bg-purple-500 text-white rounded mb-6"
+        className="px-4 py-2 bg-purple-500 text-white rounded mb-6 flex items-center"
+        disabled={isAddingMeal}
       >
-        Add to Meal Plan
+        {isAddingMeal && <Loader className="animate-spin mr-2" />} Add to Meal Plan
       </button>
 
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Your Meal Plan for {selectedDate.toLocaleDateString()}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {["Breakfast", "Lunch", "Dinner", "Snack"].map((type) => (
-            <div
-              key={type}
-              className="bg-white shadow-md rounded-lg p-4 border border-gray-200 transition-all duration-300"
-            >
-              <h4 className="text-gray-500 font-semibold mb-2">{type}</h4>
-              {mealPlan[selectedDate.toDateString()]?.[type]?.length > 0 ? (
-                <div className="space-y-4">
-                  {mealPlan[selectedDate.toDateString()]?.[type]?.map(
-                    (plan, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md"
-                      >
-                        <div>
-                          <span className="font-semibold">Name:</span>{" "}
-                          {plan.name}
-                        </div>
-                        <div>
-                          <span className="font-semibold">Calories:</span>{" "}
-                          {plan.calories} kcal
-                        </div>
-                        <div>
-                          <span className="font-semibold">Macros:</span>{" "}
-                          Protein: {plan.macros.protein}g, Carbs:{" "}
-                          {plan.macros.carbs}g, Fat: {plan.macros.fat}g
-                        </div>
-                        <div>
-                          <span className="font-semibold">
-                            Preparation Time:
-                          </span>{" "}
-                          {plan.preparation_time_min} minutes
-                        </div>
-                        <button
-                          onClick={() => removeMealFromPlan(plan._id, type)}
-                          className="text-red-500 hover:text-red-700 mt-2"
-                        >
-                          <X size={24} strokeWidth={4} />
-                        </button>
+      {/* Meal type containers */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"].map((type) => (
+          <div key={type} className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+            <h4 className="text-gray-500 font-semibold mb-2">{type}</h4>
+            {mealPlan[selectedDate.toDateString()]?.[type]?.length > 0 ? (
+              mealPlan[selectedDate.toDateString()][type].map((meal) => (
+                <div
+                  key={meal._id}
+                  onClick={() => toggleExpand(meal._id)}
+                  className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md cursor-pointer transition-all duration-300 ${expandedMealIds.includes(meal._id) ? 'max-h-full' : 'max-h-32 overflow-hidden'}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div><span className="font-semibold">Name:</span> {meal.name}</div>
+                      <div><span className="font-semibold">Calories:</span> {meal.calories} kcal</div>
+                      <div><span className="font-semibold">Macros:</span> Protein: {meal.macros.protein}g, Carbs: {meal.macros.carbs}g, Fat: {meal.macros.fat}g</div>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); removeMealFromPlan(meal._id, type); }}
+                      className="text-red-500 hover:text-red-700 flex items-center"
+                      disabled={loadingDeleteId === meal._id}
+                    >
+                      {loadingDeleteId === meal._id ? <Loader className="animate-spin mr-2" /> : <X size={24} strokeWidth={4} />}
+                      {loadingDeleteId === meal._id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+
+                  {expandedMealIds.includes(meal._id) && (
+                    <div className="mt-4">
+                      <div>
+                        <h4 className="font-semibold">Ingredients:</h4>
+                        <ul className="list-disc list-inside">
+                          {meal.ingredients.map((ingredient, index) => (
+                            <li key={index}>
+                              {ingredient.name}: {ingredient.amount} {ingredient.unit}
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                    )
+
+                      <div className="mt-4">
+                        <h4 className="font-semibold">Preparation Steps:</h4>
+                        <ol className="list-decimal list-inside">
+                          {meal.steps.map((step, index) => (
+                            <li key={index}>{step.description}</li>
+                          ))}
+                        </ol>
+                      </div>
+
+                      <div className="mt-4">
+                        <span className="font-semibold">Preparation Time:</span> {meal.preparation_time_min} minutes
+                      </div>
+                    </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  No {type.toLowerCase()} planned.
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <h2 className="text-xl font-semibold mb-4">Your Meal Calendar</h2>
-        <MealCalendar mealPlan={calendarEvents} onSelect={handleDateSelect} />
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">No {type.toLowerCase()} planned.</p>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

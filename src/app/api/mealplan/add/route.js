@@ -10,13 +10,12 @@ export async function POST(req) {
 
         const { mealId, date, mealType, userId, planName } = await req.json();
 
-        // Check if all required fields are present
         if (!mealId || !date || !mealType || !userId || !planName) {
             return new Response(JSON.stringify({ success: false, message: "All fields are required" }), { status: 400 });
         }
 
-        // Convert date to the name of the day
-        const dayName = new Date(date).toLocaleDateString("en-US", { weekday: "long" });
+        // Convert date to ISO format string without time
+        const dateOnly = new Date(date).toISOString().split("T")[0];
 
         // Retrieve meal details by mealId
         const meal = await Meal.findById(mealId);
@@ -35,35 +34,32 @@ export async function POST(req) {
             ingredients: meal.ingredients,
             steps: meal.steps.map((step) => ({ description: step.description })),
             preparation_time_min: meal.preparation_time_min,
-            order: 0, // or another default value if needed
-            date: new Date(date).toISOString(), // Convert date to ISO string
+            order: 0,
+            date: dateOnly,
         };
 
-        // Update or create the meal plan document
+        // Check if the meal plan exists for the user and plan name
         const mealPlan = await MealPlan.findOneAndUpdate(
             { userId: new mongoose.Types.ObjectId(userId), planName },
-            {
-                $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), planName, startDate: new Date(date) },
-                $set: { status: "in progress" },
-                $addToSet: { days: { day: new Date(date), meals: [] } }, // Ensure `day` is accurately stored
-            },
+            { $setOnInsert: { userId: new mongoose.Types.ObjectId(userId), planName, status: "in progress" } },
             { upsert: true, new: true }
         );
 
-        // Now push the meal to the specified day
-        const updatedMealPlan = await MealPlan.findOneAndUpdate(
-            {
-                userId: new mongoose.Types.ObjectId(userId),
-                planName,
-                "days.day": dayName,
-            },
-            {
-                $push: { "days.$.meals": mealData },
-            },
-            { new: true }
-        );
+        // Check if the day already exists in the `days` array
+        const existingDay = mealPlan.days.find((dayEntry) => dayEntry.day === dateOnly);
 
-        return new Response(JSON.stringify({ success: true, data: updatedMealPlan }), { status: 200 });
+        if (existingDay) {
+            // If the day exists, push the meal to the existing day's meals array
+            existingDay.meals.push(mealData);
+        } else {
+            // If the day doesn't exist, add a new day object to the `days` array
+            mealPlan.days.push({ day: dateOnly, meals: [mealData] });
+        }
+
+        // Save the updated meal plan
+        await mealPlan.save();
+
+        return new Response(JSON.stringify({ success: true, data: mealPlan }), { status: 200 });
     } catch (error) {
         console.error("Error adding meal to meal plan:", error);
         return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), { status: 500 });
