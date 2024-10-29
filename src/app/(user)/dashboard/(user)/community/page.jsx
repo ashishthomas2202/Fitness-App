@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import CommentsSection from "@/components/ui/CommentsSection";
 
 // Sample data for posts and sidebar items
 const posts = [
@@ -60,6 +61,7 @@ const CommunityPage = () => {
   const closePostWindow = () => {
     setIsPostWindowOpen(false);
   };
+  
   const handleLike = (id) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
@@ -92,19 +94,15 @@ const CommunityPage = () => {
   };
 }
 const toggleCommentWindow = (postId) => {
-  if (activeCommentPostId === postId) {
-    setActiveCommentPostId(null); 
-  } else {
-    setActiveCommentPostId(postId); 
-  }
+  setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
 };
+
 const handleCommentSubmit = (postId) => {
   const trimmedComment = newCommentText.trim();
   if (!trimmedComment) {
     alert("Comment cannot be empty!");
     return;
   }
-
   const updatedPosts = posts.map((post) =>
     post.id === postId
       ? {
@@ -394,24 +392,23 @@ const toggleCommentsVisibility = (postId) => {
            <div className="flex justify-center mt-4 -mt-8">
           <button
           className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
-          onClick={() => toggleComments(post.id)}
+          onClick={() => toggleCommentsVisibility(post.id)}
           >
           {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
         </button>
       </div>
-
-                {/* Comments Section */}
-                  {post.comments.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="font-semibold">Comments:</h4>
-                  {post.comments.map((comment, index) => (
-                    <p key={index} className="mt-2 text-sm">
-                      <span className="font-semibold">{comment.user}:</span> {comment.comment}
-                    </p>
-                  ))}
-                </div>
-              )}
-
+<div>
+            {/* Comments Section */}
+            {activeCommentPostId === post.id && (
+              <CommentsSection
+                postId={post.id}
+                comments={post.comments || []}
+                handleCommentSubmit={handleCommentSubmit}
+                isCommentSectionVisible={() => toggleCommentWindow(post.id)}
+              />
+            )}
+          </div>
+                  ))
               {/* Comment Input Window */}
               {activeCommentPostId === post.id && (
                 <div className="mt-4">
