@@ -19,8 +19,10 @@ export default function MealPlans() {
   const [expandedMealIds, setExpandedMealIds] = useState([]);
   const [loadingDeleteId, setLoadingDeleteId] = useState(null); // Track the deleting meal
 
-  const goToPreviousDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
-  const goToNextDay = () => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
+  const goToPreviousDay = () =>
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)));
+  const goToNextDay = () =>
+    setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)));
 
   const fetchMealPlan = async () => {
     if (!session) {
@@ -37,24 +39,40 @@ export default function MealPlans() {
       const mealPlanData = response.data?.data;
       if (mealPlanData && mealPlanData.days && mealPlanData.days.length > 0) {
         const selectedDateString = selectedDate.toISOString().split("T")[0];
-        const selectedDayEntry = mealPlanData.days.find(day => day.day === selectedDateString);
+        const selectedDayEntry = mealPlanData.days.find(
+          (day) => day.day === selectedDateString
+        );
 
-        const mealsByType = selectedDayEntry ? organizeMealsByType([selectedDayEntry]) : {
-          Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: []
-        };
+        const mealsByType = selectedDayEntry
+          ? organizeMealsByType([selectedDayEntry])
+          : {
+              Breakfast: [],
+              Lunch: [],
+              Dinner: [],
+              Snack: [],
+              Dessert: [],
+            };
 
-        const noMealDataFound = Object.values(mealsByType).every(meals => meals.length === 0);
+        const noMealDataFound = Object.values(mealsByType).every(
+          (meals) => meals.length === 0
+        );
         if (noMealDataFound) setError("No meal plan data found.");
         else setError(null);
 
-        setMealPlan(prevMealPlan => ({
+        setMealPlan((prevMealPlan) => ({
           ...prevMealPlan,
           [selectedDate.toDateString()]: mealsByType,
         }));
       } else {
-        setMealPlan(prevMealPlan => ({
+        setMealPlan((prevMealPlan) => ({
           ...prevMealPlan,
-          [selectedDate.toDateString()]: { Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: [] },
+          [selectedDate.toDateString()]: {
+            Breakfast: [],
+            Lunch: [],
+            Dinner: [],
+            Snack: [],
+            Dessert: [],
+          },
         }));
         setError("No meal plan data found.");
       }
@@ -65,11 +83,19 @@ export default function MealPlans() {
   };
 
   const organizeMealsByType = (days) => {
-    const organizedMeals = { Breakfast: [], Lunch: [], Dinner: [], Snack: [], Dessert: [] };
-    const selectedDayEntry = days.find(day => day.day === selectedDate.toISOString().split("T")[0]);
+    const organizedMeals = {
+      Breakfast: [],
+      Lunch: [],
+      Dinner: [],
+      Snack: [],
+      Dessert: [],
+    };
+    const selectedDayEntry = days.find(
+      (day) => day.day === selectedDate.toISOString().split("T")[0]
+    );
 
     if (selectedDayEntry) {
-      selectedDayEntry.meals.forEach(mealEntry => {
+      selectedDayEntry.meals.forEach((mealEntry) => {
         if (organizedMeals.hasOwnProperty(mealEntry.mealType)) {
           organizedMeals[mealEntry.mealType].push(mealEntry);
         }
@@ -104,7 +130,10 @@ export default function MealPlans() {
 
     setIsAddingMeal(true);
     try {
-      const mealIdString = typeof selectedMeal.id === "object" ? selectedMeal.id.toString() : selectedMeal.id;
+      const mealIdString =
+        typeof selectedMeal.id === "object"
+          ? selectedMeal.id.toString()
+          : selectedMeal.id;
 
       const response = await axios.post(
         "/api/mealplan/add",
@@ -200,7 +229,9 @@ export default function MealPlans() {
 
   const toggleExpand = (mealId) => {
     setExpandedMealIds((prev) =>
-      prev.includes(mealId) ? prev.filter((id) => id !== mealId) : [...prev, mealId]
+      prev.includes(mealId)
+        ? prev.filter((id) => id !== mealId)
+        : [...prev, mealId]
     );
   };
 
@@ -307,33 +338,57 @@ export default function MealPlans() {
         className="px-4 py-2 bg-purple-500 text-white rounded mb-6 flex items-center"
         disabled={isAddingMeal}
       >
-        {isAddingMeal && <Loader className="animate-spin mr-2" />} Add to Meal Plan
+        {isAddingMeal && <Loader className="animate-spin mr-2" />} Add to Meal
+        Plan
       </button>
 
       {/* Meal type containers */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"].map((type) => (
-          <div key={type} className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
+          <div
+            key={type}
+            className="bg-white shadow-md rounded-lg p-4 border border-gray-200"
+          >
             <h4 className="text-gray-500 font-semibold mb-2">{type}</h4>
             {mealPlan[selectedDate.toDateString()]?.[type]?.length > 0 ? (
               mealPlan[selectedDate.toDateString()][type].map((meal) => (
                 <div
                   key={meal._id}
                   onClick={() => toggleExpand(meal._id)}
-                  className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md cursor-pointer transition-all duration-300 ${expandedMealIds.includes(meal._id) ? 'max-h-full' : 'max-h-32 overflow-hidden'}`}
+                  className={`bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md cursor-pointer transition-all duration-300 ${
+                    expandedMealIds.includes(meal._id)
+                      ? "max-h-full"
+                      : "max-h-32 overflow-hidden"
+                  }`}
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <div><span className="font-semibold">Name:</span> {meal.name}</div>
-                      <div><span className="font-semibold">Calories:</span> {meal.calories} kcal</div>
-                      <div><span className="font-semibold">Macros:</span> Protein: {meal.macros.protein}g, Carbs: {meal.macros.carbs}g, Fat: {meal.macros.fat}g</div>
+                      <div>
+                        <span className="font-semibold">Name:</span> {meal.name}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Calories:</span>{" "}
+                        {meal.calories} kcal
+                      </div>
+                      <div>
+                        <span className="font-semibold">Macros:</span> Protein:{" "}
+                        {meal.macros.protein}g, Carbs: {meal.macros.carbs}g,
+                        Fat: {meal.macros.fat}g
+                      </div>
                     </div>
                     <button
-                      onClick={(e) => { e.stopPropagation(); removeMealFromPlan(meal._id, type); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeMealFromPlan(meal._id, type);
+                      }}
                       className="text-red-500 hover:text-red-700 flex items-center"
                       disabled={loadingDeleteId === meal._id}
                     >
-                      {loadingDeleteId === meal._id ? <Loader className="animate-spin mr-2" /> : <X size={24} strokeWidth={4} />}
+                      {loadingDeleteId === meal._id ? (
+                        <Loader className="animate-spin mr-2" />
+                      ) : (
+                        <X size={24} strokeWidth={4} />
+                      )}
                       {loadingDeleteId === meal._id ? "Deleting..." : "Delete"}
                     </button>
                   </div>
@@ -345,7 +400,8 @@ export default function MealPlans() {
                         <ul className="list-disc list-inside">
                           {meal.ingredients.map((ingredient, index) => (
                             <li key={index}>
-                              {ingredient.name}: {ingredient.amount} {ingredient.unit}
+                              {ingredient.name}: {ingredient.amount}{" "}
+                              {ingredient.unit}
                             </li>
                           ))}
                         </ul>
@@ -361,14 +417,17 @@ export default function MealPlans() {
                       </div>
 
                       <div className="mt-4">
-                        <span className="font-semibold">Preparation Time:</span> {meal.preparation_time_min} minutes
+                        <span className="font-semibold">Preparation Time:</span>{" "}
+                        {meal.preparation_time_min} minutes
                       </div>
                     </div>
                   )}
                 </div>
               ))
             ) : (
-              <p className="text-sm text-gray-500">No {type.toLowerCase()} planned.</p>
+              <p className="text-sm text-gray-500">
+                No {type.toLowerCase()} planned.
+              </p>
             )}
           </div>
         ))}
