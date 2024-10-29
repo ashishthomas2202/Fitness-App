@@ -90,3 +90,12 @@
 * {
   font-family: var(--font-poppins);
 }
+
+:root {
+  --red-300: #fca5a5;
+  --blue-300: #93c5fd;
+  --green-300: #86efac;
+  --yellow-300: #fde047;
+  --purple-300: #d8b4fe;
+  --orange-300: #fdba74;
+}

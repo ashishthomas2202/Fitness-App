@@ -461,6 +461,9 @@ export default function CalorieCalculator() {
       mild_weight_loss: Math.round(maintenanceCalories - 250),
       moderate_weight_loss: Math.round(maintenanceCalories - 500),
       extreme_weight_loss: Math.round(maintenanceCalories - 1000),
+      mild_weight_gain: Math.round(maintenanceCalories + 250),
+      moderate_weight_gain: Math.round(maintenanceCalories + 500),
+      fast_weight_gain: Math.round(maintenanceCalories + 1000),
     };
     setCalorieGoals(calorieGoals);
   };
@@ -600,15 +603,28 @@ export default function CalorieCalculator() {
               Calories/day
             </li>
             <li>
-              <strong>Mild weight loss (0.5 lb/week):</strong>{" "}
+              <strong>Mild weight gain (+0.5 lb/week):</strong>{" "}
+              {calorieGoals.mild_weight_gain} Calories/day
+            </li>
+            <li>
+              <strong>Moderate weight gain (+1 lb/week):</strong>{" "}
+              {calorieGoals.moderate_weight_gain} Calories/day
+            </li>
+            <li>
+              <strong>Extreme weight gain (+2 lb/week):</strong>{" "}
+              {calorieGoals.fast_weight_gain} Calories/day
+            </li>
+
+            <li>
+              <strong>Mild weight loss (-0.5 lb/week):</strong>{" "}
               {calorieGoals.mild_weight_loss} Calories/day
             </li>
             <li>
-              <strong>Moderate weight loss (1 lb/week):</strong>{" "}
+              <strong>Moderate weight loss (-1 lb/week):</strong>{" "}
               {calorieGoals.moderate_weight_loss} Calories/day
             </li>
             <li>
-              <strong>Extreme weight loss (2 lb/week):</strong>{" "}
+              <strong>Extreme weight loss (-2 lb/week):</strong>{" "}
               {calorieGoals.extreme_weight_loss} Calories/day
               {calorieGoals.extreme_weight_loss < 2000 && (
                 <p className="text-red-500 mt-2">
