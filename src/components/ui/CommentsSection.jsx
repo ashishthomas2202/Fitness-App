@@ -9,7 +9,7 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
       const newComment = {
         userId: { firstName: "Declan", lastName: "Belfield" }, // Replace with actual user info if available
         comment: comment,
-        subComments: null, // Assuming new comments do not have nested comments by default
+        subComments: null,
       };
       const updatedComments = [...comments, newComment];
       setComments(updatedComments);
@@ -20,7 +20,7 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
 
   useEffect(() => {
     console.log(post.comments);
-    setComments(post.comments || []); // Update local comments if post.comments changes
+    setComments(post.comments || []); 
   }, [post]);
 
   // Recursive function to render comments and sub-comments
