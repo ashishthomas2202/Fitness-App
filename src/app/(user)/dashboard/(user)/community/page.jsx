@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/Button";
 import CommentsSection from "@/components/ui/CommentsSection";
 import Link from "next/link";
+import moment from "moment-timezone";
 /* TODO Fix the comments visibitlity
 TODO Add linking to the buttons
 TODO*/
@@ -49,6 +50,7 @@ TODO*/
 
 const postsData = [
   {
+    date: "2024-08-17T10:40:00",
     userId: {
       id: "871364873",
       firstName: "Declan",
@@ -78,11 +80,13 @@ const postsData = [
           },
           comment: "cool",
           child: null,
+          date: "2024-08-17T10:40:00",
         },
       },
     ],
   },
   {
+    date: "2021-08-17T10:40:00",
     userId: {
       id: "928798275",
       firstName: "John",
@@ -156,6 +160,10 @@ const CommunityPage = () => {
     );
   };
 
+  const formatDate = (date) => {
+    return moment(date).fromNow();
+  };
+
   // const checklike=(post)=>{return post?.likes.find(like=>{like?.userId==session?.user?.id}).length>0}
   const openPostWindow = () => {
     setIsPostWindowOpen(true);
@@ -185,6 +193,7 @@ const CommunityPage = () => {
   const handlePostSubmit = () => {
     if (postTitle && newPostText) {
       const newPost = {
+        date: new Date().toISOString(),
         userId: session?.user,
         id: posts.length + 1,
         title: postTitle,
@@ -469,6 +478,9 @@ const CommunityPage = () => {
                   <h3 className="text-xl font-semibold">
                     {post?.userId?.firstName} {post?.userId?.lastName}
                   </h3>
+                  <p className="text-gray-500 text-sm">
+                    {formatDate(post?.date)}
+                  </p>
                   <p className="text-gray-500 text-sm">{post?.title}</p>
                 </div>
               </header>
