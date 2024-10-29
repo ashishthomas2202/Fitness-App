@@ -14,7 +14,7 @@ const DistanceSchema = new Schema(
       unit: {
         type: String,
         enum: ['km', 'mi'],
-        default: 'km'
+        default: 'mi'
       },
       date: {
         type: Date,
