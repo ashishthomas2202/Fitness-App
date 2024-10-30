@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 
 // Helper function to calculate age from DOB
 const calculateAge = (dob) => {

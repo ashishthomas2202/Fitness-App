@@ -4,8 +4,8 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSession } from "next-auth/react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import {
   Select,
@@ -13,12 +13,12 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/Select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/Popover";
 import { CalendarIcon, UploadIcon } from "lucide-react";
 import moment from "moment-timezone";
 import Image from "next/image";

@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@/components/ui/select";
+} from "@/components/ui/Select";
 
 export const CalorieBurnedTracker = ({
   burned = 0,
