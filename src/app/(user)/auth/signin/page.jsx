@@ -12,6 +12,7 @@ import { Brand } from "@/components/Brand";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
+
 export default function SignIn() {
   const searchParams = useSearchParams();
   const router = useRouter();
