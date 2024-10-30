@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusCircleIcon, Trash2Icon, CheckCircleIcon } from "lucide-react";
 
-export default function MealPlanDialog({ onCreate, meals, children }) {
-    const [dialogOpen, setDialogOpen] = useState(false);
+export default function MealPlanDialog({
+    onSave,
+    dialogOpen,
+    setDialogOpen,
+    meals,
+    mealPlan,
+    children
+}) {
     const [planName, setPlanName] = useState("");
     const [selectedMeals, setSelectedMeals] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -29,7 +35,21 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
         Sunday: false,
     });
 
-    // Filter meals by search term, category, and diet
+    useEffect(() => {
+        if (mealPlan) {
+            setPlanName(mealPlan.planName || "");
+            setSelectedMeals(mealPlan.days?.flatMap(day => day.meals) || []);
+            setStartDate(mealPlan.startDate ? mealPlan.startDate.split("T")[0] : new Date().toISOString().split("T")[0]);
+            setEndDate(mealPlan.endDate ? mealPlan.endDate.split("T")[0] : "");
+            setNote(mealPlan.note || "");
+            const updatedDays = mealPlan.days?.reduce((acc, day) => {
+                acc[day.day] = true;
+                return acc;
+            }, { ...daysOfWeek });
+            setDaysOfWeek(updatedDays || daysOfWeek);
+        }
+    }, [mealPlan]);
+
     const filteredMeals = meals.filter((meal) => {
         const matchesSearchTerm = meal.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = selectedCategory ? meal.category === selectedCategory : true;
@@ -53,11 +73,9 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
 
     const handleCheckboxChange = (day) => {
         setDaysOfWeek((prev) => ({ ...prev, [day]: !prev[day] }));
-
-
     };
 
-    const handleCreateMealPlan = () => {
+    const handleSaveMealPlan = () => {
         const data = {
             planName,
             days: Object.keys(daysOfWeek)
@@ -79,7 +97,7 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
             note,
         };
 
-        onCreate(data);
+        onSave(data);
         resetFields();
         setDialogOpen(false);
     };
@@ -106,13 +124,12 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="max-w-2xl w-full max-h-screen overflow-y-auto">
-                <DialogTitle>Create Meal Plan</DialogTitle>
+                <DialogTitle>{mealPlan ? "Edit Meal Plan" : "Create Meal Plan"}</DialogTitle>
                 <div>
                     <Label>Plan Name</Label>
                     <Input value={planName} onChange={(e) => setPlanName(e.target.value)} />
                 </div>
 
-                {/* Search Filters */}
                 <div className="mt-4">
                     <Label>Search Meals</Label>
                     <Input
@@ -131,7 +148,6 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
                             onChange={(e) => setSelectedCategory(e.target.value)}
                         >
                             <option value="">All</option>
-                            {/* Map over unique categories from meals data */}
                             {Array.from(new Set(meals.map((meal) => meal.category))).map((category) => (
                                 <option key={category} value={category}>
                                     {category}
@@ -148,7 +164,6 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
                             onChange={(e) => setSelectedDiet(e.target.value)}
                         >
                             <option value="">All</option>
-                            {/* Map over unique diet options from meals data */}
                             {Array.from(new Set(meals.flatMap((meal) => meal.diet || []))).map((diet) => (
                                 <option key={diet} value={diet}>
                                     {diet}
@@ -196,7 +211,7 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
 
                 <div className="mt-4">
                     <Label>Selected Meals</Label>
-                    <ScrollArea className="h-32 border rounded-md mt-2 p-3"> {/* Added padding here */}
+                    <ScrollArea className="h-32 border rounded-md mt-2 p-3">
                         {selectedMeals.map((meal) => (
                             <div
                                 key={meal.id}
@@ -248,7 +263,7 @@ export default function MealPlanDialog({ onCreate, meals, children }) {
                     <Label>Note</Label>
                     <Textarea value={note} onChange={(e) => setNote(e.target.value)} />
                 </div>
-                <Button onClick={handleCreateMealPlan} className="mt-4">Create Meal Plan</Button>
+                <Button onClick={handleSaveMealPlan} className="mt-4">Save Meal Plan</Button>
             </DialogContent>
         </Dialog>
     );

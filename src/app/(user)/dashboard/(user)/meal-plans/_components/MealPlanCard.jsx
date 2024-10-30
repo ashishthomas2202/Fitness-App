@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import MealPlanDialog from "./MealPlanDialog";
 import { Trash2Icon, PenIcon } from "lucide-react";
 
-export default function MealPlanCard({ mealPlan, meals, onDelete }) {
+export default function MealPlanCard({ mealPlan, meals, onDelete, onSave }) {
     const [dialogOpen, setDialogOpen] = useState(false);
 
     const handleDelete = () => onDelete(mealPlan.id);
@@ -42,7 +42,12 @@ export default function MealPlanCard({ mealPlan, meals, onDelete }) {
             </div>
 
             <MealPlanDialog
-                onCreate={(data) => console.log("Update meal plan:", data)}
+                dialogOpen={dialogOpen}
+                setDialogOpen={setDialogOpen}
+                onSave={(updatedData) => {
+                    onSave({ ...updatedData, id: mealPlan.id });
+                }}
+                mealPlan={mealPlan}
                 meals={meals}
             />
         </Card>

@@ -10,6 +10,7 @@ import MealPlanDialog from "./_components/MealPlanDialog";
 export default function MealPlans() {
   const [mealPlans, setMealPlans] = useState([]);
   const [meals, setMeals] = useState([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchMealPlans = async () => {
     try {
@@ -29,17 +30,17 @@ export default function MealPlans() {
     }
   };
 
-  const handleCreateMealPlan = async (data) => {
+  const handleSaveMealPlan = async (data) => {
     try {
-      await axios.post("/api/mealplan/create", {
-        ...data,
-        startDate: data.startDate || new Date(),  
-        endDate: data.endDate || null
-      });
-      toast.success("Meal plan created successfully");
+      if (data.id) {
+        await axios.put(`/api/mealplan/${data.id}`, data);
+      } else {
+        await axios.post("/api/mealplan/create", data);
+      }
+      toast.success("Meal plan saved successfully");
       fetchMealPlans();
     } catch {
-      toast.error("Failed to create meal plan");
+      toast.error("Failed to save meal plan");
     }
   };
 
@@ -53,7 +54,6 @@ export default function MealPlans() {
     }
   };
 
-
   useEffect(() => {
     fetchMeals();
     fetchMealPlans();
@@ -62,8 +62,8 @@ export default function MealPlans() {
   return (
     <div className="p-4">
       <section className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <MealPlanDialog onCreate={handleCreateMealPlan} meals={meals}>
-          <Card className="p-2 min-h-52 justify-center cursor-pointer">
+        <MealPlanDialog onSave={handleSaveMealPlan} meals={meals} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen}>
+          <Card className="p-2 min-h-52 justify-center cursor-pointer" onClick={() => setDialogOpen(true)}>
             <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
               <PlusCircleIcon size={60} />
               <h3 className="text-xl font-light select-none">Create Meal Plan</h3>
@@ -77,9 +77,11 @@ export default function MealPlans() {
             mealPlan={mealPlan}
             meals={meals}
             onDelete={handleDeleteMealPlan}
+            onSave={handleSaveMealPlan}
           />
         ))}
       </section>
     </div>
   );
 }
+
