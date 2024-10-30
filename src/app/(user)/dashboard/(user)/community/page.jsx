@@ -68,19 +68,29 @@ const postsData = [
       {
         userId: {
           id: "0938598",
-          firstName: "will",
-          lastName: "gamble",
+          firstName: "Will",
+          lastName: "Gamble",
         },
-        comment: "finally this",
+        comment: "Finally this",
+        date: "2024-08-17T10:50:00",
         subComments: {
           userId: {
             id: "981364872",
             firstName: "Gok",
             lastName: "U",
           },
-          comment: "cool",
-          child: null,
-          date: "2024-08-17T10:40:00",
+          comment: "Cool",
+          date: "2024-08-17T11:00:00",
+          child: {
+            userId: {
+              id: "789456123",
+              firstName: "Alice",
+              lastName: "Smith",
+            },
+            comment: "Agreed!",
+            date: "2024-08-17T11:10:00",
+            child: null,
+          },
         },
       },
     ],
@@ -107,12 +117,32 @@ const postsData = [
           firstName: "Derek",
           lastName: "Key",
         },
-        comment: "Thats neat",
-        subComm: { userId: "89198327", comment: "awe", child: null },
+        comment: "That's neat",
+        date: "2021-08-17T10:50:00",
+        subComments: {
+          userId: {
+            id: "89198327",
+            firstName: "Sam",
+            lastName: "Lee",
+          },
+          comment: "Awe",
+          date: "2021-08-17T11:00:00",
+          child: {
+            userId: {
+              id: "654789321",
+              firstName: "Tom",
+              lastName: "Jones",
+            },
+            comment: "So true!",
+            date: "2021-08-17T11:15:00",
+            child: null,
+          },
+        },
       },
     ],
   },
 ];
+
 
 const CommunityPage = () => {
   const [selectedFilter, setSelectedFilter] = useState("All");

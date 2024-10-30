@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import moment from 'moment';
 
 const CommentsSection = ({ post, handleAddComment = () => {} }) => {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState(post.comments || []);
 
+  const formatDate = (date) => {
+    return moment(date).fromNow(); 
+  };
+
   const handleAdd = () => {
     if (comment.trim()) {
       const newComment = {
-        userId: { firstName: "Declan", lastName: "Belfield" }, // Replace with actual user info if available
+        userId: { firstName: "Declan", lastName: "Belfield" }, 
         comment: comment,
+        date: new Date().toISOString(), 
         subComments: null,
       };
-      const updatedComments = [...comments, newComment];
+      // Prepend the new comment to the top of the list
+      const updatedComments = [newComment, ...comments];
       setComments(updatedComments);
       setComment('');
       handleAddComment({ ...post, comments: updatedComments });
@@ -19,16 +26,18 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
   };
 
   useEffect(() => {
-    console.log(post.comments);
-    setComments(post.comments || []); 
+    setComments(post.comments || []);
   }, [post]);
 
-  // Recursive function to render comments and sub-comments
+  // Recursive function to render comments and sub-comments with formatted dates
   const renderComments = (comments) => {
     return comments.map((cmt, index) => (
       <li key={index} className="my-2">
         <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-lg">
           <strong>{cmt?.userId?.firstName} {cmt?.userId?.lastName}</strong>: {cmt.comment}
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {formatDate(cmt.date)}
+          </div>
         </div>
         {cmt.subComments && (
           <ul className="ml-4 mt-2 border-l-2 border-gray-300 dark:border-neutral-700 pl-4">
@@ -65,6 +74,150 @@ const CommentsSection = ({ post, handleAddComment = () => {} }) => {
 };
 
 export default CommentsSection;
+
+// import React, { useState, useEffect } from 'react';
+// import moment from 'moment';
+
+// const CommentsSection = ({ post, handleAddComment = () => {} }) => {
+//   const [comment, setComment] = useState('');
+//   const [comments, setComments] = useState(post.comments || []);
+
+//   const formatDate = (date) => {
+//     return moment(date).fromNow(); // Format the date as relative time
+//   };
+
+//   const handleAdd = () => {
+//     if (comment.trim()) {
+//       const newComment = {
+//         userId: { firstName: "Declan", lastName: "Belfield" }, // Replace with actual user info if available
+//         comment: comment,
+//         date: new Date().toISOString(), // Add date timestamp
+//         subComments: null,
+//       };
+//       const updatedComments = [...comments, newComment];
+//       setComments(updatedComments);
+//       setComment('');
+//       handleAddComment({ ...post, comments: updatedComments });
+//     }
+//   };
+
+//   useEffect(() => {
+//     setComments(post.comments || []);
+//   }, [post]);
+
+//   // Recursive function to render comments and sub-comments with formatted dates
+//   const renderComments = (comments) => {
+//     return comments.map((cmt, index) => (
+//       <li key={index} className="my-2">
+//         <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-lg">
+//           <strong>{cmt?.userId?.firstName} {cmt?.userId?.lastName}</strong>: {cmt.comment}
+//           <div className="text-sm text-gray-500 dark:text-gray-400">
+//             {formatDate(cmt.date)}
+//           </div>
+//         </div>
+//         {cmt.subComments && (
+//           <ul className="ml-4 mt-2 border-l-2 border-gray-300 dark:border-neutral-700 pl-4">
+//             {renderComments([cmt.subComments])}
+//           </ul>
+//         )}
+//       </li>
+//     ));
+//   };
+
+//   return (
+//     <div className="comments-section">
+//       <div className="mt-4">
+//         <textarea
+//           value={comment}
+//           onChange={(e) => setComment(e.target.value)}
+//           className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
+//           placeholder="Write a comment..."
+//           rows={2}
+//         />
+//         <button
+//           onClick={handleAdd}
+//           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+//         >
+//           Submit Comment
+//         </button>
+//       </div>
+//       <h3>Comments</h3>
+//       <ul>
+//         {renderComments(comments)}
+//       </ul>
+//     </div>
+//   );
+// };
+
+// export default CommentsSection;
+
+// import React, { useState, useEffect } from 'react';
+
+// const CommentsSection = ({ post, handleAddComment = () => {} }) => {
+//   const [comment, setComment] = useState('');
+//   const [comments, setComments] = useState(post.comments || []);
+
+//   const handleAdd = () => {
+//     if (comment.trim()) {
+//       const newComment = {
+//         userId: { firstName: "Declan", lastName: "Belfield" }, // Replace with actual user info if available
+//         comment: comment,
+//         subComments: null,
+//       };
+//       const updatedComments = [...comments, newComment];
+//       setComments(updatedComments);
+//       setComment('');
+//       handleAddComment({ ...post, comments: updatedComments });
+//     }
+//   };
+
+//   useEffect(() => {
+//     console.log(post.comments);
+//     setComments(post.comments || []); 
+//   }, [post]);
+
+//   // Recursive function to render comments and sub-comments
+//   const renderComments = (comments) => {
+//     return comments.map((cmt, index) => (
+//       <li key={index} className="my-2">
+//         <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-lg">
+//           <strong>{cmt?.userId?.firstName} {cmt?.userId?.lastName}</strong>: {cmt.comment}
+//         </div>
+//         {cmt.subComments && (
+//           <ul className="ml-4 mt-2 border-l-2 border-gray-300 dark:border-neutral-700 pl-4">
+//             {renderComments([cmt.subComments])}
+//           </ul>
+//         )}
+//       </li>
+//     ));
+//   };
+
+//   return (
+//     <div className="comments-section">
+//       <div className="mt-4">
+//         <textarea
+//           value={comment}
+//           onChange={(e) => setComment(e.target.value)}
+//           className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
+//           placeholder="Write a comment..."
+//           rows={2}
+//         />
+//         <button
+//           onClick={handleAdd}
+//           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
+//         >
+//           Submit Comment
+//         </button>
+//       </div>
+//       <h3>Comments</h3>
+//       <ul>
+//         {renderComments(comments)}
+//       </ul>
+//     </div>
+//   );
+// };
+
+// export default CommentsSection;
 
 // import React, { useState, useEffect } from 'react';
 
