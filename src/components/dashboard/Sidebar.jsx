@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { Brand } from "@/components/Brand";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { TbLogout } from "react-icons/tb";
 import Link from "next/link";
 import { signOut } from "next-auth/react";

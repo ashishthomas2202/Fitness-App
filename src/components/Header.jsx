@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useLayoutEffect, useContext } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
 import {

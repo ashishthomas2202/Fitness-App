@@ -13,7 +13,7 @@ import {
 import { AiOutlineUser } from "react-icons/ai";
 import Image from "next/image";
 import { ProfileContext } from "@/providers/ProfileProvider";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import Link from "next/link";
