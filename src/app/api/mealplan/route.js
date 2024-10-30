@@ -1,39 +1,26 @@
-// src/app/api/mealplan/route.js
-
+// src/app/api/mealplan/index.js
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
-import { getToken } from "next-auth/jwt";
+import Meal from "@/db/models/Meal";
+import { authenticatedUser } from "@/lib/user";
 
 export async function GET(req) {
     try {
         await connectDB();
+        const currentUser = await authenticatedUser();
 
-        const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-        if (!token) {
-            return new Response(JSON.stringify({ success: false, message: "Unauthorized" }), { status: 401 });
-        }
+        if (!currentUser) return Response.json({ success: false, message: "Unauthorized User" }, { status: 401 });
 
-        const dateParam = new URL(req.url).searchParams.get("date");
-        if (!dateParam) {
-            return new Response(JSON.stringify({ success: false, message: "Date is required" }), { status: 400 });
-        }
+        const mealPlans = await MealPlan.find({ userId: currentUser.id })
+            .populate({
+                path: "days.meals.mealId",
+                select: "name macros calories", // Include name, macros, and calories from the Meal document
+            })
+            .sort({ status: 1, createdAt: -1 });
 
-        const formattedDate = new Date(dateParam).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
 
-        const mealPlan = await MealPlan.findOne({
-            userId: token.sub,
-            "days.day": formattedDate,
-        }).populate("days.meals.mealId");
-
-        console.log("Fetched meal plan data:", mealPlan);
-
-        if (!mealPlan) {
-            return new Response(JSON.stringify({ success: true, data: [] }), { status: 200 });
-        }
-
-        return new Response(JSON.stringify({ success: true, data: mealPlan }), { status: 200 });
+        return Response.json({ success: true, message: "Meal plans retrieved", data: mealPlans }, { status: 200 });
     } catch (error) {
-        console.error("Error fetching meal plan:", error);
-        return new Response(JSON.stringify({ success: false, message: "Internal Server Error" }), { status: 500 });
+        return Response.json({ success: false, message: "Failed to get meal plans", error: error.message }, { status: 500 });
     }
 }

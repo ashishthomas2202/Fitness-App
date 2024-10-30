@@ -30,21 +30,9 @@ const MealPlanSchema = new Schema(
                             enum: ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"],
                             required: true,
                         },
-                        date: {
-                            type: Date, // Single date field
-                            required: true,
-                        },
                         name: {
                             type: String,
                             required: true,
-                        },
-                        category: {
-                            type: String,
-                            required: true,
-                        },
-                        diet: {
-                            type: [String],
-                            default: [],
                         },
                         macros: {
                             protein: { type: Number, required: true },
@@ -52,22 +40,6 @@ const MealPlanSchema = new Schema(
                             fat: { type: Number, required: true },
                         },
                         calories: {
-                            type: Number,
-                            required: true,
-                        },
-                        ingredients: [
-                            {
-                                name: { type: String },
-                                amount: { type: Number },
-                                unit: { type: String },
-                            },
-                        ],
-                        steps: [
-                            {
-                                description: { type: String, required: true },
-                            },
-                        ],
-                        preparation_time_min: {
                             type: Number,
                             required: true,
                         },
@@ -80,6 +52,14 @@ const MealPlanSchema = new Schema(
                 ],
             },
         ],
+        startDate: {
+            type: Date,
+            required: true,
+        },
+        endDate: {
+            type: Date,
+            required: false,
+        },
         status: {
             type: String,
             enum: ["complete", "in progress"],
