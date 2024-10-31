@@ -23,8 +23,8 @@ export const metadata = {
   description: "A platform to enhance your fitness journey",
 };
 
-export default function RootLayout({ children }) {
-  const session = getServerAuthSession();
+export default async function RootLayout({ children }) {
+  const session = await getServerAuthSession();
   return (
     <html lang="en" className="scroll-smooth">
       <body
