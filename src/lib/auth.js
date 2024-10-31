@@ -88,13 +88,19 @@ export const authOptions = {
             ...jsonData,
           };
         }
+        token.expires = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(); // 30 days from now
       }
       return token;
     },
     async session({ session, token }) {
-      if (token.user) {
-        session.user = token.user;
-      }
+      // if (token.user) {
+      //   session.user = token.user;
+      // }
+
+      session.user = token?.user;
+      session.expires = token?.expires;
 
       return session;
     },

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import CalorieCalculator from "@/components/ui/CalorieCalculator";
 import { Loader2 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import axios from "axios";
 
 export default function CalorieDefecit() {
   const { data: session } = useSession();
