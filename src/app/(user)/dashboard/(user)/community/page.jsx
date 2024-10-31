@@ -65,6 +65,7 @@ const postsData = [
     ],
     comments: [
       {
+        id: "1", 
         userId: {
           id: "0938598",
           firstName: "Will",
@@ -74,6 +75,7 @@ const postsData = [
         date: "2024-08-17T10:50:00",
         subComments: [
           {
+            id: "1.1", // Unique ID for the reply
             userId: {
               id: "981364872",
               firstName: "Gok",
@@ -81,16 +83,19 @@ const postsData = [
             },
             comment: "Cool",
             date: "2024-08-17T11:00:00",
-            child: {
-              userId: {
-                id: "789456123",
-                firstName: "Alice",
-                lastName: "Smith",
+            subComments: [
+              {
+                id: "1.1.1",
+                userId: {
+                  id: "789456123",
+                  firstName: "Alice",
+                  lastName: "Smith",
+                },
+                comment: "Agreed!",
+                date: "2024-08-17T11:10:00",
+                subComments: [], // No further replies
               },
-              comment: "Agreed!",
-              date: "2024-08-17T11:10:00",
-              child: null,
-            },
+            ],
           },
         ],
       },
@@ -113,6 +118,7 @@ const postsData = [
     ],
     comments: [
       {
+        id: "2", // Unique ID for the comment
         userId: {
           id: "2795983475983",
           firstName: "Derek",
@@ -122,6 +128,7 @@ const postsData = [
         date: "2021-08-17T10:50:00",
         subComments: [
           {
+            id: "2.1", // Unique ID for the reply
             userId: {
               id: "89198327",
               firstName: "Sam",
@@ -129,22 +136,26 @@ const postsData = [
             },
             comment: "Awe",
             date: "2021-08-17T11:00:00",
-            child: {
-              userId: {
-                id: "654789321",
-                firstName: "Tom",
-                lastName: "Jones",
+            subComments: [
+              {
+                id: "2.1.1", // Unique ID for the child reply
+                userId: {
+                  id: "654789321",
+                  firstName: "Tom",
+                  lastName: "Jones",
+                },
+                comment: "So true!",
+                date: "2021-08-17T11:15:00",
+                subComments: [], // No further replies
               },
-              comment: "So true!",
-              date: "2021-08-17T11:15:00",
-              child: null,
-            },
+            ],
           },
         ],
       },
     ],
   },
 ];
+
 
 
 const CommunityPage = () => {
@@ -264,6 +275,7 @@ const CommunityPage = () => {
     setPosts(updatedPosts);
     setNewCommentText("");
   };
+  
   const toggleComments = (postId) => {
     setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
   };
@@ -558,15 +570,18 @@ const CommunityPage = () => {
           {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
         </button>
       </div> */}
-              <div>
-                {/* Comments Section */}
-                {activeCommentPostId === post.id && (
-                  <CommentsSection
-                    post={post}
-                    handleAddComment={handleAddComment}
-                  />
-                )}
-              </div>
+      <div>
+        {/* Comments Section */}
+        {activeCommentPostId === post.id && (
+          <CommentsSection
+            post={post}
+            handleAddComment={handleAddComment}
+            newCommentText={newCommentText} 
+            setNewCommentText={setNewCommentText} 
+            handleCommentSubmit={handleCommentSubmit} 
+          />
+        )}
+      </div>
 
               {/* Comment Input Window */}
               {/* {activeCommentPostId === post.id && (
