@@ -47,7 +47,6 @@ TODO*/
 //     shares: 2,
 //   },
 // ];
-
 const postsData = [
   {
     date: "2024-08-17T10:40:00",
@@ -73,25 +72,27 @@ const postsData = [
         },
         comment: "Finally this",
         date: "2024-08-17T10:50:00",
-        subComments: {
-          userId: {
-            id: "981364872",
-            firstName: "Gok",
-            lastName: "U",
-          },
-          comment: "Cool",
-          date: "2024-08-17T11:00:00",
-          child: {
+        subComments: [
+          {
             userId: {
-              id: "789456123",
-              firstName: "Alice",
-              lastName: "Smith",
+              id: "981364872",
+              firstName: "Gok",
+              lastName: "U",
             },
-            comment: "Agreed!",
-            date: "2024-08-17T11:10:00",
-            child: null,
+            comment: "Cool",
+            date: "2024-08-17T11:00:00",
+            child: {
+              userId: {
+                id: "789456123",
+                firstName: "Alice",
+                lastName: "Smith",
+              },
+              comment: "Agreed!",
+              date: "2024-08-17T11:10:00",
+              child: null,
+            },
           },
-        },
+        ],
       },
     ],
   },
@@ -119,25 +120,27 @@ const postsData = [
         },
         comment: "That's neat",
         date: "2021-08-17T10:50:00",
-        subComments: {
-          userId: {
-            id: "89198327",
-            firstName: "Sam",
-            lastName: "Lee",
-          },
-          comment: "Awe",
-          date: "2021-08-17T11:00:00",
-          child: {
+        subComments: [
+          {
             userId: {
-              id: "654789321",
-              firstName: "Tom",
-              lastName: "Jones",
+              id: "89198327",
+              firstName: "Sam",
+              lastName: "Lee",
             },
-            comment: "So true!",
-            date: "2021-08-17T11:15:00",
-            child: null,
+            comment: "Awe",
+            date: "2021-08-17T11:00:00",
+            child: {
+              userId: {
+                id: "654789321",
+                firstName: "Tom",
+                lastName: "Jones",
+              },
+              comment: "So true!",
+              date: "2021-08-17T11:15:00",
+              child: null,
+            },
           },
-        },
+        ],
       },
     ],
   },
@@ -561,10 +564,6 @@ const CommunityPage = () => {
                   <CommentsSection
                     post={post}
                     handleAddComment={handleAddComment}
-                    // postId={post.id}
-                    // comments={post.comments || []}
-                    // handleCommentSubmit={handleCommentSubmit}
-                    // isCommentSectionVisible={() => toggleCommentWindow(post.id)}
                   />
                 )}
               </div>
