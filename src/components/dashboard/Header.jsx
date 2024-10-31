@@ -9,11 +9,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/Dropdown-menu";
 import { AiOutlineUser } from "react-icons/ai";
 import Image from "next/image";
 import { ProfileContext } from "@/providers/ProfileProvider";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import Link from "next/link";
