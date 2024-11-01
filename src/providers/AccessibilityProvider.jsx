@@ -1,14 +1,10 @@
 // src/providers/AccessibilityProvider.jsx
 'use client';
-
 import { createContext, useContext, useState, useCallback } from 'react';
-import { useDarkMode } from '@/hooks/useDarkMode'; // Adjust the import path as needed
 
 const AccessibilityContext = createContext();
 
 export function AccessibilityProvider({ children }) {
-  const [theme, toggleTheme] = useDarkMode();
-
   const speak = useCallback((text) => {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
@@ -18,13 +14,7 @@ export function AccessibilityProvider({ children }) {
   }, []);
 
   return (
-    <AccessibilityContext.Provider 
-      value={{ 
-        speak,
-        theme,
-        toggleTheme
-      }}
-    >
+    <AccessibilityContext.Provider value={{ speak }}>
       {children}
     </AccessibilityContext.Provider>
   );
