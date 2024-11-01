@@ -99,3 +99,48 @@
   --purple-300: #d8b4fe;
   --orange-300: #fdba74;
 }
+
+:root {
+  --font-size-adjust: 1;
+}
+
+/* Apply font size adjustment to all text */
+body {
+  font-size: calc(1rem * var(--font-size-adjust));
+}
+
+.custom-highlight {
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 1px;
+  transition: background-color 0.3s ease;
+}
+
+/* Style the color picker input */
+input[type="color"] {
+  -webkit-appearance: none;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+/* High contrast mode */
+.high-contrast {
+  filter: contrast(2.0);
+}
+
+/* Smooth transitions for accessibility changes */
+body, button, input, select, textarea {
+  transition: font-size 0.3s, background-color 0.3s, color 0.3s;
+}
+
