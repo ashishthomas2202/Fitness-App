@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import moment from 'moment';
+import React, { useState, useEffect } from "react";
+import moment from "moment";
+import { useSession } from "next-auth/react";
 
-const CommentsSection = ({ post, handleAddComment = () => {}, session }) => {
-  const [comment, setComment] = useState('');
+const CommentsSection = ({ post, handleAddComment = () => {} }) => {
+  const [comment, setComment] = useState("");
   const [comments, setComments] = useState(post.comments || []);
-  const [reply, setReply] = useState({ text: '', commentId: null });
+  const [reply, setReply] = useState({ text: "", commentId: null });
+  const { data: session } = useSession();
 
   const formatDate = (date) => {
     return moment(date).fromNow();
@@ -17,36 +19,75 @@ const CommentsSection = ({ post, handleAddComment = () => {}, session }) => {
         userId: session?.user, // Updated to use session
         comment: comment,
         date: new Date().toISOString(),
-        subComments: [], 
+        subComments: [],
       };
       const updatedComments = [newComment, ...comments];
       setComments(updatedComments);
-      setComment('');
+      setComment("");
       handleAddComment({ ...post, comments: updatedComments });
     }
   };
 
+  // const handleReply = (parentCommentId) => {
+  //   console.log("parentCommentId", parentCommentId);
+
+  //   if (reply.text.trim()) {
+  //     const updatedComments = comments.map((cmt) => {
+  //       if (cmt.id === parentCommentId) {
+  //         const newReply = {
+  //           id: Date.now().toString(), // Unique id for the reply
+  //           userId: session?.user, // Updated to use session
+  //           comment: reply.text,
+  //           date: new Date().toISOString(),
+  //           subComments: [],
+  //         };
+  //         return {
+  //           ...cmt,
+  //           subComments: [...(cmt.subComments || []), newReply], // Update to subComments
+  //         };
+  //       }
+  //       return cmt;
+  //     });
+
+  //     setComments(updatedComments);
+  //     setReply({ text: "", commentId: null });
+  //     handleAddComment({ ...post, comments: updatedComments });
+  //   }
+  // };
+
   const handleReply = (parentCommentId) => {
     if (reply.text.trim()) {
-      const updatedComments = comments.map((cmt) => {
-        if (cmt.id === parentCommentId) {
-          const newReply = {
-            id: Date.now().toString(), // Unique id for the reply
-            userId: session?.user, // Updated to use session
-            comment: reply.text,
-            date: new Date().toISOString(),
-            subComments: [], 
-          };
-          return {
-            ...cmt,
-            subComments: [...(cmt.subComments || []), newReply], // Update to subComments
-          };
-        }
-        return cmt;
-      });
+      // Helper function to recursively update subComments
+      const addReplyToComment = (commentsList) => {
+        return commentsList.map((cmt) => {
+          if (cmt.id === parentCommentId) {
+            const newReply = {
+              id: Date.now().toString(), // Unique id for the reply
+              userId: session?.user, // Ensure correct user ID is stored
+              comment: reply.text,
+              date: new Date().toISOString(),
+              subComments: [], // Initialize empty subComments array
+            };
+            return {
+              ...cmt,
+              subComments: [...(cmt.subComments || []), newReply], // Add new reply to subComments
+            };
+          }
+          // Recursively update subComments if nested comments exist
+          if (cmt.subComments && cmt.subComments.length > 0) {
+            return {
+              ...cmt,
+              subComments: addReplyToComment(cmt.subComments),
+            };
+          }
+          return cmt;
+        });
+      };
 
+      // Update the comments state with the new reply
+      const updatedComments = addReplyToComment(comments);
       setComments(updatedComments);
-      setReply({ text: '', commentId: null });
+      setReply({ text: "", commentId: null });
       handleAddComment({ ...post, comments: updatedComments });
     }
   };
@@ -61,14 +102,16 @@ const CommentsSection = ({ post, handleAddComment = () => {}, session }) => {
         <div className="p-2 bg-gray-100 dark:bg-neutral-800 rounded-lg flex justify-between items-center">
           <div>
             <strong>
-              {cmt.userId?.firstName || 'Anonymous'} {cmt.userId?.lastName || ''}
-            </strong>: {cmt.comment}
+              {cmt.userId?.firstName || "Anonymous"}{" "}
+              {cmt.userId?.lastName || ""}"{cmt.id}"
+            </strong>
+            : {cmt.comment}
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {formatDate(cmt.date)}
             </div>
           </div>
           <button
-            onClick={() => setReply({ text: '', commentId: cmt.id })}
+            onClick={() => setReply({ text: "", commentId: cmt.id })}
             className="text-blue-500 ml-2"
           >
             Reply
@@ -93,7 +136,7 @@ const CommentsSection = ({ post, handleAddComment = () => {}, session }) => {
         )}
         {cmt.subComments && cmt.subComments.length > 0 && (
           <ul className="ml-4 mt-2 border-l-2 border-gray-300 dark:border-neutral-700 pl-4">
-            {renderComments(cmt.subComments)} 
+            {renderComments(cmt.subComments)}
           </ul>
         )}
       </li>
@@ -118,9 +161,7 @@ const CommentsSection = ({ post, handleAddComment = () => {}, session }) => {
         </button>
       </div>
       <h3>Comments</h3>
-      <ul>
-        {renderComments(comments)}
-      </ul>
+      <ul>{renderComments(comments)}</ul>
     </div>
   );
 };
@@ -146,7 +187,7 @@ export default CommentsSection;
 //         userId: session?.user, // Updated to use session
 //         comment: comment,
 //         date: new Date().toISOString(),
-//         subComments: [], 
+//         subComments: [],
 //       };
 //       const updatedComments = [newComment, ...comments];
 //       setComments(updatedComments);
@@ -164,7 +205,7 @@ export default CommentsSection;
 //             userId: session?.user, // Updated to use session
 //             comment: reply.text,
 //             date: new Date().toISOString(),
-//             subComments: [], 
+//             subComments: [],
 //           };
 //           return {
 //             ...cmt,
@@ -228,7 +269,7 @@ export default CommentsSection;
 //         )}
 //         {cmt.subComments && cmt.subComments.length > 0 && (
 //           <ul className="ml-4 mt-2 border-l-2 border-gray-300 dark:border-neutral-700 pl-4">
-//             {renderComments(cmt.subComments)} 
+//             {renderComments(cmt.subComments)}
 //           </ul>
 //         )}
 //       </li>
@@ -261,7 +302,6 @@ export default CommentsSection;
 // };
 
 // export default CommentsSection;
-
 
 // import React, { useState, useEffect } from 'react';
 // import moment from 'moment';
@@ -401,15 +441,15 @@ export default CommentsSection;
 //   const [comments, setComments] = useState(post.comments || []);
 
 //   const formatDate = (date) => {
-//     return moment(date).fromNow(); 
+//     return moment(date).fromNow();
 //   };
 
 //   const handleAdd = () => {
 //     if (comment.trim()) {
 //       const newComment = {
-//         userId: { firstName: "Declan", lastName: "Belfield" }, 
+//         userId: { firstName: "Declan", lastName: "Belfield" },
 //         comment: comment,
-//         date: new Date().toISOString(), 
+//         date: new Date().toISOString(),
 //         subComments: null,
 //       };
 //       // Prepend the new comment to the top of the list

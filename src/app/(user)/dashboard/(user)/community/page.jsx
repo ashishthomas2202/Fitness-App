@@ -55,6 +55,7 @@ const postsData = [
       firstName: "Declan",
       lastName: "Belfield",
     },
+    tags: "events",
     id: "11234",
     title: "Hello",
     description: "I am saying Hello",
@@ -65,7 +66,7 @@ const postsData = [
     ],
     comments: [
       {
-        id: "1", 
+        id: "1",
         userId: {
           id: "0938598",
           firstName: "Will",
@@ -156,8 +157,6 @@ const postsData = [
   },
 ];
 
-
-
 const CommunityPage = () => {
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [isPostWindowOpen, setIsPostWindowOpen] = useState(false);
@@ -176,25 +175,50 @@ const CommunityPage = () => {
   const checklike = (post) => {
     return post?.likes?.some((like) => like?.userId === session?.user?.id);
   };
+  // const countComments = (post) => {
+  //   const countNestedComments = (comment) => {
+  //     // Count the current comment
+  //     let count = 1;
+
+  //     // Recursively count sub-comments if they exist
+  //     if (comment.subComments) {
+  //       count += countNestedComments(comment.subComments);
+  //     }
+
+  //     return count;
+  //   };
+
+  //   // Sum up all comments and nested comments
+  //   return post.comments.reduce(
+  //     (total, comment) => total + countNestedComments(comment),
+  //     0
+  //   );
+  // };
+
   const countComments = (post) => {
     const countNestedComments = (comment) => {
       // Count the current comment
       let count = 1;
 
-      // Recursively count sub-comments if they exist
-      if (comment.subComments) {
-        count += countNestedComments(comment.subComments);
+      // Recursively count each sub-comment if they exist
+      if (comment.subComments && comment.subComments.length > 0) {
+        comment.subComments.forEach((subComment) => {
+          count += countNestedComments(subComment);
+        });
       }
 
       return count;
     };
 
-    // Sum up all comments and nested comments
-    return post.comments.reduce(
-      (total, comment) => total + countNestedComments(comment),
-      0
-    );
+    // Count all comments in the post, including sub-comments
+    let totalComments = 0;
+    post.comments.forEach((comment) => {
+      totalComments += countNestedComments(comment);
+    });
+
+    return totalComments;
   };
+
   const handleAddComment = (updatedPost) => {
     // Update the post in the posts array
     setPosts((prevPosts) =>
@@ -275,7 +299,7 @@ const CommunityPage = () => {
     setPosts(updatedPosts);
     setNewCommentText("");
   };
-  
+
   const toggleComments = (postId) => {
     setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
   };
@@ -291,169 +315,6 @@ const CommunityPage = () => {
   return (
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
       {/* Left Sidebar */}
-      <aside className="w-1/5 bg-white dark:bg-neutral-800 p-6 space-y-4 rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold">Community Hub</h2>
-        <nav className="space-y-3">
-          <Link href="/dashboard" passHref>
-            <button
-              className={`w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-                selectedFilter === "Home"
-                  ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                  : "text-gray-700 dark:text-gray-200"
-              }`}
-              onClick={() => setSelectedFilter("Home")}
-            >
-              <Home className="text-gray-600 dark:text-gray-300" />
-              <span>Home</span>
-            </button>
-          </Link>
-          <Link href="/dashboard/profile" passHref>
-            <button
-              className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-                selectedFilter === "Profile"
-                  ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                  : "text-gray-700 dark:text-gray-200"
-              }`}
-              onClick={() => setSelectedFilter("Profile")}
-            >
-              <User className="text-gray-600 dark:text-gray-300" />
-              <span>Profile</span>
-            </button>
-          </Link>
-        </nav>
-
-        <h3 className="font-semibold mt-8">Favorites</h3>
-        <ul className="space-y-3">
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Messages"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Messages")}
-          >
-            <MessageCircle className="text-gray-600 dark:text-gray-300" />
-            <span>Messages</span>
-          </li>
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Friends"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Friends")}
-          >
-            <Users className="text-gray-600 dark:text-gray-300" />
-            <span>Friends</span>
-          </li>
-          {/* <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Feed"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Feed")}
-          >
-            <Activity className="text-gray-600 dark:text-gray-300" />
-            <span>Feed</span>
-          </li> */}
-          {/* <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Stories"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Stories")}
-          >
-            <Star className="text-gray-600 dark:text-gray-300" />
-            <span>Stories</span>
-          </li> */}
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Events"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Events")}
-          >
-            <Bell className="text-gray-600 dark:text-gray-300" />
-            <span>Events</span>
-          </li>
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Progress"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Progress")}
-          >
-            <Activity className="text-gray-600 dark:text-gray-300" />
-            <span>Progress Tracker</span>
-          </li>
-        </ul>
-
-        <h3 className="font-semibold mt-8">Groups</h3>
-        <ul className="space-y-3">
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Gym RatZzZ"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Gym RatZzZ")}
-          >
-            <Users className="text-gray-600 dark:text-gray-300" />
-            <span>Gym RatZzZ</span>
-          </li>
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Pet Fitness"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Pet Fitness")}
-          >
-            <Users className="text-gray-600 dark:text-gray-300" />
-            <span>Pet Fitness</span>
-          </li>
-          <li
-            className={`flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Fitness Memes"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Fitness Memes")}
-          >
-            <Users className="text-gray-600 dark:text-gray-300" />
-            <span>Fitness Memes</span>
-          </li>
-        </ul>
-
-        <div className="space-y-4 mt-10">
-          <button
-            className={` w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Help"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Help")}
-          >
-            <HelpCircle className="text-gray-600 dark:text-gray-300" />
-            <span>Help & Support</span>
-          </button>
-          <button
-            className={`w-full text-left flex items-center space-x-2 py-2 transition-all duration-200 ${
-              selectedFilter === "Logout"
-                ? "bg-purple-200 dark:bg-purple-600 text-gray-900 dark:text-white rounded-lg"
-                : "text-gray-700 dark:text-gray-200"
-            }`}
-            onClick={() => setSelectedFilter("Logout")}
-          >
-            <LogOut className="text-gray-600 dark:text-gray-300" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </aside>
 
       {/* Main Content Area */}
       <main className="w-3/5 p-8">
@@ -570,18 +431,18 @@ const CommunityPage = () => {
           {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
         </button>
       </div> */}
-      <div>
-        {/* Comments Section */}
-        {activeCommentPostId === post.id && (
-          <CommentsSection
-            post={post}
-            handleAddComment={handleAddComment}
-            newCommentText={newCommentText} 
-            setNewCommentText={setNewCommentText} 
-            handleCommentSubmit={handleCommentSubmit} 
-          />
-        )}
-      </div>
+              <div>
+                {/* Comments Section */}
+                {activeCommentPostId === post.id && (
+                  <CommentsSection
+                    post={post}
+                    handleAddComment={handleAddComment}
+                    newCommentText={newCommentText}
+                    setNewCommentText={setNewCommentText}
+                    handleCommentSubmit={handleCommentSubmit}
+                  />
+                )}
+              </div>
 
               {/* Comment Input Window */}
               {/* {activeCommentPostId === post.id && (
