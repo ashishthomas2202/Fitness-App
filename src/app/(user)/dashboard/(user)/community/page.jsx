@@ -55,7 +55,7 @@ const postsData = [
       firstName: "Declan",
       lastName: "Belfield",
     },
-    tags: "events",
+    tag: "events",
     id: "11234",
     title: "Hello",
     description: "I am saying Hello",
