@@ -10,6 +10,7 @@ import { ProfileProvider } from "@/providers/ProfileProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { AccessibilityProvider } from '@/providers/AccessibilityProvider';
 import AccessibilityBar from '@/components/AccessibilityBar';
+import { GlobalContextMenu } from '@/components/GlobalContextMenu'; // Add this import
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }) {
             <ProfileProvider>
               <AccessibilityProvider>
                 {children}
+                <GlobalContextMenu />
                 <AccessibilityBar />
               </AccessibilityProvider>
             </ProfileProvider>

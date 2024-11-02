@@ -144,3 +144,28 @@ body, button, input, select, textarea {
   transition: font-size 0.3s, background-color 0.3s, color 0.3s;
 }
 
+#speech-controls {
+  transform: translate(-50%, -50%);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+#speech-button {
+  font-size: 1.2rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
