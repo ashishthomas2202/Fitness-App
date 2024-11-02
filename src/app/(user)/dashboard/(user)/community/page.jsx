@@ -167,6 +167,8 @@ const CommunityPage = () => {
   const [newCommentText, setNewCommentText] = useState("");
   const [visibleComments, setVisibleComments] = useState({});
   const { data: session } = useSession();
+  const [selectedTag, setSelectedTag] = useState(null);
+
 
   const fetchPosts = () => {
     setPosts(postsData);
@@ -175,25 +177,6 @@ const CommunityPage = () => {
   const checklike = (post) => {
     return post?.likes?.some((like) => like?.userId === session?.user?.id);
   };
-  // const countComments = (post) => {
-  //   const countNestedComments = (comment) => {
-  //     // Count the current comment
-  //     let count = 1;
-
-  //     // Recursively count sub-comments if they exist
-  //     if (comment.subComments) {
-  //       count += countNestedComments(comment.subComments);
-  //     }
-
-  //     return count;
-  //   };
-
-  //   // Sum up all comments and nested comments
-  //   return post.comments.reduce(
-  //     (total, comment) => total + countNestedComments(comment),
-  //     0
-  //   );
-  // };
 
   const countComments = (post) => {
     const countNestedComments = (comment) => {
@@ -269,12 +252,17 @@ const CommunityPage = () => {
         likes: [],
         comments: [],
         shares: 0,
+        tag: selectedTag,
       };
 
       setPosts([...posts, newPost]);
       closePostWindow();
     }
   };
+  const toggleTag = (tag) => {
+    setSelectedTag((prevTag) => (prevTag === tag ? null : tag));
+  };
+  
   const toggleCommentWindow = (postId) => {
     setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
   };
@@ -316,194 +304,246 @@ const CommunityPage = () => {
     <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
       {/* Left Sidebar */}
 
-      {/* Main Content Area */}
-      <main className="w-3/5 p-8">
-        <div className="flex justify-between items-center mb-6 px-4">
-          <div className="relative flex-shrink-0 w-full max-w-xs">
-            <input
-              type="text"
-              placeholder="Search"
-              className="pl-10 pr-4 py-2 rounded-full bg-gray-200 dark:bg-neutral-700 w-full"
-            />
-            <Search className="absolute left-3 top-1/2 transform -tranneutral-y-1/2 text-gray-500" />
-          </div>
+{/* Main Content Area */}
+<main className="w-full p-8">
+  <div className="flex justify-between items-center mb-6 px-4">
+    <div className="relative flex-shrink-0 w-full max-w-xs">
+      <input
+        type="text"
+        placeholder="Search"
+        className="pl-10 pr-4 py-2 rounded-full bg-gray-200 dark:bg-neutral-700 w-full"
+      />
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+    </div>
 
-          {/* Buttons */}
-          <div className="flex space-x-2 ml-4 overflow-x-auto whitespace-nowrap">
-            <button
-              className={`px-4 py-2 rounded-full ${
-                selectedFilter === "All"
-                  ? "bg-purple-300 dark:bg-purple-600"
-                  : "bg-gray-200 dark:bg-neutral-600"
-              }`}
-              onClick={() => setSelectedFilter("All")}
-            >
-              All
-            </button>
+    {/* Filter Buttons */}
+    <div className="flex space-x-2 ml-4 overflow-x-auto whitespace-nowrap">
+      <button
+        className={`px-4 py-2 rounded-full ${
+          selectedFilter === "All"
+            ? "bg-purple-300 dark:bg-purple-600"
+            : "bg-gray-200 dark:bg-neutral-600"
+        }`}
+        onClick={() => setSelectedFilter("All")}
+      >
+        All
+      </button>
 
-            <button
-              className={`px-4 py-2 rounded-full ${
-                selectedFilter === "Chats"
-                  ? "bg-purple-300 dark:bg-purple-600"
-                  : "bg-gray-200 dark:bg-neutral-600"
-              }`}
-              onClick={() => setSelectedFilter("Chats")}
-            >
-              Chats
-            </button>
-            <button
-              className={`px-4 py-2 rounded-full ${
-                selectedFilter === "Events"
-                  ? "bg-purple-300 dark:bg-purple-600"
-                  : "bg-gray-200 dark:bg-neutral-600"
-              }`}
-              onClick={() => setSelectedFilter("Events")}
-            >
-              Events
-            </button>
-          </div>
-        </div>
-        {/* Post Button */}
-        <div>
-          <button
-            className="px-4 py-2 bg-purple-500 text-white rounded-full"
-            onClick={openPostWindow}
-          >
-            Create Post
-          </button>
-        </div>
-        {/* Posts Section */}
-        <section className="space-y-6">
-          {posts.map((post) => (
-            <div
-              key={post?.id}
-              className="bg-white dark:bg-neutral-700 p-6 rounded-lg shadow relative"
-            >
-              <header className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold">
-                    {post?.userId?.firstName} {post?.userId?.lastName}
-                  </h3>
-                  <p className="text-gray-500 text-sm">
-                    {formatDate(post?.date)}
-                  </p>
-                  <p className="text-gray-500 text-sm">{post?.title}</p>
-                </div>
-              </header>
-              <p className="mt-4">{post?.description}</p>
-              <footer className="flex justify-between items-center mt-4">
-                <div className="flex space-x-4">
-                  <button
-                    className="flex items-center space-x-1"
-                    onClick={() => handleLike(post)}
-                  >
-                    <Heart
-                      className={
-                        checklike(post) ? "text-red-600" : "text-red-600"
-                      }
-                      fill={checklike(post) ? "currentColor" : "none"}
-                    />
-                    <span>{post?.likes?.length || 0}</span>
-                  </button>
-                  <button
-                    className="flex items-center space-x-1"
-                    onClick={() => toggleCommentWindow(post.id)}
-                  >
-                    <MessageSquare />
-                    <span>{countComments(post)}</span> {}
-                  </button>
-                  <button className="flex items-center space-x-1">
-                    <Share />
-                    <span>{post.shares}</span>
-                  </button>
-                </div>
+      <button
+        className={`px-4 py-2 rounded-full ${
+          selectedFilter === "Workout Plan"
+            ? "bg-purple-300 dark:bg-purple-600"
+            : "bg-gray-200 dark:bg-neutral-600"
+        }`}
+        onClick={() => setSelectedFilter("Workout Plan")}
+      >
+        Workout Plan
+      </button>
 
-                <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
-                  {post.time}
-                </p>
-              </footer>
-              {/* Comments Button
-           <div className="flex justify-center mt-4 -mt-8">
-          <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-200"
-          onClick={() => toggleComments(post.id)}
-          >
-          {activeCommentPostId === post.id ? "Hide Comments" : "View Comments"}
-        </button>
-      </div> */}
-              <div>
-                {/* Comments Section */}
-                {activeCommentPostId === post.id && (
-                  <CommentsSection
-                    post={post}
-                    handleAddComment={handleAddComment}
-                    newCommentText={newCommentText}
-                    setNewCommentText={setNewCommentText}
-                    handleCommentSubmit={handleCommentSubmit}
-                  />
-                )}
-              </div>
+      <button
+        className={`px-4 py-2 rounded-full ${
+          selectedFilter === "Meal Plan"
+            ? "bg-purple-300 dark:bg-purple-600"
+            : "bg-gray-200 dark:bg-neutral-600"
+        }`}
+        onClick={() => setSelectedFilter("Meal Plan")}
+      >
+        Meal Plan
+      </button>
+      <button
+        className={`px-4 py-2 rounded-full ${
+          selectedFilter === "Event"
+            ? "bg-purple-300 dark:bg-purple-600"
+            : "bg-gray-200 dark:bg-neutral-600"
+        }`}
+        onClick={() => setSelectedFilter("Event")}
+      >
+        Event
+      </button>
+    </div>
+  </div>
 
-              {/* Comment Input Window */}
-              {/* {activeCommentPostId === post.id && (
-                <div className="mt-4">
-                  <textarea
-                    value={newCommentText}
-                    onChange={(e) => setNewCommentText(e.target.value)}
-                    className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
-                    placeholder="Write a comment..."
-                    rows={2}
-                  />
-                  <button
-                    onClick={() => handleCommentSubmit(post.id)}
-                    className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg"
-                  >
-                    Submit Comment
-                  </button>
-                </div>
-              )} */}
+  {/* Post Button */}
+  <div>
+    <button
+      className="px-4 py-2 bg-purple-500 text-white rounded-full"
+      onClick={openPostWindow}
+    >
+      Create Post
+    </button>
+  </div>
+
+  {/* Posts Section */}
+  <section className="space-y-6">
+    {posts
+      .filter(post => 
+        selectedFilter === "All" || 
+        post.tag === selectedFilter
+      )
+      .map((post) => (
+        <div
+          key={post?.id}
+          className="relative bg-white dark:bg-neutral-700 p-6 rounded-lg shadow"
+        >
+          {/* Tag Label at the Top Right */}
+          {post?.tag && (
+            <div className={`absolute top-2 right-2 flex items-center space-x-2`}>
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  post.tag === "Workout Plan"
+                    ? "bg-blue-500"
+                    : post.tag === "Meal Plan"
+                    ? "bg-green-500"
+                    : post.tag === "Event"
+                    ? "bg-yellow-500"
+                    : "bg-gray-500"
+                }`}
+              ></div>
+              <span
+                className={`text-sm font-medium ${
+                  post.tag === "Workout Plan"
+                    ? "text-blue-500"
+                    : post.tag === "Meal Plan"
+                    ? "text-green-500"
+                    : post.tag === "Event"
+                    ? "text-yellow-500"
+                    : "text-gray-500"
+                }`}
+              >
+                {post.tag}
+              </span>
             </div>
-          ))}
-        </section>
-      </main>
-      {/* Post Window */}
-      {isPostWindowOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white dark:bg-neutral-800 w-full max-w-md p-6 rounded-lg shadow-lg">
-            <button
-              onClick={closePostWindow}
-              className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              <X />
-            </button>
-            {/* Title Input */}
-            <div className="flex flex-col mb-4">
-              <input
-                type="text"
-                value={postTitle}
-                onChange={(e) => setPostTitle(e.target.value)}
-                className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
-                placeholder="Enter post title"
+          )}
+
+          <header className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-semibold">
+                {post?.userId?.firstName} {post?.userId?.lastName}
+              </h3>
+              <p className="text-gray-500 text-sm">{formatDate(post?.date)}</p>
+              <p className="text-gray-500 text-sm">{post?.title}</p>
+            </div>
+          </header>
+          <p className="mt-4">{post?.description}</p>
+          <footer className="flex justify-between items-center mt-4">
+            <div className="flex space-x-4">
+              <button
+                className="flex items-center space-x-1"
+                onClick={() => handleLike(post)}
+              >
+                <Heart
+                  className={checklike(post) ? "text-red-600" : "text-red-600"}
+                  fill={checklike(post) ? "currentColor" : "none"}
+                />
+                <span>{post?.likes?.length || 0}</span>
+              </button>
+              <button
+                className="flex items-center space-x-1"
+                onClick={() => toggleCommentWindow(post.id)}
+              >
+                <MessageSquare />
+                <span>{countComments(post)}</span>
+              </button>
+              <button className="flex items-center space-x-1">
+                <Share />
+                <span>{post.shares}</span>
+              </button>
+            </div>
+
+            <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
+              {post.time}
+            </p>
+          </footer>
+          <div>
+            {/* Comments Section */}
+            {activeCommentPostId === post.id && (
+              <CommentsSection
+                post={post}
+                handleAddComment={handleAddComment}
+                newCommentText={newCommentText}
+                setNewCommentText={setNewCommentText}
+                handleCommentSubmit={handleCommentSubmit}
               />
-            </div>
-            {/* Post Content Input */}
-            <textarea
-              value={newPostText}
-              onChange={(e) => setNewPostText(e.target.value)}
-              className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg mb-4"
-              placeholder="What's on your mind?"
-              rows={5}
-            ></textarea>
-            Submit Button
-            <button
-              onClick={handlePostSubmit}
-              className="w-full py-2 bg-blue-500 text-white rounded-lg"
-            >
-              Submit Post
-            </button>
+            )}
           </div>
         </div>
-      )}
+      ))}
+  </section>
+</main>
+
+
+      {/* Post Window */}
+{isPostWindowOpen && (
+  <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+    <div className="bg-white dark:bg-neutral-800 w-full max-w-md p-6 rounded-lg shadow-lg relative">
+      <button
+        onClick={closePostWindow}
+        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+      >
+        <X />
+      </button>
+      {/* Tag Buttons */}
+      <div className="flex justify-end space-x-2 mb-4">
+        <button
+          onClick={() => toggleTag("Workout Plan")}
+          className={`px-3 py-1 rounded-lg ${
+            selectedTag === "Workout Plan"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
+          }`}
+        >
+          Workout Plan
+        </button>
+        <button
+          onClick={() => toggleTag("Meal Plan")}
+          className={`px-3 py-1 rounded-lg ${
+            selectedTag === "Meal Plan"
+              ? "bg-green-500 text-white"
+              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
+          }`}
+        >
+          Meal Plan
+        </button>
+        <button
+          onClick={() => toggleTag("Event")}
+          className={`px-3 py-1 rounded-lg ${
+            selectedTag === "Event"
+              ? "bg-yellow-500 text-white"
+              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
+          }`}
+        >
+          Event
+        </button>
+      </div>
+      
+      {/* Title Input */}
+      <div className="flex flex-col mb-4">
+        <input
+          type="text"
+          value={postTitle}
+          onChange={(e) => setPostTitle(e.target.value)}
+          className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
+          placeholder="Enter post title"
+        />
+      </div>
+      {/* Post Content Input */}
+      <textarea
+        value={newPostText}
+        onChange={(e) => setNewPostText(e.target.value)}
+        className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg mb-4"
+        placeholder="What's on your mind?"
+        rows={5}
+      ></textarea>
+      {/* Submit Button */}
+      <button
+        onClick={handlePostSubmit}
+        className="w-full py-2 bg-blue-500 text-white rounded-lg"
+      >
+        Submit Post
+      </button>
+    </div>
+  </div>
+)}
 
       {/* Right Sidebar */}
       <aside className="w-1/5 bg-white dark:bg-neutral-800 p-6 space-y-8 rounded-lg shadow-lg ml-6">
