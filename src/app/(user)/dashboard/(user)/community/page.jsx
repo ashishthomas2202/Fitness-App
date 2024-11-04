@@ -21,6 +21,21 @@ import { Button } from "@/components/ui/Button";
 import CommentsSection from "@/components/ui/CommentsSection";
 import Link from "next/link";
 import moment from "moment-timezone";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogClose,
+  DialogFooter,
+  DialogOverlay,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
+
+import { CreatePostDialog } from "@/components/dashboard/social/CreatePostDialog";
+import { Post } from "@/components/ui/Post";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { Page } from "@/components/dashboard/Page";
 /* TODO Fix the comments visibitlity
 TODO Add linking to the buttons
 TODO*/
@@ -49,52 +64,30 @@ TODO*/
 // ];
 const postsData = [
   {
-    date: "2024-08-17T10:40:00",
-    userId: {
-      id: "871364873",
-      firstName: "Declan",
-      lastName: "Belfield",
+    id: "605c72ef",
+    author: "605c72ef1c4a3a34b6f12c2d", // Replace with an actual user ObjectId
+    contentType: "achievement",
+    contentData: {
+      title: "Completed 5K Run",
+      description: "Ran a 5K marathon in under 30 minutes!",
+      date: "2024-10-15",
     },
-    tag: "events",
-    id: "11234",
-    title: "Hello",
-    description: "I am saying Hello",
-    likes: [
-      { userId: "diucbsdibvcisdjn" },
-      { userId: "13215376125" },
-      { userId: "23621763287" },
-    ],
+    visibility: "public",
     comments: [
       {
-        id: "1",
-        userId: {
-          id: "0938598",
-          firstName: "Will",
-          lastName: "Gamble",
-        },
-        comment: "Finally this",
-        date: "2024-08-17T10:50:00",
-        subComments: [
+        commenter: "605c72ef1c4a3a34b6f12c2f",
+        comment: "Congratulations! That's amazing!",
+        timestamp: new Date("2024-10-16T10:00:00Z"),
+        replies: [
           {
-            id: "1.1", // Unique ID for the reply
-            userId: {
-              id: "981364872",
-              firstName: "Gok",
-              lastName: "U",
-            },
-            comment: "Cool",
-            date: "2024-08-17T11:00:00",
-            subComments: [
+            commenter: "605c72ef1c4a3a34b6f12c30",
+            comment: "Thank you! It was a tough run.",
+            timestamp: new Date("2024-10-16T11:00:00Z"),
+            replies: [
               {
-                id: "1.1.1",
-                userId: {
-                  id: "789456123",
-                  firstName: "Alice",
-                  lastName: "Smith",
-                },
-                comment: "Agreed!",
-                date: "2024-08-17T11:10:00",
-                subComments: [], // No further replies
+                commenter: "605c72ef1c4a3a34b6f12c31",
+                comment: "You should train for a 10K next!",
+                timestamp: new Date("2024-10-16T12:00:00Z"),
               },
             ],
           },
@@ -103,51 +96,62 @@ const postsData = [
     ],
   },
   {
-    date: "2021-08-17T10:40:00",
-    userId: {
-      id: "928798275",
-      firstName: "John",
-      lastName: "Cena",
+    id: "605c72ef1c4a3a34b6f12c2a",
+    author: "605c72ef1c4a3a34b6f12c2e", // Replace with an actual user ObjectId
+    contentType: "post",
+    contentData: {
+      title: "Morning Yoga Session",
+      description: "Started my day with a peaceful yoga session.",
+      images: [
+        "https://example.com/image1.jpg",
+        "https://example.com/image2.jpg",
+      ],
     },
-    id: "287863",
-    title: "This is cool",
-    description: "jwfiodoinwo",
-    likes: [
-      { userId: "78136287136872" },
-      { userId: "3687467832" },
-      { userId: "172y734" },
-    ],
+    visibility: "private",
     comments: [
       {
-        id: "2", // Unique ID for the comment
-        userId: {
-          id: "2795983475983",
-          firstName: "Derek",
-          lastName: "Key",
-        },
-        comment: "That's neat",
-        date: "2021-08-17T10:50:00",
-        subComments: [
+        commenter: "605c72ef1c4a3a34b6f12c32",
+        comment: "Yoga is the best way to start the day!",
+        timestamp: new Date("2024-10-17T08:30:00Z"),
+        replies: [
           {
-            id: "2.1", // Unique ID for the reply
-            userId: {
-              id: "89198327",
-              firstName: "Sam",
-              lastName: "Lee",
-            },
-            comment: "Awe",
-            date: "2021-08-17T11:00:00",
-            subComments: [
+            commenter: "605c72ef1c4a3a34b6f12c33",
+            comment: "Absolutely! I feel so much more energized.",
+            timestamp: new Date("2024-10-17T09:00:00Z"),
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "605c72ef1c4a3a34b6f12c2b",
+    author: "605c72ef1c4a3a34b6f12c2f", // Replace with an actual user ObjectId
+    contentType: "share",
+    contentData: {
+      sharedPostId: "605c72ef1c4a3a34b6f12c2a",
+      caption: "This post really inspired me!",
+    },
+    visibility: "public",
+    comments: [
+      {
+        commenter: "605c72ef1c4a3a34b6f12c34",
+        comment: "Thanks for sharing! Very motivating.",
+        timestamp: new Date("2024-10-18T15:30:00Z"),
+        replies: [
+          {
+            commenter: "605c72ef1c4a3a34b6f12c35",
+            comment: "Glad you liked it!",
+            timestamp: new Date("2024-10-18T16:00:00Z"),
+          },
+          {
+            commenter: "605c72ef1c4a3a34b6f12c36",
+            comment: "I also found this inspiring!",
+            timestamp: new Date("2024-10-18T16:30:00Z"),
+            replies: [
               {
-                id: "2.1.1", // Unique ID for the child reply
-                userId: {
-                  id: "654789321",
-                  firstName: "Tom",
-                  lastName: "Jones",
-                },
-                comment: "So true!",
-                date: "2021-08-17T11:15:00",
-                subComments: [], // No further replies
+                commenter: "605c72ef1c4a3a34b6f12c37",
+                comment: "Agreed, it's really powerful.",
+                timestamp: new Date("2024-10-18T17:00:00Z"),
               },
             ],
           },
@@ -169,11 +173,10 @@ const CommunityPage = () => {
   const { data: session } = useSession();
   const [selectedTag, setSelectedTag] = useState(null);
 
-
-  const fetchPosts = () => {
-    setPosts(postsData);
-    return postsData;
-  };
+  // const fetchPosts = () => {
+  //   setPosts(postsData);
+  //   return postsData;
+  // };
   const checklike = (post) => {
     return post?.likes?.some((like) => like?.userId === session?.user?.id);
   };
@@ -202,17 +205,17 @@ const CommunityPage = () => {
     return totalComments;
   };
 
-  const handleAddComment = (updatedPost) => {
-    // Update the post in the posts array
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === updatedPost.id ? { ...updatedPost } : post
-      )
-    );
-  };
+  // const handleAddComment = (updatedPost) => {
+  //   // Update the post in the posts array
+  //   setPosts((prevPosts) =>
+  //     prevPosts.map((post) =>
+  //       post.id === updatedPost.id ? { ...updatedPost } : post
+  //     )
+  //   );
+  // };
 
   const formatDate = (date) => {
-    return moment(date).fromNow();
+    return;
   };
 
   // const checklike=(post)=>{return post?.likes.find(like=>{like?.userId==session?.user?.id}).length>0}
@@ -262,7 +265,7 @@ const CommunityPage = () => {
   const toggleTag = (tag) => {
     setSelectedTag((prevTag) => (prevTag === tag ? null : tag));
   };
-  
+
   const toggleCommentWindow = (postId) => {
     setActiveCommentPostId((prevId) => (prevId === postId ? null : postId));
   };
@@ -297,279 +300,120 @@ const CommunityPage = () => {
       [postId]: !prevState[postId],
     }));
   };
+
+  // ---------------------------
+
+  const fetchPosts = async () => {
+    await axios
+      .get("/api/post")
+      .then((response) => {
+        if (response?.data?.success) {
+          setPosts(response.data.data);
+          return response.data.data;
+        }
+        return [];
+      })
+      .catch((error) => {
+        return [];
+      });
+  };
+
+  const createPost = async (post) => {
+    await axios
+      .post("/api/post/create", post)
+      .then((response) => {
+        if (response?.data?.success) {
+          fetchPosts();
+          return response.data.data;
+        }
+        throw new Error("Failed to create post");
+      })
+      .catch((error) => {
+        throw new Error("Failed to create post");
+      });
+  };
+
+  const handleLikeChange = async (postId) => {
+    return await axios
+      .patch(`/api/post/${postId}/update/likes`)
+      .then((response) => {
+        if (response?.data?.success) {
+          //update the current post with the new likes
+          setPosts((prevPosts) =>
+            prevPosts.map((post) =>
+              post.id === postId
+                ? {
+                    ...post,
+                    likes: response.data.data.likes,
+                  }
+                : post
+            )
+          );
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
+  };
+
+  // const handleAddComment = async (postId, commentText = "") => {
+  //   if (commentText.trim() === "") {
+  //     return null;
+  //   }
+  //   return await axios
+  //     .post(`/api/post/${postId}/comment/add`, {
+  //       commentText,
+  //     })
+  //     .then((response) => {
+  //       if (response?.data?.success) {
+  //         console.log(response.data.data);
+  //         //update the current post with the new likes
+  //         setPosts((prevPosts) =>
+  //           prevPosts.map((post) =>
+  //             post.id === postId
+  //               ? {
+  //                   ...post,
+  //                   comments: response.data.data,
+  //                 }
+  //               : post
+  //           )
+  //         );
+  //         return response.data.data;
+  //       }
+  //       return null;
+  //     })
+  //     .catch((error) => {
+  //       return null;
+  //     });
+  // };
+
   useEffect(() => {
     fetchPosts();
   }, []);
+
   return (
-    <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
-      {/* Left Sidebar */}
-
-{/* Main Content Area */}
-<main className="w-full p-8">
-  <div className="flex justify-between items-center mb-6 px-4">
-    <div className="relative flex-shrink-0 w-full max-w-xs">
-      <input
-        type="text"
-        placeholder="Search"
-        className="pl-10 pr-4 py-2 rounded-full bg-gray-200 dark:bg-neutral-700 w-full"
-      />
-      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-    </div>
-
-    {/* Filter Buttons */}
-    <div className="flex space-x-2 ml-4 overflow-x-auto whitespace-nowrap">
-      <button
-        className={`px-4 py-2 rounded-full ${
-          selectedFilter === "All"
-            ? "bg-purple-300 dark:bg-purple-600"
-            : "bg-gray-200 dark:bg-neutral-600"
-        }`}
-        onClick={() => setSelectedFilter("All")}
-      >
-        All
-      </button>
-
-      <button
-        className={`px-4 py-2 rounded-full ${
-          selectedFilter === "Workout Plan"
-            ? "bg-purple-300 dark:bg-purple-600"
-            : "bg-gray-200 dark:bg-neutral-600"
-        }`}
-        onClick={() => setSelectedFilter("Workout Plan")}
-      >
-        Workout Plan
-      </button>
-
-      <button
-        className={`px-4 py-2 rounded-full ${
-          selectedFilter === "Meal Plan"
-            ? "bg-purple-300 dark:bg-purple-600"
-            : "bg-gray-200 dark:bg-neutral-600"
-        }`}
-        onClick={() => setSelectedFilter("Meal Plan")}
-      >
-        Meal Plan
-      </button>
-      <button
-        className={`px-4 py-2 rounded-full ${
-          selectedFilter === "Event"
-            ? "bg-purple-300 dark:bg-purple-600"
-            : "bg-gray-200 dark:bg-neutral-600"
-        }`}
-        onClick={() => setSelectedFilter("Event")}
-      >
-        Event
-      </button>
-    </div>
-  </div>
-
-  {/* Post Button */}
-  <div>
-    <button
-      className="px-4 py-2 bg-purple-500 text-white rounded-full"
-      onClick={openPostWindow}
-    >
-      Create Post
-    </button>
-  </div>
-
-  {/* Posts Section */}
-  <section className="space-y-6">
-    {posts
-      .filter(post => 
-        selectedFilter === "All" || 
-        post.tag === selectedFilter
-      )
-      .map((post) => (
-        <div
-          key={post?.id}
-          className="relative bg-white dark:bg-neutral-700 p-6 rounded-lg shadow"
-        >
-          {/* Tag Label at the Top Right */}
-          {post?.tag && (
-            <div className={`absolute top-2 right-2 flex items-center space-x-2`}>
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  post.tag === "Workout Plan"
-                    ? "bg-blue-500"
-                    : post.tag === "Meal Plan"
-                    ? "bg-green-500"
-                    : post.tag === "Event"
-                    ? "bg-yellow-500"
-                    : "bg-gray-500"
-                }`}
-              ></div>
-              <span
-                className={`text-sm font-medium ${
-                  post.tag === "Workout Plan"
-                    ? "text-blue-500"
-                    : post.tag === "Meal Plan"
-                    ? "text-green-500"
-                    : post.tag === "Event"
-                    ? "text-yellow-500"
-                    : "text-gray-500"
-                }`}
-              >
-                {post.tag}
-              </span>
-            </div>
-          )}
-
-          <header className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-semibold">
-                {post?.userId?.firstName} {post?.userId?.lastName}
-              </h3>
-              <p className="text-gray-500 text-sm">{formatDate(post?.date)}</p>
-              <p className="text-gray-500 text-sm">{post?.title}</p>
-            </div>
-          </header>
-          <p className="mt-4">{post?.description}</p>
-          <footer className="flex justify-between items-center mt-4">
-            <div className="flex space-x-4">
-              <button
-                className="flex items-center space-x-1"
-                onClick={() => handleLike(post)}
-              >
-                <Heart
-                  className={checklike(post) ? "text-red-600" : "text-red-600"}
-                  fill={checklike(post) ? "currentColor" : "none"}
-                />
-                <span>{post?.likes?.length || 0}</span>
-              </button>
-              <button
-                className="flex items-center space-x-1"
-                onClick={() => toggleCommentWindow(post.id)}
-              >
-                <MessageSquare />
-                <span>{countComments(post)}</span>
-              </button>
-              <button className="flex items-center space-x-1">
-                <Share />
-                <span>{post.shares}</span>
-              </button>
-            </div>
-
-            <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
-              {post.time}
-            </p>
-          </footer>
-          <div>
-            {/* Comments Section */}
-            {activeCommentPostId === post.id && (
-              <CommentsSection
-                post={post}
-                handleAddComment={handleAddComment}
-                newCommentText={newCommentText}
-                setNewCommentText={setNewCommentText}
-                handleCommentSubmit={handleCommentSubmit}
-              />
-            )}
-          </div>
-        </div>
-      ))}
-  </section>
-</main>
-
+    // <div className="min-h-screen flex bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-200">
+    <Page className="px-2 dark:bg-transparent">
+      {/* Main Content Area */}
+      <main className=" flex-1 space-y-4">
+        <header className="max-w-lg mx-auto top-0">
+          <h1 className="text-3xl font-bold mb-10">Explore</h1>
+          <span className="fixed z-50 bottom-4 right-4 md:relative md:top-0 md:left-0">
+            <CreatePostDialog createPost={createPost} />
+          </span>
+        </header>
+        {posts.map((post) => (
+          <Post key={post.id} data={post} onLikeChange={handleLikeChange} />
+        ))}
+        {/* {posts.map((post) => (
+          <Post key={post.id} data={post} onLikeChange={handleLikeChange} />
+        ))} */}
+      </main>
 
       {/* Post Window */}
-{isPostWindowOpen && (
-  <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-    <div className="bg-white dark:bg-neutral-800 w-full max-w-md p-6 rounded-lg shadow-lg relative">
-      <button
-        onClick={closePostWindow}
-        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-      >
-        <X />
-      </button>
-      {/* Tag Buttons */}
-      <div className="flex justify-end space-x-2 mb-4">
-        <button
-          onClick={() => toggleTag("Workout Plan")}
-          className={`px-3 py-1 rounded-lg ${
-            selectedTag === "Workout Plan"
-              ? "bg-blue-500 text-white"
-              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
-          }`}
-        >
-          Workout Plan
-        </button>
-        <button
-          onClick={() => toggleTag("Meal Plan")}
-          className={`px-3 py-1 rounded-lg ${
-            selectedTag === "Meal Plan"
-              ? "bg-green-500 text-white"
-              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
-          }`}
-        >
-          Meal Plan
-        </button>
-        <button
-          onClick={() => toggleTag("Event")}
-          className={`px-3 py-1 rounded-lg ${
-            selectedTag === "Event"
-              ? "bg-yellow-500 text-white"
-              : "bg-gray-200 dark:bg-neutral-700 text-gray-800 dark:text-gray-300"
-          }`}
-        >
-          Event
-        </button>
-      </div>
-      
-      {/* Title Input */}
-      <div className="flex flex-col mb-4">
-        <input
-          type="text"
-          value={postTitle}
-          onChange={(e) => setPostTitle(e.target.value)}
-          className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg"
-          placeholder="Enter post title"
-        />
-      </div>
-      {/* Post Content Input */}
-      <textarea
-        value={newPostText}
-        onChange={(e) => setNewPostText(e.target.value)}
-        className="w-full p-3 bg-gray-200 dark:bg-neutral-700 rounded-lg mb-4"
-        placeholder="What's on your mind?"
-        rows={5}
-      ></textarea>
-      {/* Submit Button */}
-      <button
-        onClick={handlePostSubmit}
-        className="w-full py-2 bg-blue-500 text-white rounded-lg"
-      >
-        Submit Post
-      </button>
-    </div>
-  </div>
-)}
-
-      {/* Right Sidebar */}
-      <aside className="w-1/5 bg-white dark:bg-neutral-800 p-6 space-y-8 rounded-lg shadow-lg ml-6">
-        {" "}
-        {/* Increased margin */}
-        <h3 className="font-semibold">Community Chats</h3>
-        <ul className="space-y-2">
-          <li>Dog Walkers LI</li>
-          <li>Copenhagen Gyms</li>
-        </ul>
-        <h3 className="font-semibold">Search for Workouts</h3>
-        <div>
-          <input
-            type="text"
-            className="w-full p-2 rounded bg-gray-200 dark:bg-neutral-700"
-            placeholder="Enter workout"
-          />
-        </div>
-        <h3 className="font-semibold">Advertisement</h3>
-        <div className="bg-gray-200 dark:bg-neutral-700 p-4 rounded-lg">
-          <p>
-            Summer sale is on! Buy your favorite fitness gear up to 70% off.
-          </p>
-        </div>
-      </aside>
-    </div>
+    </Page>
   );
 };
 

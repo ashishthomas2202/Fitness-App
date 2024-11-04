@@ -77,6 +77,7 @@ export const authOptions = {
           lastName: user.lastName,
           googleId: user.googleId,
           picture: user.picture,
+          profilePicture: user.profilePicture,
         };
       }
 

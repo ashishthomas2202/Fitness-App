@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { ProfileProvider } from "@/providers/ProfileProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { TooltipProvider } from "@/components/ui/Tooltip";
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
   subsets: ["latin"],
@@ -36,7 +37,9 @@ export default async function RootLayout({ children }) {
       >
         <ThemeProvider>
           <AuthProvider session={session}>
-            <ProfileProvider>{children}</ProfileProvider>
+            <ProfileProvider>
+              <TooltipProvider>{children}</TooltipProvider>
+            </ProfileProvider>
           </AuthProvider>
           <ToastContainer position="top-center" />
         </ThemeProvider>
