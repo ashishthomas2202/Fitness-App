@@ -9,6 +9,7 @@ export async function DELETE(req, { params }) {
 
     const deletedPost = await Post.findByIdAndDelete(postId);
 
+    // TODO: Delete post image from IMAGEKIT
     if (!deletedPost) {
       return Response.json(
         {

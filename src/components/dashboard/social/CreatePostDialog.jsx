@@ -229,7 +229,7 @@ export const CreatePostDialog = ({ createPost = async () => {} }) => {
       <DialogTrigger asChild>
         <Button
           variant="primary"
-          className="rounded-full h-16 w-16 md:h-auto md:w-auto p-0 md:py-2 md:px-4 flex justify-center items-center shadow-black shadow-2xl bg-gradient-to-tl from-violet-400 to-violet-600 hover:from-violet-500 hover:to-violet-700 dark:from-violet-300 dark:to-violet-700 dark:hover:from-violet-400 dark:hover:to-violet-800"
+          className="rounded-full h-16 w-16 md:h-auto md:w-auto p-0 md:py-2 md:px-4 flex justify-center items-center shadow-black shadow-2xl md:shadow-lg bg-gradient-to-tl from-violet-400 to-violet-600 hover:from-violet-500 hover:to-violet-700 dark:from-violet-300 dark:to-violet-700 dark:hover:from-violet-400 dark:hover:to-violet-800"
         >
           <p className="hidden md:block">Create Post</p>
           <span className="md:hidden">

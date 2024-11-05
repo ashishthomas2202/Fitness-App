@@ -9,7 +9,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/Tooltip";
-import { GoComment, GoHeart, GoHeartFill } from "react-icons/go";
+import { GoHeart, GoHeartFill } from "react-icons/go";
 import {
   IoChatbubbleOutline,
   IoChatbubble,
@@ -20,7 +20,7 @@ import { useSession } from "next-auth/react";
 
 import { cn } from "@/lib/utils";
 import { IoIosSend } from "react-icons/io";
-import { SlOptions } from "react-icons/sl";
+import { SlOptions, SlOptionsVertical } from "react-icons/sl";
 import { FiMinus, FiPlus } from "react-icons/fi";
 
 import {
@@ -29,10 +29,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/Dropdown-menu";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import axios from "axios";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/Alert-dialog";
 
-export const Post = ({ data: post = {} }) => {
+export const Post = ({ data: post = {}, onDelete = () => {} }) => {
   const [likes, setLikes] = useState(post?.likes || []);
   const [liked, setLiked] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -114,7 +124,7 @@ export const Post = ({ data: post = {} }) => {
   }
 
   return (
-    <article className="bg-neutral-100 dark:bg-neutral-800  max-w-lg mx-auto rounded-2xl p-2 space-y-2 ring-1 ring-neutral-100 dark:ring-neutral-900">
+    <article className="bg-neutral-100 dark:bg-neutral-800  max-w-3xl mx-auto rounded-2xl p-2 space-y-2 ring-1 ring-neutral-100 dark:ring-neutral-900">
       <header className="flex items-center gap-2">
         <div className="relative h-10 w-10 rounded-full bg-violet-100 flex justify-center items-center border border-neutral-100 dark:border-neutral-700">
           {profilePicture ? (
@@ -172,6 +182,53 @@ export const Post = ({ data: post = {} }) => {
               </div>
             )}
           </button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-2 p-2 rounded-full dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700">
+                <SlOptionsVertical />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <AlertDialog>
+                <AlertDialogTrigger className="hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-sm w-full">
+                  {/* <DropdownMenuItem className="cursor-pointer"> */}
+                  <div className="flex gap-2 justify-center items-center p-2">
+                    {" "}
+                    <span className="text-red-500">
+                      <Trash2 size={14} />
+                    </span>
+                    <p className="text-sm">Delete Post</p>
+                  </div>
+                  {/* </DropdownMenuItem> */}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Deleting will permanently remove all content, comments, and
+                    replies associated with this post.
+                    <br />
+                    <br />
+                    <span className="text-sm">
+                      This action cannot be undone.
+                    </span>
+                  </AlertDialogDescription>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="bg-red-500 hover:bg-red-600 text-white dark:text-neutral-900"
+                      onClick={() => onDelete(id)}
+                    >
+                      <span className=" mr-2">
+                        <Trash2 size={14} />
+                      </span>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
       {body}
@@ -219,6 +276,7 @@ export const Post = ({ data: post = {} }) => {
           postId={id}
           loading={commentLoading}
           comments={comments}
+          updateComments={setComments}
           updateTotalComments={setTotalComments}
           user={session?.user}
         />
@@ -232,6 +290,7 @@ const CommentsSection = ({
   loading = false,
   postId,
   comments: defaultComments,
+  updateComments = () => {},
   updateTotalComments = () => {},
   user,
 }) => {
@@ -240,6 +299,24 @@ const CommentsSection = ({
 
   const loadMoreComments = () => {
     setVisibleComments((prev) => prev + 4); // Increase by 4
+  };
+
+  const handleCommentDelete = async (commentId) => {
+    return await axios
+      .delete(`/api/post/${postId}/comment/${commentId}/delete`)
+      .then((response) => {
+        if (response?.data?.success) {
+          updateComments((prevComments) =>
+            prevComments.filter((comment) => comment.id !== commentId)
+          );
+          updateTotalComments((prev) => prev - 1);
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
   };
 
   useEffect(() => {
@@ -296,6 +373,7 @@ const CommentsSection = ({
               updateTotalComments={updateTotalComments}
               user={user}
               postId={postId}
+              onDelete={handleCommentDelete}
             />
           ))}
 
@@ -315,6 +393,7 @@ const CommentsSection = ({
 const Comment = ({
   data = {},
   updateTotalComments = () => {},
+  onDelete = () => {},
   user,
   postId,
 }) => {
@@ -406,7 +485,9 @@ const Comment = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem>Delete</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete(commentId)}>
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -574,7 +655,7 @@ const PostType = ({ type, data }) => {
   return (
     <main>
       {formattedMedia && formattedMedia.length > 0 && (
-        <div className="aspect-square max-w-lg">
+        <div className="aspect-square max-w-3xl">
           <Carousel media={formattedMedia} />
         </div>
       )}
