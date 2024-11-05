@@ -165,6 +165,12 @@ export const CreatePostDialog = ({ createPost = async () => {} }) => {
     setSubmitButtonDisabled(checkSubmit());
   }, [watch("contentData.content"), selectedFiles]);
 
+  useEffect(() => {
+    if (!open) {
+      reset();
+      setSelectedFiles([]);
+    }
+  }, [open]);
   const onSubmit = async (data) => {
     setSubmitButtonDisabled(true);
     setSubmitting(true);
