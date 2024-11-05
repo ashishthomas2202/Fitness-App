@@ -1,30 +1,32 @@
 // src/app/api/goals/update/[id]/route.js
 import Goal from "@/db/models/Goal";
-import { NextResponse } from "next/server";
 import connectDB from "@/db/db";
+import { authenticatedUser } from "@/lib/user";
 
-export async function PUT(request, { params }) {
-  await connectDB();
-  const { id } = params; // Extract goal ID from the URL
-  const { calorieGoal, weightGoal } = await request.json();
-
+export async function PUT(req, { params }) {
   try {
-    const updatedGoal = await Goal.findByIdAndUpdate(
-      id,
-      {
-        calorieGoal,
-        weightGoal,
-        $push: { weightHistory: { weight: weightGoal } }
-      },
-      { new: true } // Return the updated document
-    );
+    await connectDB();
 
-    if (!updatedGoal) {
-      return NextResponse.json({ error: "Goal not found" }, { status: 404 });
+    const currentUser = await authenticatedUser();
+    if (!currentUser) {
+      return new Response(JSON.stringify({ success: false, message: "Unauthorized User" }), { status: 401 });
     }
 
-    return NextResponse.json(updatedGoal, { status: 200 });
+    const { calorieGoal, weightGoal, startDate, endDate } = await req.json();
+    const goal = await Goal.findById(params.id);
+
+    if (!goal || goal.userId.toString() !== currentUser.id.toString()) {
+      return new Response(JSON.stringify({ success: false, message: "Goal not found or unauthorized" }), { status: 404 });
+    }
+
+    goal.calorieGoal = calorieGoal;
+    goal.weightGoal = weightGoal;
+    goal.startDate = new Date(startDate);
+    goal.endDate = new Date(endDate);
+
+    await goal.save();
+    return new Response(JSON.stringify({ success: true, goal }), { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: "Failed to update goal", error: error.message }), { status: 500 });
   }
 }
