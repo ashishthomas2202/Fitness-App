@@ -308,6 +308,7 @@ const CommunityPage = () => {
       .get("/api/post")
       .then((response) => {
         if (response?.data?.success) {
+          console.log(response.data.data);
           setPosts(response.data.data);
           return response.data.data;
         }
@@ -333,30 +334,7 @@ const CommunityPage = () => {
       });
   };
 
-  const handleLikeChange = async (postId) => {
-    return await axios
-      .patch(`/api/post/${postId}/update/likes`)
-      .then((response) => {
-        if (response?.data?.success) {
-          //update the current post with the new likes
-          setPosts((prevPosts) =>
-            prevPosts.map((post) =>
-              post.id === postId
-                ? {
-                    ...post,
-                    likes: response.data.data.likes,
-                  }
-                : post
-            )
-          );
-          return response.data.data;
-        }
-        return null;
-      })
-      .catch((error) => {
-        return null;
-      });
-  };
+ 
 
   // const handleAddComment = async (postId, commentText = "") => {
   //   if (commentText.trim() === "") {
@@ -404,12 +382,22 @@ const CommunityPage = () => {
             <CreatePostDialog createPost={createPost} />
           </span>
         </header>
-        {posts.map((post) => (
-          <Post key={post.id} data={post} onLikeChange={handleLikeChange} />
-        ))}
-        {/* {posts.map((post) => (
-          <Post key={post.id} data={post} onLikeChange={handleLikeChange} />
-        ))} */}
+        <main>
+          {!posts || posts?.length == 0 ? (
+            <div className="min-h-40 flex justify-center items-center text-lg font-light bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-700 rounded-lg">
+              <p>No posts to display</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <Post
+                key={post.id}
+                data={post}
+                {...console.log(post)}
+              />
+            ))
+          )}
+        </main>
+
       </main>
 
       {/* Post Window */}

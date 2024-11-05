@@ -31,17 +31,13 @@ import {
 } from "@/components/ui/Dropdown-menu";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
-import { set } from "mongoose";
 
-export const Post = ({
-  data: post = {},
-  onLikeChange = async () => {},
-  onCommentAdd = async () => {},
-}) => {
+export const Post = ({ data: post = {} }) => {
   const [likes, setLikes] = useState(post?.likes || []);
   const [liked, setLiked] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [comments, setComments] = useState([]);
+  const [totalComments, setTotalComments] = useState(post?.totalComments || 0);
   const [commentLoading, setCommentLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const { data: session } = useSession();
@@ -54,14 +50,6 @@ export const Post = ({
   const time = moment(post?.createdAt).fromNow();
   const visibility = post?.visibility;
   let body = null;
-
-  //   const fetchComments = async () => {
-  //     await getComments(id).then((receivedComments) => {
-  //       setCommentLoading(true);
-  //       setComments(receivedComments);
-  //       setCommentLoading(false);
-  //     });
-  //   };
 
   const fetchComments = async () => {
     setCommentLoading(true);
@@ -82,37 +70,21 @@ export const Post = ({
       });
   };
 
-  const handleAddComment = async (commentText = "") => {
-    if (commentText.trim() === "") {
-      return null;
-    }
+  const handleLikeChange = async () => {
     return await axios
-      .post(`/api/post/${id}/comment/add`, {
-        commentText,
-      })
+      .patch(`/api/post/${id}/likes`)
       .then((response) => {
         if (response?.data?.success) {
-          fetchComments();
-          return response.data.data;
-        }
-        return null;
-      })
-      .catch((error) => {
-        return null;
-      });
-  };
+          //   setLikes(response.data.data);
 
-  const handleAddReply = async (commentId, replyText = "") => {
-    if (replyText.trim() === "") {
-      return null;
-    }
-    return await axios
-      .post(`/api/post/${id}/comment/${commentId}/reply/add`, {
-        replyText,
-      })
-      .then((response) => {
-        if (response?.data?.success) {
-          fetchComments();
+          const addOrRemove = liked ? "remove" : "add"; // Add or remove like
+
+          if (addOrRemove === "add") {
+            setLikes((prev) => [...prev, session?.user?.id]);
+          } else {
+            setLikes((prev) => prev.filter((id) => id !== session?.user?.id));
+          }
+          setLiked((prev) => !prev);
           return response.data.data;
         }
         return null;
@@ -209,7 +181,7 @@ export const Post = ({
             <div className="flex items-center">
               <button
                 className="text-rose-500 h-10 w-10 flex justify-center items-center hover:bg-rose-100 dark:hover:bg-neutral-700 rounded-full"
-                onClick={() => onLikeChange(id)}
+                onClick={handleLikeChange}
               >
                 <span
                   className={cn("text-2xl font-bold", liked && "animate-pulse")}
@@ -217,9 +189,10 @@ export const Post = ({
                   {liked ? <GoHeartFill /> : <GoHeart />}
                 </span>
               </button>
-              {likes && likes.length > 0 && (
-                <span className="text-sm font-semibold">{likes.length}</span>
-              )}
+
+              <span className="text-sm font-semibold">
+                {likes?.length || 0}
+              </span>
             </div>
             <div className="flex items-center">
               <button
@@ -230,9 +203,7 @@ export const Post = ({
                   {commentOpen ? <IoChatbubble /> : <IoChatbubbleOutline />}
                 </span>
               </button>
-              {comments && comments.length > 0 && (
-                <span className="text-sm font-semibold">{comments.length}</span>
-              )}
+              <span className="text-sm font-semibold">{totalComments}</span>
             </div>
           </article>
           <button className="text-violet-500 h-10 w-10 flex justify-center items-center hover:bg-violet-100 dark:hover:bg-neutral-700 rounded-full">
@@ -246,8 +217,7 @@ export const Post = ({
           postId={id}
           loading={commentLoading}
           comments={comments}
-          onCommentAdd={handleAddComment}
-          onReplyAdd={handleAddReply}
+          updateTotalComments={setTotalComments}
           user={session?.user}
         />
       </footer>
@@ -259,36 +229,54 @@ const CommentsSection = ({
   open,
   loading = false,
   postId,
-  comments,
-  onCommentAdd,
-  parentReplyId,
-  replies,
-  onReplyAdd,
+  comments: defaultComments,
+  updateTotalComments = () => {},
   user,
 }) => {
+  const [comments, setComments] = useState(defaultComments);
+
+  useEffect(() => {
+    comments && setComments(defaultComments);
+  }, [defaultComments]);
+
+  const handleAddComment = async (commentText = "") => {
+    if (commentText.trim() === "") {
+      return null;
+    }
+    return await axios
+      .post(`/api/post/${postId}/comment/add`, {
+        commentText,
+      })
+      .then((response) => {
+        if (response?.data?.success) {
+          console.log("response", response.data.data);
+          updateTotalComments((prev) => prev + 1);
+          setComments((prevComments) => [...prevComments, response.data.data]);
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
+  };
+
   if (!open) return null;
 
   if (loading)
     return (
-      <div>
-        <Loader2 className="h-10 w-10 animate-spin" />
+      <div className="py-4">
+        <Loader2 className="h-10 w-10 mx-auto animate-spin" />
       </div>
     );
-
   return (
     <div className="mt-1 bg-neutral-200 shadow-inner dark:bg-neutral-900 p-2 rounded-lg space-y-4">
       <CommentInput
-        parentId={null}
         user={user}
         onComment={(text) => {
-          if (!parentReplyId) {
-            onCommentAdd(text);
-          } else {
-            onReplyAdd(parentReplyId, text);
-          }
+          handleAddComment(text);
         }}
       />
-      {/* {console.log("comments", comments)} */}
 
       {comments &&
         comments.length > 0 &&
@@ -298,33 +286,21 @@ const CommentsSection = ({
             <Comment
               key={`${comment?.id}-post-comments-list`}
               data={comment}
-              onReply={onReplyAdd}
+              updateTotalComments={updateTotalComments}
               user={user}
               postId={postId}
             />
           ))}
-      {replies &&
-        replies.length > 0 &&
-        replies.map((reply, i) => (
-          <Comment
-            key={`${reply?.id}-post-replies-list`}
-            data={reply}
-            onReply={onReplyAdd}
-            user={user}
-            postId={postId}
-          />
-        ))}
-
-      {/* Render comments
-      {comments.map((comment) => (
-        <Comment key={comment._id} comment={comment} onReply={handleReply} />
-      ))} */}
     </div>
   );
 };
 
-const Comment = ({ data = {}, user, postId, onReply }) => {
-  //   console.log("comment", data);
+const Comment = ({
+  data = {},
+  updateTotalComments = () => {},
+  user,
+  postId,
+}) => {
   const [liked, setLiked] = useState(data?.likes?.includes(user?.id));
   const [likes, setLikes] = useState(data?.likes || []);
   const [replies, setReplies] = useState(data?.replies || []);
@@ -345,10 +321,8 @@ const Comment = ({ data = {}, user, postId, onReply }) => {
       {str.length > 0 ? str : <br />}
     </p>
   ));
-  //   console.log("comment", data);
-  //   const formattedComment = "Hello";
-  //   const comment = data?.comment;
-  const onLikeChange = async (commentId) => {
+
+  const onLikeChange = async () => {
     setLiked((prev) => !prev);
     if (liked) {
       setLikes((prev) => prev.filter((id) => id !== user?.id));
@@ -357,12 +331,34 @@ const Comment = ({ data = {}, user, postId, onReply }) => {
     }
   };
 
+  const handleAddReply = async (replyText = "") => {
+    if (replyText.trim() === "") {
+      return null;
+    }
+    return await axios
+      .post(`/api/post/${postId}/comment/${commentId}/reply/add`, {
+        replyText,
+      })
+      .then((response) => {
+        if (response?.data?.success) {
+          //   fetchComments();
+          updateTotalComments((prev) => prev + 1);
+          setReplies((prevReplies) => [...prevReplies, response.data.data]);
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
+  };
+
   if (typeof data === "string") {
     return <div>{data}</div>;
   }
 
   return (
-    <section className="ml-2">
+    <section className="">
       <header className="flex gap-2 items-center">
         <div className="relative h-6 w-6 rounded-full overflow-hidden">
           {profilePicture ? (
@@ -401,7 +397,7 @@ const Comment = ({ data = {}, user, postId, onReply }) => {
           </div>
         )}
       </header>
-      <main className="pl-8 pr-4">{formattedComment}</main>
+      <main className="pl-8 pr-4 py-2">{formattedComment}</main>
       <footer className="ml-4">
         <nav className="flex justify-between">
           <article className="flex">
@@ -435,60 +431,37 @@ const Comment = ({ data = {}, user, postId, onReply }) => {
             </div>
           </article>
         </nav>
-        <CommentsSection
-          open={replyOpen}
-          postId={postId}
-          replies={replies}
-          onReplyAdd={onReply}
-          parentReplyId={commentId}
-          user={user}
-        />
+
+        {replyOpen && (
+          <div className="space-y-2 py-2">
+            <CommentInput
+              parentId={null}
+              user={user}
+              onComment={(text) => {
+                handleAddReply(text);
+              }}
+            />
+            {/* </div> */}
+            {replies &&
+              replies.length > 0 &&
+              replies
+                .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                .map((reply, i) => (
+                  <Comment
+                    key={`${reply?.id}-post-replies-list`}
+                    data={reply}
+                    onReply={reply}
+                    user={user}
+                    postId={postId}
+                    updateTotalComments={updateTotalComments}
+                  />
+                ))}
+          </div>
+        )}
       </footer>
     </section>
   );
 };
-// const Comment = ({ comment, onReply }) => {
-//   const [showReplyInput, setShowReplyInput] = useState(false);
-
-//   const handleReplyClick = () => {
-//     setShowReplyInput(!showReplyInput);
-//     onReply(comment._id);
-//   };
-
-//   return (
-//     <div className="pl-4 my-2">
-//       {/* Display comment */}
-//       <div className="bg-white dark:bg-neutral-800 p-2 rounded-md">
-//         <div className="font-bold">{comment.commenter?.firstName}</div>
-//         <div className="text-sm">{comment.comment}</div>
-//         <button
-//           className="text-xs text-blue-500 mt-1"
-//           onClick={handleReplyClick}
-//         >
-//           Reply
-//         </button>
-//       </div>
-
-//       {/* Show reply input if this comment is being replied to */}
-//       {showReplyInput && (
-//         <ReplyInput
-//           parentId={comment._id}
-//           onReply={onReply}
-//           onCancel={() => setShowReplyInput(false)}
-//         />
-//       )}
-
-//       {/* Recursive rendering of replies */}
-//       {comment.replies && comment.replies.length > 0 && (
-//         <div className="ml-4 border-l-2 border-gray-200 dark:border-neutral-800">
-//           {comment.replies.map((reply) => (
-//             <Comment key={reply._id} comment={reply} onReply={onReply} />
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
 
 const CommentInput = ({ user, onComment = async () => {} }) => {
   const [commentText, setCommentText] = useState("");
@@ -500,7 +473,7 @@ const CommentInput = ({ user, onComment = async () => {} }) => {
   return (
     <div className=" flex gap-2 items-center">
       <div>
-        <div className="relative h-8 w-8 rounded-full overflow-hidden">
+        <div className="relative h-6 w-6 rounded-full overflow-hidden">
           {profilePicture ? (
             <Image
               src={profilePicture}
@@ -518,8 +491,15 @@ const CommentInput = ({ user, onComment = async () => {} }) => {
         rows={1}
         value={commentText}
         onChange={(e) => setCommentText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            onComment(commentText.trim());
+            setCommentText("");
+          }
+        }}
         placeholder="Write a reply..."
-        className="resize-none w-full rounded-lg p-2 text-base font-light focus-visible:outline-violet-500 dark:bg-neutral-950"
+        className="resize-none w-full rounded-lg p-2 text-sm font-light focus-visible:outline-violet-500 dark:bg-neutral-950"
       />
       <div className="flex space-x-2">
         <button
@@ -528,51 +508,13 @@ const CommentInput = ({ user, onComment = async () => {} }) => {
             setCommentText("");
           }}
           className={cn(
-            "p-2 bg-violet-200 dark:bg-neutral-800 rounded-lg text-white text-2xl",
+            "p-2 bg-violet-200 dark:bg-neutral-800 rounded-lg text-white text-xl",
             commentText.trim().length > 0
               ? "bg-violet-400 dark:bg-violet-500"
               : "cursor-default"
           )}
         >
           <IoIosSend />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const ReplyInput = ({
-  user,
-  parentId,
-  onCancel = () => {},
-  onReply = async () => {},
-}) => {
-  const [replyText, setReplyText] = useState("");
-
-  const handleReplySubmit = async () => {
-    if (replyText.trim()) {
-      // Send reply to server, including parentId
-      // This example assumes an API function addReply
-      await onReply(parentId, replyText);
-      setReplyText("");
-      onCancel();
-    }
-  };
-
-  return (
-    <div className="mt-2">
-      <textarea
-        value={replyText}
-        onChange={(e) => setReplyText(e.target.value)}
-        placeholder="Write a reply..."
-        className="resize-none mb-2  w-full rounded-lg p-2 text-base font-light focus-visible:outline-violet-500"
-      />
-      <div className="flex space-x-2">
-        <button onClick={handleReplySubmit} size="sm">
-          Submit
-        </button>
-        <button onClick={onCancel} size="sm" variant="outline">
-          Cancel
         </button>
       </div>
     </div>
@@ -614,156 +556,3 @@ const PostType = ({ type, data }) => {
     </main>
   );
 };
-// export const Post = ({ data }) => {
-//   if (!data) return null;
-
-//   const {
-//     author,
-//     contentType,
-//     contentData,
-//     createdAt,
-//     likes = [],
-//     comments = [],
-//     visibility,
-//   } = data;
-
-//   const formattedDate = new Date(createdAt).toLocaleString();
-
-//   return (
-//     <div className="border rounded-lg p-4 shadow-md bg-white dark:bg-gray-800 mb-4">
-//       <div className="flex justify-between items-center">
-//         <h3 className="text-lg font-semibold">{author}</h3>
-//         <span className="text-sm text-gray-500">{formattedDate}</span>
-//       </div>
-//       <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-//         {visibility === "public" ? "Public" : "Private"}
-//       </p>
-//       <div className="mt-2">
-//         <p className="text-sm font-medium">{contentType}</p>
-//         <div className="text-base text-gray-800 dark:text-gray-200 mt-2">
-//           {typeof contentData === "string"
-//             ? contentData
-//             : JSON.stringify(contentData)}
-//         </div>
-//       </div>
-//       <div className="mt-4">
-//         <p className="text-sm font-semibold">Likes: {likes.length}</p>
-//         <div className="mt-2">
-//           <h4 className="text-sm font-semibold">Comments:</h4>
-//           {comments.length > 0 ? (
-//             comments.map((comment, index) => (
-//               <div
-//                 key={index}
-//                 className="mt-1 text-gray-700 dark:text-gray-300 text-sm"
-//               >
-//                 <p>
-//                   <strong>{comment.commenter}</strong>: {comment.comment}
-//                 </p>
-//               </div>
-//             ))
-//           ) : (
-//             <p className="text-gray-500 dark:text-gray-400 text-sm">
-//               No comments yet
-//             </p>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// // import React from "react";
-// // import moment from "moment-timezone";
-
-// // export const Post = ({ data: post = {} }) => {
-// //   return (
-// //     <div
-// //       key={post?.id}
-// //       className="relative bg-white dark:bg-neutral-700 p-6 rounded-lg shadow"
-// //     >
-// //       {/* Tag Label at the Top Right */}
-// //       {post?.tag && (
-// //         <div className={`absolute top-2 right-2 flex items-center space-x-2`}>
-// //           <div
-// //             className={`w-4 h-4 rounded-full ${
-// //               post.tag === "Workout Plan"
-// //                 ? "bg-blue-500"
-// //                 : post.tag === "Meal Plan"
-// //                 ? "bg-green-500"
-// //                 : post.tag === "Event"
-// //                 ? "bg-yellow-500"
-// //                 : "bg-gray-500"
-// //             }`}
-// //           ></div>
-// //           <span
-// //             className={`text-sm font-medium ${
-// //               post.tag === "Workout Plan"
-// //                 ? "text-blue-500"
-// //                 : post.tag === "Meal Plan"
-// //                 ? "text-green-500"
-// //                 : post.tag === "Event"
-// //                 ? "text-yellow-500"
-// //                 : "text-gray-500"
-// //             }`}
-// //           >
-// //             {post.tag}
-// //           </span>
-// //         </div>
-// //       )}
-
-// //       <header className="flex items-center justify-between">
-// //         <div>
-// //           <h3 className="text-xl font-semibold">
-// //             {post?.userId?.firstName} {post?.userId?.lastName}
-// //           </h3>
-// //           <p className="text-gray-500 text-sm">
-// //             {moment(post?.date).fromNow()}
-// //           </p>
-// //           <p className="text-gray-500 text-sm">{post?.title}</p>
-// //         </div>
-// //       </header>
-// //       <p className="mt-4">{post?.description}</p>
-// //       <footer className="flex justify-between items-center mt-4">
-// //         <div className="flex space-x-4">
-// //           <button
-// //             className="flex items-center space-x-1"
-// //             onClick={() => handleLike(post)}
-// //           >
-// //             <Heart
-// //               className={checklike(post) ? "text-red-600" : "text-red-600"}
-// //               fill={checklike(post) ? "currentColor" : "none"}
-// //             />
-// //             <span>{post?.likes?.length || 0}</span>
-// //           </button>
-// //           <button
-// //             className="flex items-center space-x-1"
-// //             onClick={() => toggleCommentWindow(post.id)}
-// //           >
-// //             <MessageSquare />
-// //             <span>{countComments(post)}</span>
-// //           </button>
-// //           <button className="flex items-center space-x-1">
-// //             <Share />
-// //             <span>{post.shares}</span>
-// //           </button>
-// //         </div>
-
-// //         <p className="absolute right-6 bottom-6 text-gray-500 text-sm">
-// //           {post.time}
-// //         </p>
-// //       </footer>
-// //       <div>
-// //         {/* Comments Section */}
-// //         {activeCommentPostId === post.id && (
-// //           <CommentsSection
-// //             post={post}
-// //             handleAddComment={handleAddComment}
-// //             newCommentText={newCommentText}
-// //             setNewCommentText={setNewCommentText}
-// //             handleCommentSubmit={handleCommentSubmit}
-// //           />
-// //         )}
-// //       </div>
-// //     </div>
-// //   );
-// // };

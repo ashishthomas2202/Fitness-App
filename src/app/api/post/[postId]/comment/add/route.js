@@ -49,6 +49,7 @@ export async function POST(req, { params }) {
       comment: commentText,
       replies: [],
       likes: [],
+      postId,
     };
 
     // Validate the comment data
@@ -89,6 +90,11 @@ export async function POST(req, { params }) {
     post.comments.push(newComment._id);
     await post.save();
 
+    await newComment.populate({
+      path: "commenter",
+      select: "firstName lastName email",
+      populate: { path: "profile", select: "profilePicture" },
+    });
     // await post.populate({
     //   path: "comments",
     //   populate: {

@@ -52,6 +52,7 @@ export async function POST(req, { params }) {
       comment: replyText,
       replies: [],
       likes: [],
+      postId,
     };
 
     // Validate the reply data

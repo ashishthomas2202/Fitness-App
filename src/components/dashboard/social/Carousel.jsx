@@ -94,17 +94,21 @@ export const Carousel = ({
                   <Trash2 size={20} />
                 </button>
               )}
-              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 bg-black/30 p-1 rounded-full">
-                {media.map((mx, i) => (
-                  <div
-                    className={cn(
-                      "w-1 h-1 bg-black dark:bg-slate-300 rounded-full mx-1",
-                      i == current ? "ring-2 ring-violet-500 bg-violet-500" : ""
-                    )}
-                    key={`${url}-${i}-indicators`}
-                  ></div>
-                ))}
-              </div>
+              {media && media?.length > 1 && (
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1 bg-black/30 p-1 rounded-full">
+                  {media.map((mx, i) => (
+                    <div
+                      className={cn(
+                        "w-1 h-1 bg-black dark:bg-slate-300 rounded-full mx-1",
+                        i == current
+                          ? "ring-2 ring-violet-500 bg-violet-500"
+                          : ""
+                      )}
+                      key={`${url}-${i}-indicators`}
+                    ></div>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })
@@ -118,7 +122,7 @@ export const Carousel = ({
       )}
 
       {/* Navigation Buttons */}
-      {mode == "view" && (
+      {mode == "view" && media && media?.length > 1 && (
         <>
           <button
             type="button"
