@@ -53,12 +53,11 @@ export const Carousel = ({
           const isSelected = current === index;
 
           const metadata = m?.file?.metadata || {};
-          // console.log(m);
 
           return (
             <div
               key={`${url}-${index}-images`}
-              className={`relative w-full h-full ${
+              className={`relative w-full h-full select-none pointer-events-none ${
                 isSelected ? "block" : "hidden"
               }`}
             >
@@ -72,6 +71,10 @@ export const Carousel = ({
                       ? `Resolution: ${metadata.resolution.width}x${metadata.resolution.height}`
                       : ""
                   }`}
+                  placeholder="blur"
+                  blurDataURL={
+                    url.includes("imagekit") ? `${url},q-10,bl-50` : url
+                  }
                   className="object-cover w-full h-full"
                   sizes="80vw sm:60vw md:40vw lg:30vw"
                   fill
@@ -189,8 +192,7 @@ const MutateMedia = ({
 
   const handleDrag = (sourceId, sourceIndex, targetIndex) => {
     const newOrder = swap(preview, sourceIndex, targetIndex);
-    console.log(newOrder);
-    // setPreview(newOrder);
+
     updateOrder(newOrder); // Update the parent component
   };
 

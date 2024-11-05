@@ -1,5 +1,6 @@
 import connectDB from "@/db/db";
-import Post from "@/db/models/Post";
+import Post, { Comment } from "@/db/models/Post";
+import { authenticatedUser } from "@/lib/user";
 
 export async function DELETE(req, { params }) {
   const postId = params?.postId;
@@ -7,10 +8,22 @@ export async function DELETE(req, { params }) {
   try {
     await connectDB(); // Connect to the database
 
-    const deletedPost = await Post.findByIdAndDelete(postId);
+    const currentUser = await authenticatedUser(); // Get the current user
 
-    // TODO: Delete post image from IMAGEKIT
-    if (!deletedPost) {
+    if (!currentUser) {
+      return Response.json(
+        {
+          success: false,
+          message: "Please sign in to delete a post",
+        },
+        { status: 401 }
+      );
+    }
+
+    // const deletedPost = await Post.findByIdAndDelete(postId);
+    const postToDelete = await Post.findById(postId);
+
+    if (!postToDelete) {
       return Response.json(
         {
           success: false,
@@ -19,6 +32,23 @@ export async function DELETE(req, { params }) {
         { status: 404 }
       );
     }
+
+    // Check if the current user is the author of the post
+    if (postToDelete.author.toString() !== currentUser.id) {
+      return Response.json(
+        {
+          success: false,
+          message: "You are not authorized to delete this post",
+        },
+        { status: 403 }
+      );
+    }
+
+    const deletedComments = await Comment.deleteMany({ postId }).exec();
+
+    // TODO: Delete post image from IMAGEKIT
+
+    await postToDelete.deleteOne();
 
     return Response.json(
       {

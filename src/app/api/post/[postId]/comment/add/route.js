@@ -65,20 +65,6 @@ export async function POST(req, { params }) {
     // Create and save the new comment
     const newComment = await Comment.create(newCommentData);
 
-    // if (parentId) {
-    //   // Handle replies by finding the parent comment and updating its replies array
-    //   const parentComment = await Comment.findById(parentId);
-    //   if (!parentComment) {
-    //     return Response.json(
-    //       { success: false, message: "Parent comment not found" },
-    //       { status: 404 }
-    //     );
-    //   }
-
-    //   parentComment.replies.push(newComment._id);
-    //   await parentComment.save();
-    // } else {
-    // If it’s a top-level comment, add it to the post
     const post = await Post.findById(postId);
     if (!post) {
       return Response.json(
@@ -95,15 +81,6 @@ export async function POST(req, { params }) {
       select: "firstName lastName email",
       populate: { path: "profile", select: "profilePicture" },
     });
-    // await post.populate({
-    //   path: "comments",
-    //   populate: {
-    //     path: "commenter",
-    //     select: "firstName lastName email",
-    //     populate: { path: "profile", select: "profilePicture" },
-    //   },
-    // });
-    // }
 
     return Response.json(
       {

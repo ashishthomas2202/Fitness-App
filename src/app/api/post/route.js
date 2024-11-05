@@ -33,8 +33,6 @@ export async function GET(req) {
         virtuals: true,
       });
 
-    console.log(posts);
-
     // Add `id` key to each post object
     posts.forEach((post) => {
       post.id = post._id.toString(); // Add `id` using `_id`

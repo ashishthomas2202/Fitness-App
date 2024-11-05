@@ -131,7 +131,7 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
             <Image
               src={profilePicture}
               alt={`${firstName} ${lastName} profile picture`}
-              className="object-cover rounded-full"
+              className="object-cover rounded-full pointer-events-none select-none"
               sizes="10vh"
               fill
             />
@@ -143,7 +143,7 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
           <h3 className="text-base font-semibold">
             {firstName} {lastName}
           </h3>
-          <h4 className="text-xs font-light flex items-center gap-1 text-slate-400 dark:text-neutral-500">
+          <h4 className="text-xs font-light flex items-center gap-1 text-slate-400 dark:text-neutral-500 select-none">
             <Tooltip>
               <TooltipTrigger>
                 <span>
@@ -158,7 +158,7 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
           </h4>
         </div>
 
-        <div className="flex-1 text-right">
+        <div className="flex-1 text-right select-none">
           <button
             className={cn(
               "px-4 py-1 rounded-full text-sm bg-gradient-to-br text-white",
@@ -192,15 +192,13 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
             <DropdownMenuContent>
               <AlertDialog>
                 <AlertDialogTrigger className="hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-sm w-full">
-                  {/* <DropdownMenuItem className="cursor-pointer"> */}
                   <div className="flex gap-2 justify-center items-center p-2">
                     {" "}
                     <span className="text-red-500">
                       <Trash2 size={14} />
                     </span>
-                    <p className="text-sm">Delete Post</p>
+                    <p className="text-sm dark:text-white">Delete Post</p>
                   </div>
-                  {/* </DropdownMenuItem> */}
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -214,16 +212,18 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
                     </span>
                   </AlertDialogDescription>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-red-500 hover:bg-red-600 text-white dark:text-neutral-900"
-                      onClick={() => onDelete(id)}
-                    >
-                      <span className=" mr-2">
-                        <Trash2 size={14} />
-                      </span>
-                      Delete
-                    </AlertDialogAction>
+                    <DropdownMenuItem className="focus:bg-transparent focus:hover:bg-transparent gap-2">
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-500 hover:bg-red-600 text-white dark:text-neutral-900"
+                        onClick={() => onDelete(id)}
+                      >
+                        <span className=" mr-2">
+                          <Trash2 size={14} />
+                        </span>
+                        Delete
+                      </AlertDialogAction>
+                    </DropdownMenuItem>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -276,6 +276,7 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
           postId={id}
           loading={commentLoading}
           comments={comments}
+          refetchComments={fetchComments}
           updateComments={setComments}
           updateTotalComments={setTotalComments}
           user={session?.user}
@@ -290,6 +291,7 @@ const CommentsSection = ({
   loading = false,
   postId,
   comments: defaultComments,
+  refetchComments = () => {},
   updateComments = () => {},
   updateTotalComments = () => {},
   user,
@@ -301,15 +303,36 @@ const CommentsSection = ({
     setVisibleComments((prev) => prev + 4); // Increase by 4
   };
 
+  const handleAddComment = async (commentText = "") => {
+    if (commentText.trim() === "") {
+      return null;
+    }
+    return await axios
+      .post(`/api/post/${postId}/comment/add`, {
+        commentText,
+      })
+      .then((response) => {
+        if (response?.data?.success) {
+          updateTotalComments((prev) => prev + 1);
+          setComments((prevComments) => [...prevComments, response.data.data]);
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
+  };
+
   const handleCommentDelete = async (commentId) => {
     return await axios
       .delete(`/api/post/${postId}/comment/${commentId}/delete`)
       .then((response) => {
         if (response?.data?.success) {
-          updateComments((prevComments) =>
-            prevComments.filter((comment) => comment.id !== commentId)
-          );
-          updateTotalComments((prev) => prev - 1);
+          const deletedCommentIds = response.data.data;
+
+          updateTotalComments((prev) => prev - deletedCommentIds?.length || 1);
+          refetchComments();
           return response.data.data;
         }
         return null;
@@ -322,28 +345,6 @@ const CommentsSection = ({
   useEffect(() => {
     comments && setComments(defaultComments);
   }, [defaultComments]);
-
-  const handleAddComment = async (commentText = "") => {
-    if (commentText.trim() === "") {
-      return null;
-    }
-    return await axios
-      .post(`/api/post/${postId}/comment/add`, {
-        commentText,
-      })
-      .then((response) => {
-        if (response?.data?.success) {
-          console.log("response", response.data.data);
-          updateTotalComments((prev) => prev + 1);
-          setComments((prevComments) => [...prevComments, response.data.data]);
-          return response.data.data;
-        }
-        return null;
-      })
-      .catch((error) => {
-        return null;
-      });
-  };
 
   if (!open) return null;
 
@@ -378,7 +379,7 @@ const CommentsSection = ({
           ))}
 
       {/* Show "Load More" button if there are more comments to display */}
-      {visibleComments < comments.length && (
+      {visibleComments < comments?.length && (
         <button
           className="text-sm text-center font-light py-2 text-neutral-600 w-full"
           onClick={loadMoreComments}
@@ -417,12 +418,26 @@ const Comment = ({
   const comment = data?.comment;
 
   const onLikeChange = async () => {
-    setLiked((prev) => !prev);
-    if (liked) {
-      setLikes((prev) => prev.filter((id) => id !== user?.id));
-    } else {
-      setLikes((prev) => [...prev, user?.id]);
-    }
+    return await axios
+      .patch(`/api/post/${postId}/comment/${commentId}/likes`)
+      .then((response) => {
+        if (response?.data?.success) {
+          //   setLikes(response.data.data);
+          const addOrRemove = liked ? "remove" : "add"; // Add or remove like
+
+          if (addOrRemove === "add") {
+            setLikes((prev) => [...prev, user?.id]);
+          } else {
+            setLikes((prev) => prev.filter((id) => id !== user?.id));
+          }
+          setLiked((prev) => !prev);
+          return response.data.data;
+        }
+        return null;
+      })
+      .catch((error) => {
+        return null;
+      });
   };
 
   const handleAddReply = async (replyText = "") => {
@@ -485,7 +500,10 @@ const Comment = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onDelete(commentId)}>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => onDelete(commentId)}
+                >
                   Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -554,6 +572,7 @@ const Comment = ({
                     onReply={reply}
                     user={user}
                     postId={postId}
+                    onDelete={onDelete}
                     updateTotalComments={updateTotalComments}
                   />
                 ))}
@@ -661,10 +680,12 @@ const PostType = ({ type, data }) => {
       )}
 
       {content && content.length > 0 && (
-        <p className="text-base font-light text-black dark:text-gray-100 pt-4 pb-1">
+        <p className="text-base font-light text-black dark:text-gray-100 pt-4 pb-1 pl-12 pr-4">
           {content}
         </p>
       )}
     </main>
   );
 };
+
+//TODO: Fix the total count of comments and replies dynamically

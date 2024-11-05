@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-
 import { CreatePostDialog } from "@/components/dashboard/social/CreatePostDialog";
-import { Post } from "@/components/ui/Post";
+import { Post } from "@/components/dashboard/social/Post";
 import axios from "axios";
 import { Page } from "@/components/dashboard/Page";
+import { Loader2 } from "lucide-react";
+
 const CommunityPage = () => {
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchPosts = async () => {
     await axios
@@ -22,6 +23,9 @@ const CommunityPage = () => {
       })
       .catch((error) => {
         return [];
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -45,7 +49,6 @@ const CommunityPage = () => {
       .delete(`/api/post/${id}/delete`)
       .then((response) => {
         if (response?.data?.success) {
-          //   console.log("response", response.data.data);
           setPosts(posts.filter((post) => post.id !== id));
           return response.data.data;
         }
@@ -70,19 +73,18 @@ const CommunityPage = () => {
             <CreatePostDialog createPost={createPost} />
           </span>
         </header>
-        <main>
+        <main className="space-y-4">
           {!posts || posts?.length == 0 ? (
             <div className="min-h-40 max-w-3xl mx-auto flex justify-center items-center text-lg font-light bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-700 rounded-lg">
-              <p>No posts to display</p>
+              {loading ? (
+                <Loader2 className="h-10 w-10 animate-spin" />
+              ) : (
+                <p>No posts to display</p>
+              )}
             </div>
           ) : (
             posts.map((post) => (
-              <Post
-                key={post.id}
-                data={post}
-                onDelete={handleDeletePost}
-                {...console.log(post)}
-              />
+              <Post key={post.id} data={post} onDelete={handleDeletePost} />
             ))
           )}
         </main>
