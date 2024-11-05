@@ -42,17 +42,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/Alert-dialog";
 
-export const Post = ({ data: post = {}, onDelete = () => {} }) => {
+export const Post = ({
+  data: post = {},
+  onDelete = () => {},
+  isFollowing = false,
+  onFollowChange = () => {},
+}) => {
   const [likes, setLikes] = useState(post?.likes || []);
   const [liked, setLiked] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [totalComments, setTotalComments] = useState(post?.totalComments || 0);
   const [commentLoading, setCommentLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
+
   const { data: session } = useSession();
 
   const id = post?.id;
+  const authorId = post?.author?._id;
+  const selfPost = session?.user?.id === authorId;
   const profilePicture = post?.author?.profile?.profilePicture;
   const firstName = post?.author?.firstName;
   const lastName = post?.author?.lastName;
@@ -113,6 +120,7 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
     if (commentOpen) {
       fetchComments();
     }
+    console.log(post);
   }, [commentOpen]);
 
   switch (type) {
@@ -122,6 +130,37 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
     default:
       <></>;
   }
+
+  // const handleFollowChange = async () => {
+  //   if (isFollowing) {
+  //     return await axios
+  //       .delete(`/api/follower/unfollow`, {})
+  //       .then((response) => {
+  //         if (response?.data?.success) {
+  //           setIsFollowing(false);
+  //           return response.data.data;
+  //         }
+  //         return null;
+  //       })
+  //       .catch((error) => {
+  //         return null;
+  //       });
+  //   }
+  //   return await axios
+  //     .post(`/api/follower/follow`, {
+  //       userId: authorId,
+  //     })
+  //     .then((response) => {
+  //       if (response?.data?.success) {
+  //         setIsFollowing(true);
+  //         return response.data.data;
+  //       }
+  //       return null;
+  //     })
+  //     .catch((error) => {
+  //       return null;
+  //     });
+  // };
 
   return (
     <article className="bg-neutral-100 dark:bg-neutral-800  max-w-3xl mx-auto rounded-2xl p-2 space-y-2 ring-1 ring-neutral-100 dark:ring-neutral-900">
@@ -159,76 +198,80 @@ export const Post = ({ data: post = {}, onDelete = () => {} }) => {
         </div>
 
         <div className="flex-1 text-right select-none">
-          <button
-            className={cn(
-              "px-4 py-1 rounded-full text-sm bg-gradient-to-br text-white",
-              isFollowing
-                ? "from-neutral-300 to-neutral-400"
-                : "from-violet-400 to-indigo-400 shadow-inner "
-            )}
-            onClick={() => {
-              setIsFollowing((prev) => !prev);
-            }}
-          >
-            {isFollowing ? (
-              <div className="flex gap-1 items-center justify-center">
-                <FiMinus />
-                <p>Unfollow</p>
-              </div>
-            ) : (
-              <div className="flex gap-1 items-center justify-center">
-                <FiPlus />
-                <p>Follow</p>
-              </div>
-            )}
-          </button>
+          {!selfPost && (
+            <button
+              className={cn(
+                "px-2 py-1 rounded-full text-sm bg-gradient-to-br text-white",
+                isFollowing
+                  ? "from-neutral-300 to-neutral-400"
+                  : "from-violet-400 to-indigo-400 shadow-inner "
+              )}
+              onClick={() => {
+                onFollowChange(isFollowing, authorId);
+              }}
+            >
+              {isFollowing ? (
+                <div className="flex gap-1 items-center justify-center">
+                  <p>Unfollow</p>
+                </div>
+              ) : (
+                <div className="flex gap-1 items-center justify-center">
+                  <p>Follow</p>
+                </div>
+              )}
+            </button>
+          )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="ml-2 p-2 rounded-full dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700">
-                <SlOptionsVertical />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <AlertDialog>
-                <AlertDialogTrigger className="hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-sm w-full">
-                  <div className="flex gap-2 justify-center items-center p-2">
-                    {" "}
-                    <span className="text-red-500">
-                      <Trash2 size={14} />
-                    </span>
-                    <p className="text-sm dark:text-white">Delete Post</p>
-                  </div>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Deleting will permanently remove all content, comments, and
-                    replies associated with this post.
-                    <br />
-                    <br />
-                    <span className="text-sm">
-                      This action cannot be undone.
-                    </span>
-                  </AlertDialogDescription>
-                  <AlertDialogFooter>
-                    <DropdownMenuItem className="focus:bg-transparent focus:hover:bg-transparent gap-2">
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        className="bg-red-500 hover:bg-red-600 text-white dark:text-neutral-900"
-                        onClick={() => onDelete(id)}
-                      >
-                        <span className=" mr-2">
-                          <Trash2 size={14} />
-                        </span>
-                        Delete
-                      </AlertDialogAction>
-                    </DropdownMenuItem>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {selfPost && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="ml-2 p-2 rounded-full dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700">
+                  <SlOptionsVertical />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <AlertDialog>
+                  <AlertDialogTrigger className="hover:bg-neutral-100 dark:hover:bg-neutral-600 rounded-sm w-full">
+                    <div className="flex gap-2 justify-center items-center p-2">
+                      {" "}
+                      <span className="text-red-500">
+                        <Trash2 size={14} />
+                      </span>
+                      <p className="text-sm dark:text-white">Delete Post</p>
+                    </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogTitle>
+                      Are you absolutely sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Deleting will permanently remove all content, comments,
+                      and replies associated with this post.
+                      <br />
+                      <br />
+                      <span className="text-sm">
+                        This action cannot be undone.
+                      </span>
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                      <DropdownMenuItem className="focus:bg-transparent focus:hover:bg-transparent gap-2">
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-red-500 hover:bg-red-600 text-white dark:text-neutral-900"
+                          onClick={() => onDelete(id)}
+                        >
+                          <span className=" mr-2">
+                            <Trash2 size={14} />
+                          </span>
+                          Delete
+                        </AlertDialogAction>
+                      </DropdownMenuItem>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
       {body}
@@ -655,6 +698,7 @@ const CommentInput = ({ user, onComment = async () => {} }) => {
 const PostType = ({ type, data }) => {
   const content = data?.contentData?.content;
   const media = data?.media;
+  const mediaPresent = media && media.length > 0;
   const formattedMedia = media.map((m) => {
     return {
       url: m.url,
@@ -673,14 +717,19 @@ const PostType = ({ type, data }) => {
 
   return (
     <main>
-      {formattedMedia && formattedMedia.length > 0 && (
+      {mediaPresent && (
         <div className="aspect-square max-w-3xl">
           <Carousel media={formattedMedia} />
         </div>
       )}
 
       {content && content.length > 0 && (
-        <p className="text-base font-light text-black dark:text-gray-100 pt-4 pb-1 pl-12 pr-4">
+        <p
+          className={cn(
+            "text-base font-light text-black dark:text-gray-100 pt-4 pb-1 pr-4",
+            !mediaPresent && "pl-12"
+          )}
+        >
           {content}
         </p>
       )}

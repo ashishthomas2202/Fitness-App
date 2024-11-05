@@ -1,6 +1,7 @@
 import connectDB from "@/db/db";
 import { authenticatedUser } from "@/lib/user";
 import Post, { Comment } from "@/db/models/Post";
+import Follower from "@/db/models/Follower";
 
 export async function GET(req) {
   try {
@@ -17,8 +18,18 @@ export async function GET(req) {
     }
     //TODO: Add followers posts
 
+    // Get a list of user IDs that the authenticated user is following
+    const followingList = await Follower.find({
+      follower: currentUser.id,
+    }).select("userId");
+    const followingUserIds = followingList.map((f) => f.userId.toString());
+
     const posts = await Post.find({
-      $or: [{ visibility: "public" }, { author: currentUser.id }],
+      // $or: [{ visibility: "public" }, { author: currentUser.id }],
+      $or: [
+        { visibility: "public" },
+        { visibility: "private", author: { $in: followingUserIds } },
+      ],
     })
       .populate({
         path: "author",
