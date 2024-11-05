@@ -191,7 +191,7 @@ export const Post = ({ data: post = {} }) => {
               </button>
 
               <span className="text-sm font-semibold">
-                {likes?.length || 0}
+                {likes?.length > 0 ? likes.length : ""}
               </span>
             </div>
             <div className="flex items-center">
@@ -203,7 +203,9 @@ export const Post = ({ data: post = {} }) => {
                   {commentOpen ? <IoChatbubble /> : <IoChatbubbleOutline />}
                 </span>
               </button>
-              <span className="text-sm font-semibold">{totalComments}</span>
+              <span className="text-sm font-semibold">
+                {totalComments > 0 ? totalComments : ""}
+              </span>
             </div>
           </article>
           <button className="text-violet-500 h-10 w-10 flex justify-center items-center hover:bg-violet-100 dark:hover:bg-neutral-700 rounded-full">
@@ -234,6 +236,11 @@ const CommentsSection = ({
   user,
 }) => {
   const [comments, setComments] = useState(defaultComments);
+  const [visibleComments, setVisibleComments] = useState(4);
+
+  const loadMoreComments = () => {
+    setVisibleComments((prev) => prev + 4); // Increase by 4
+  };
 
   useEffect(() => {
     comments && setComments(defaultComments);
@@ -270,18 +277,18 @@ const CommentsSection = ({
       </div>
     );
   return (
-    <div className="mt-1 bg-neutral-200 shadow-inner dark:bg-neutral-900 p-2 rounded-lg space-y-4">
+    <div className="mt-1 bg-neutral-200 shadow-inner dark:bg-neutral-900 p-2 rounded-lg space-y-3">
       <CommentInput
         user={user}
         onComment={(text) => {
           handleAddComment(text);
         }}
       />
-
       {comments &&
         comments.length > 0 &&
         comments
           .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+          .slice(0, visibleComments) // Limit to visible comments
           .map((comment, i) => (
             <Comment
               key={`${comment?.id}-post-comments-list`}
@@ -291,6 +298,16 @@ const CommentsSection = ({
               postId={postId}
             />
           ))}
+
+      {/* Show "Load More" button if there are more comments to display */}
+      {visibleComments < comments.length && (
+        <button
+          className="text-sm text-center font-light py-2 text-neutral-600 w-full"
+          onClick={loadMoreComments}
+        >
+          Show More
+        </button>
+      )}
     </div>
   );
 };
@@ -305,6 +322,12 @@ const Comment = ({
   const [likes, setLikes] = useState(data?.likes || []);
   const [replies, setReplies] = useState(data?.replies || []);
   const [replyOpen, setReplyOpen] = useState(false);
+  const [visibleReplies, setVisibleReplies] = useState(4);
+
+  // Function to load more replies
+  const loadMoreReplies = () => {
+    setVisibleReplies((prev) => prev + 4); // Increase by 4
+  };
 
   const selfComment = user?.id === data?.commenter?.id;
   const firstName = data?.commenter?.firstName;
@@ -313,14 +336,6 @@ const Comment = ({
   const timestamp = moment(data?.updatedAt).fromNow();
   const commentId = data?.id;
   const comment = data?.comment;
-  const formattedComment = comment.split("\n").map((str, i) => (
-    <p
-      key={`${commentId}-comment-${i}`}
-      className="break-words text-sm font-light"
-    >
-      {str.length > 0 ? str : <br />}
-    </p>
-  ));
 
   const onLikeChange = async () => {
     setLiked((prev) => !prev);
@@ -374,10 +389,10 @@ const Comment = ({
           )}
         </div>
         <div>
-          <h4 className="text-sm font-semibold">
+          <h4 className="text-xs font-semibold">
             {firstName} {lastName}
           </h4>
-          <h5 className="text-xs font-light text-slate-400 dark:text-neutral-500">
+          <h5 className="text-[10px] font-light text-slate-400 dark:text-neutral-500">
             {timestamp}
           </h5>
         </div>
@@ -397,43 +412,47 @@ const Comment = ({
           </div>
         )}
       </header>
-      <main className="pl-8 pr-4 py-2">{formattedComment}</main>
-      <footer className="ml-4">
+      <main className="pl-8 pr-4 py-1">
+        <p className="break-words text-sm font-light">{comment}</p>
+      </main>
+      <footer className="ml-7">
         <nav className="flex justify-between">
           <article className="flex">
             <div className="flex items-center">
               <button
-                className="text-rose-500 h-8 w-8 flex justify-center items-center hover:bg-rose-100 dark:hover:bg-neutral-700 rounded-full"
+                className="text-rose-500 h-7 w-7 flex justify-center items-center hover:bg-rose-100 dark:hover:bg-neutral-700 rounded-full"
                 onClick={() => onLikeChange(commentId)}
               >
                 <span
-                  className={cn("text-xl font-bold", liked && "animate-pulse")}
+                  className={cn("text-lg font-bold", liked && "animate-pulse")}
                 >
                   {liked ? <GoHeartFill /> : <GoHeart />}
                 </span>
               </button>
-              {likes && likes.length > 0 && (
-                <span className="text-sm font-semibold">{likes.length}</span>
-              )}
+
+              <span className="text-xs font-semibold">
+                {likes?.length > 0 ? likes.length : ""}
+              </span>
             </div>
             <div className="flex items-center">
               <button
-                className="text-orange-500 h-8 w-8 flex justify-center items-center hover:bg-orange-100 dark:hover:bg-neutral-700 rounded-full"
+                className="text-orange-500 h-7 w-7 flex justify-center items-center hover:bg-orange-100 dark:hover:bg-neutral-700 rounded-full"
                 onClick={() => setReplyOpen((prev) => !prev)}
               >
-                <span className="text-xl font-bold">
+                <span className="text-lg font-bold">
                   {replyOpen ? <IoChatbubble /> : <IoChatbubbleOutline />}
                 </span>
               </button>
-              {replies && replies.length > 0 && (
-                <span className="text-sm font-semibold">{replies.length}</span>
-              )}
+
+              <span className="text-xs font-semibold">
+                {replies?.length > 0 ? replies.length : ""}
+              </span>
             </div>
           </article>
         </nav>
 
         {replyOpen && (
-          <div className="space-y-2 py-2">
+          <div className="space-y-2 py-2 pl-1">
             <CommentInput
               parentId={null}
               user={user}
@@ -441,11 +460,12 @@ const Comment = ({
                 handleAddReply(text);
               }}
             />
-            {/* </div> */}
+
             {replies &&
               replies.length > 0 &&
               replies
                 .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+                .slice(0, visibleReplies) // Limit to visible replies
                 .map((reply, i) => (
                   <Comment
                     key={`${reply?.id}-post-replies-list`}
@@ -456,6 +476,17 @@ const Comment = ({
                     updateTotalComments={updateTotalComments}
                   />
                 ))}
+
+            {/* Show "Load More" button if there are more replies to display */}
+            {visibleReplies < replies.length && (
+              //   <button onClick={loadMoreReplies}>Load More</button>
+              <button
+                className="text-sm text-center font-light py-2 text-neutral-600 w-full"
+                onClick={loadMoreReplies}
+              >
+                Show More
+              </button>
+            )}
           </div>
         )}
       </footer>
