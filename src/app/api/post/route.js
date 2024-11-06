@@ -28,7 +28,10 @@ export async function GET(req) {
       // $or: [{ visibility: "public" }, { author: currentUser.id }],
       $or: [
         { visibility: "public" },
-        { visibility: "private", author: { $in: followingUserIds } },
+        {
+          visibility: "private",
+          author: { $in: [...followingUserIds, currentUser.id] },
+        },
       ],
     })
       .populate({

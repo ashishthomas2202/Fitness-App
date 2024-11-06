@@ -16,8 +16,12 @@ export async function GET(req) {
       );
     }
 
+    // const totalFollowers = await Follower.countDocuments({
+    //   follower: currentUser.id,
+    // });
+
     const totalFollowers = await Follower.countDocuments({
-      following: currentUser.id,
+      userId: currentUser.id,
     });
 
     return Response.json(

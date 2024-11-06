@@ -1,11 +1,17 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-export const Page = ({ title = "", children, className }) => {
+export const Page = ({
+  title = "",
+  children,
+  className,
+  noBackground = false,
+}) => {
   return (
     <section
       className={cn(
-        "bg-white dark:bg-neutral-900 min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-70px)] py-5 px-4  max-w-[2500px] mx-auto rounded-xl",
+        "min-h-[calc(100vh-120px)] sm:min-h-[calc(100vh-70px)] py-5 px-4  max-w-[2500px] mx-auto rounded-xl",
+        !noBackground && "bg-white dark:bg-neutral-900",
         className
       )}
     >

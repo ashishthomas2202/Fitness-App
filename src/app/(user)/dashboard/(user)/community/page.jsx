@@ -78,7 +78,7 @@ const CommunityPage = () => {
   const handleFollowChange = async (isFollowing, userId) => {
     if (isFollowing) {
       return await axios
-        .delete(`/api/follower/unfollow`, {
+        .delete(`/api/follower/action/unfollow`, {
           data: { userId },
         })
         .then((response) => {
@@ -93,7 +93,7 @@ const CommunityPage = () => {
         });
     } else {
       return await axios
-        .post(`/api/follower/follow`, { userId })
+        .post(`/api/follower/action/follow`, { userId })
         .then((response) => {
           if (response?.data?.success) {
             setFollowers([...followers, userId]);
