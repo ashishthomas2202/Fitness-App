@@ -8,10 +8,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { ProfileProvider } from "@/providers/ProfileProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
-import { AccessibilityProvider } from '@/providers/AccessibilityProvider';
-import AccessibilityBar from '@/components/AccessibilityBar';
-import { GlobalContextMenu } from '@/components/GlobalContextMenu'; // Add this import
+import { AccessibilityProvider } from "@/providers/AccessibilityProvider";
+import AccessibilityBar from "@/components/AccessibilityBar";
+import { GlobalContextMenu } from "@/components/GlobalContextMenu"; // Add this import
 
+import { TooltipProvider } from "@/components/ui/Tooltip";
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
   subsets: ["latin"],
@@ -27,8 +28,8 @@ export const metadata = {
   description: "A platform to enhance your fitness journey",
 };
 
-export default function RootLayout({ children }) {
-  const session = getServerAuthSession();
+export default async function RootLayout({ children }) {
+  const session = await getServerAuthSession();
   return (
     <html lang="en" className="scroll-smooth">
       <body
@@ -41,11 +42,13 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <AuthProvider session={session}>
             <ProfileProvider>
-              <AccessibilityProvider>
-                {children}
-                <GlobalContextMenu />
-                <AccessibilityBar />
-              </AccessibilityProvider>
+              <TooltipProvider>
+                <AccessibilityProvider>
+                  {children}
+                  {/* <GlobalContextMenu /> */}
+                  <AccessibilityBar />
+                </AccessibilityProvider>
+              </TooltipProvider>
             </ProfileProvider>
           </AuthProvider>
           <ToastContainer position="top-center" />

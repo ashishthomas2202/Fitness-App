@@ -15,11 +15,11 @@ export async function GET(req) {
     }
 
     const { searchParams } = new URL(req.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const source = searchParams.get('source');
-    const limit = parseInt(searchParams.get('limit')) || 10;
-    const page = parseInt(searchParams.get('page')) || 1;
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const source = searchParams.get("source");
+    const limit = parseInt(searchParams.get("limit")) || 10;
+    const page = parseInt(searchParams.get("page")) || 1;
 
     const query = { userId: user.id };
     if (startDate || endDate) {
@@ -44,8 +44,8 @@ export async function GET(req) {
         pagination: {
           total,
           page,
-          pages: Math.ceil(total / limit)
-        }
+          pages: Math.ceil(total / limit),
+        },
       },
       { status: 200 }
     );

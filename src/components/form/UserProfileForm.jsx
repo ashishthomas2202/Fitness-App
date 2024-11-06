@@ -4,22 +4,22 @@ import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSession } from "next-auth/react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 import {
   Select,
   SelectTrigger,
   SelectContent,
   SelectItem,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/Select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon, UploadIcon } from "lucide-react";
+} from "@/components/ui/Popover";
+import { CalendarIcon, Loader2, UploadIcon } from "lucide-react";
 import moment from "moment-timezone";
 import Image from "next/image";
 import { ProfilePictureUploader } from "../ProfilePictureUploader";
@@ -69,7 +69,9 @@ const UserProfileSchema = {
       }
     ),
 };
-export const UserProfileForm = ({ profile }) => {
+export const UserProfileForm = ({ profile, onComplete = () => {} }) => {
+  const [submitting, setSubmitting] = useState(false);
+
   const defaultValues = {
     firstName: profile?.firstName || "",
     lastName: profile?.lastName || "",
@@ -118,7 +120,7 @@ export const UserProfileForm = ({ profile }) => {
   };
 
   const onSubmit = async (data) => {
-    console.log(data);
+    setSubmitting(true);
     await axios
       .post("/api/profile/update-profile", data)
       .then(async (response) => {
@@ -135,30 +137,14 @@ export const UserProfileForm = ({ profile }) => {
         console.error("Error updating profile:", error);
         toast.error("Failed to update profile");
       });
+
+    setSubmitting(false);
+    onComplete();
   };
 
   return (
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* <div className="h-52 w-52 relative mx-auto mb-10">
-          <Image
-            className="object-cover object-center rounded-full m-4"
-            // src={defaultValues?.profile || "/default-user-icon.png"}
-            src={imagePreview || uploadedImageUrl || "/default-user-icon.png"} // Show preview or uploaded image
-            alt="Profile Picture"
-            fill
-            priority
-          />
-          <Button
-            className="bottom-0 right-0 h-10 y-10 rounded-full absolute"
-            type="button"
-            // onClick={handleFileUploadClick}
-            onClick={() => fileInputRef.current.click()}
-          >
-            <UploadIcon className="h-6 w-6" />
-          </Button>
-        </div> */}
-
         <ProfilePictureUploader
           defaultURL={profile?.profilePicture}
           onImageUpload={handleImageUpload}
@@ -291,8 +277,24 @@ export const UserProfileForm = ({ profile }) => {
           <p className="text-red-500">{errors?.phoneNumber?.message}</p>
         </div>
 
-        <Button type="submit" variant="primary" className="mt-4 w-full">
-          Update Profile
+        <Button
+          type="submit"
+          variant="primary"
+          className="mt-4 w-full flex justify-center items-center gap-2"
+        >
+          {submitting ? (
+            <>
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Updating</span>
+              <span>
+                <span className="animate-bounce delay-75">.</span>
+                <span className="animate-bounce delay-100">.</span>
+                <span className="animate-bounce delay-150">.</span>
+              </span>
+            </>
+          ) : (
+            "Update Profile"
+          )}
         </Button>
       </form>
     </>

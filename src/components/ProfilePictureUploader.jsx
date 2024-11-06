@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { IKContext, IKUpload } from "imagekitio-react";
 import ImageKit from "imagekit";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import axios from "axios";
 import { Loader2, UploadIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
