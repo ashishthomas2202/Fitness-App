@@ -37,6 +37,7 @@ export async function GET(req) {
       ...profileData,
       firstName: userData?.firstName,
       lastName: userData?.lastName,
+      since: userData?.createdAt,
     };
     return Response.json(
       {
