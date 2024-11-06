@@ -11,7 +11,7 @@ const MealSchema = new Schema({
     required: true,
   },
   diet: {
-    type: [String], // Store an array of diet preferences
+    type: [String],
     default: [],
   },
   macros: {
@@ -32,7 +32,7 @@ const MealSchema = new Schema({
     type: Number,
     required: true,
   },
-  // Ingredients array now simplified to store strings
+
   ingredients: {
     type: [{
       name: { type: String },
