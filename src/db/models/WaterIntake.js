@@ -1,4 +1,7 @@
 // src/db/models/WaterIntake.js
+import mongoose from "mongoose";
+const { Schema } = mongoose;
+
 const WaterIntakeSchema = new Schema(
   {
     userId: {
@@ -28,8 +31,9 @@ const WaterIntakeSchema = new Schema(
   { timestamps: true }
 );
 
-WaterIntakeSchema.index({ userId: 1, date: 1 });
+// WaterIntakeSchema.index({ userId: 1, date: 1 });
 const WaterIntake =
   mongoose.models.WaterIntake ||
   mongoose.model("WaterIntake", WaterIntakeSchema);
+
 export default WaterIntake;

@@ -8,18 +8,17 @@ const weightSchema = Yup.object().shape({
   weight: Yup.number()
     .required("Weight is required")
     .positive("Weight must be positive")
-    .test('reasonable-weight', 'Weight seems unrealistic', function(value) {
+    .test("reasonable-weight", "Weight seems unrealistic", function (value) {
       const unit = this.parent.unit;
-      return unit === 'kg' ? value <= 250 : value <= 550;
+      return unit === "kg" ? value <= 250 : value <= 550;
     }),
   unit: Yup.string()
-    .oneOf(['kg', 'lbs'], "Invalid unit")
+    .oneOf(["kg", "lbs"], "Invalid unit")
     .required("Unit is required"),
   date: Yup.date()
     .required("Date is required")
     .max(new Date(), "Date cannot be in the future"),
-  note: Yup.string()
-    .nullable()
+  note: Yup.string().nullable(),
 });
 
 export async function POST(req) {
@@ -34,7 +33,7 @@ export async function POST(req) {
     }
 
     const data = await req.json();
-    
+
     try {
       await weightSchema.validate(data);
     } catch (validationError) {
@@ -50,7 +49,7 @@ export async function POST(req) {
 
     const weightRecord = new Weight({
       userId: user.id,
-      ...data
+      ...data,
     });
 
     await weightRecord.save();
