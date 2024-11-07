@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import FaqLayout from "@/components/ui/FaqLayout";
+import ContactForm from "@/components/ui/ContactForm";
+
 
 const faqs = [
   { question: "How do I access the meal plans?", answer: "You can access the meal plans by navigating to the 'Meal Plans' section in the app's main menu." },
@@ -30,7 +32,7 @@ const FaqPage = () => {
 
   return (
     <FaqLayout>
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         {faqs.map((faq, index) => (
           <div key={index} className="bg-white dark:bg-neutral-800 p-4 rounded-lg shadow-lg">
             <button
@@ -50,6 +52,11 @@ const FaqPage = () => {
           </div>
         ))}
       </div>
+      <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200 text-center">
+        Any questions? Contact us here
+      </h2>
+
+      <ContactForm />
     </FaqLayout>
   );
 };
