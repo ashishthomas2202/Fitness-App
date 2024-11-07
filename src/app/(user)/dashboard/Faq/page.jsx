@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import FaqLayout from "@/components/ui/FaqLayout";
 
 const faqs = [
   { question: "How do I access the meal plans?", answer: "You can access the meal plans by navigating to the 'Meal Plans' section in the app's main menu." },
@@ -28,31 +29,28 @@ const FaqPage = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-grow bg-gray-100 dark:bg-neutral-900 p-8">
-        <h1 className="text-3xl font-semibold mb-8 text-gray-700 dark:text-gray-200">Frequently Asked Questions</h1>
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="bg-white dark:bg-neutral-800 p-4 rounded-lg shadow-lg">
-              <button
-                onClick={() => toggleFaq(index)}
-                className="w-full flex justify-between items-center text-left text-lg font-medium text-gray-700 dark:text-gray-200"
-              >
-                {faq.question}
-                {activeIndex === index ? (
-                  <ChevronUp className="text-gray-500 dark:text-gray-300" />
-                ) : (
-                  <ChevronDown className="text-gray-500 dark:text-gray-300" />
-                )}
-              </button>
-              {activeIndex === index && (
-                <p className="mt-2 text-gray-600 dark:text-gray-400">{faq.answer}</p>
+    <FaqLayout>
+      <div className="space-y-4">
+        {faqs.map((faq, index) => (
+          <div key={index} className="bg-white dark:bg-neutral-800 p-4 rounded-lg shadow-lg">
+            <button
+              onClick={() => toggleFaq(index)}
+              className="w-full flex justify-between items-center text-left text-lg font-medium text-gray-700 dark:text-gray-200"
+            >
+              {faq.question}
+              {activeIndex === index ? (
+                <ChevronUp className="text-gray-500 dark:text-gray-300" />
+              ) : (
+                <ChevronDown className="text-gray-500 dark:text-gray-300" />
               )}
-            </div>
-          ))}
-        </div>
-      </main>
-    </div>
+            </button>
+            {activeIndex === index && (
+              <p className="mt-2 text-gray-600 dark:text-gray-400">{faq.answer}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </FaqLayout>
   );
 };
 
