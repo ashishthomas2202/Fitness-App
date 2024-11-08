@@ -9,25 +9,31 @@ export async function POST(req) {
 
         const currentUser = await authenticatedUser();
         if (!currentUser) {
-            return new Response(JSON.stringify({ success: false, message: "Unauthorized User" }), { status: 401 });
+            return new Response(
+                JSON.stringify({ success: false, message: "Unauthorized User" }),
+                { status: 401 }
+            );
         }
 
-        const { calorieGoal, weightGoal, startDate, endDate } = await req.json();
-
-        // Validate dates to ensure they’re valid before saving
-        const parsedStartDate = new Date(startDate);
-        const parsedEndDate = new Date(endDate);
-
-        if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
-            return new Response(JSON.stringify({ success: false, message: "Invalid start or end date" }), { status: 400 });
-        }
+        const {
+            calorieGoal,
+            weightGoal,
+            stepsGoal,
+            flightsClimbedGoal,
+            distanceGoal,
+            waterIntakeGoal,
+            caloriesBurnedGoal,
+        } = await req.json();
 
         const goal = new Goal({
             userId: currentUser.id,
             calorieGoal,
             weightGoal,
-            startDate: parsedStartDate, // Store directly as Date object
-            endDate: parsedEndDate,      // Store directly as Date object
+            stepsGoal,
+            flightsClimbedGoal,
+            distanceGoal,
+            waterIntakeGoal,
+            caloriesBurnedGoal,
         });
 
         await goal.save();
@@ -36,6 +42,10 @@ export async function POST(req) {
         return new Response(JSON.stringify({ success: true, goal }), { status: 201 });
     } catch (error) {
         console.error("Error creating goal:", error);
-        return new Response(JSON.stringify({ success: false, message: "Failed to create goal", error: error.message }), { status: 500 });
+        return new Response(
+            JSON.stringify({ success: false, message: "Failed to create goal", error: error.message }),
+            { status: 500 }
+        );
     }
 }
+

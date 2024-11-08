@@ -1,4 +1,3 @@
-// GoalsPage.jsx 
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -7,16 +6,25 @@ import { toast } from "react-toastify";
 import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm";
 import WeightTracker from "@/app/(user)/dashboard/(user)/goals/components/WeightTracker";
 import { ProgressRing } from "@/components/ui/ProgressRing";
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/Card";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/Card";
 
 export default function GoalsPage() {
   const { data: session } = useSession();
   const [goals, setGoals] = useState([]);
   const [currentCalories, setCurrentCalories] = useState(0);
+  const [currentCaloriesBurned, setCurrentCaloriesBurned] = useState(0);
+  const [currentSteps, setCurrentSteps] = useState(0);
+  const [currentFlights, setCurrentFlights] = useState(0);
+  const [currentDistance, setCurrentDistance] = useState(0);
+  const [currentWaterIntake, setCurrentWaterIntake] = useState(0);
   const [calorieGoal, setCalorieGoal] = useState(null);
+  const [caloriesBurnedGoal, setCaloriesBurnedGoal] = useState(null);
+  const [stepsGoal, setStepsGoal] = useState(null);
+  const [flightsGoal, setFlightsGoal] = useState(null);
+  const [distanceGoal, setDistanceGoal] = useState(null);
+  const [waterIntakeGoal, setWaterIntakeGoal] = useState(null);
   const [motivationalMessage, setMotivationalMessage] = useState("");
 
-  // Fetch the user's goals, including the calorie goal
   const fetchGoals = async () => {
     if (!session || !session.user) {
       toast.error("User is not authenticated.");
@@ -29,22 +37,32 @@ export default function GoalsPage() {
       const goalsData = response.data.data || [];
       setGoals(goalsData);
       if (goalsData.length > 0) {
-        setCalorieGoal(goalsData[0].calorieGoal);
+        const goal = goalsData[0];
+        setCalorieGoal(goal.calorieGoal);
+        setCaloriesBurnedGoal(goal.caloriesBurnedGoal);
+        setStepsGoal(goal.stepsGoal);
+        setFlightsGoal(goal.flightsClimbedGoal);
+        setDistanceGoal(goal.distanceGoal);
+        setWaterIntakeGoal(goal.waterIntakeGoal);
       }
     } catch (error) {
       toast.error("Failed to fetch goals.");
     }
   };
 
-  // Fetch the total calories for today's meal plan
-  const fetchTodayCalories = async () => {
+  const fetchTodayActivity = async () => {
     try {
       const response = await axios.get("/api/mealplan/today", {
         params: { userId: session.user.id },
       });
       setCurrentCalories(response.data.calories || 0);
+      setCurrentCaloriesBurned(activityData.caloriesBurned || 0);
+      setCurrentSteps(response.data.steps || 0);
+      setCurrentFlights(response.data.flights || 0);
+      setCurrentDistance(response.data.distance || 0);
+      setCurrentWaterIntake(response.data.waterIntake || 0);
     } catch (error) {
-      toast.error("Failed to fetch today's calorie intake.");
+      toast.error("Failed to fetch today's activity data.");
     }
   };
 
@@ -60,7 +78,7 @@ export default function GoalsPage() {
         userId: session.user.id,
       });
       toast.success("Goal saved successfully!");
-      fetchGoals(); // Refresh goals after saving
+      fetchGoals();
     } catch (error) {
       toast.error(`Error saving goal: ${error.response?.data?.error || error.message}`);
     }
@@ -68,13 +86,15 @@ export default function GoalsPage() {
 
   useEffect(() => {
     fetchGoals();
-    fetchTodayCalories();
+    fetchTodayActivity();
   }, [session]);
 
-  // Calculate the percentage of the calorie goal achieved and ensure it’s within bounds
-  const caloriePercentage = Math.max(0, Math.min((currentCalories / (calorieGoal || 1)) * 100, 100));
+  const caloriePercentage = Math.min((currentCalories / (calorieGoal || 1)) * 100, 100);
+  const stepsPercentage = Math.min((currentSteps / (stepsGoal || 1)) * 100, 100);
+  const flightsPercentage = Math.min((currentFlights / (flightsGoal || 1)) * 100, 100);
+  const distancePercentage = Math.min((currentDistance / (distanceGoal || 1)) * 100, 100);
+  const waterPercentage = Math.min((currentWaterIntake / (waterIntakeGoal || 1)) * 100, 100);
 
-  // Set motivational messages based on progress
   useEffect(() => {
     if (caloriePercentage >= 100) {
       setMotivationalMessage("Fantastic job! You've hit your goal for today!");
@@ -89,46 +109,63 @@ export default function GoalsPage() {
     }
   }, [caloriePercentage]);
 
+  // Responsive Goal Card component
+  function GoalCard({ title, current, goal, color, unit, message }) {
+    const percentage = Math.min((current / (goal || 1)) * 100, 100);
+
+    return (
+      <div className="flex flex-col items-center justify-center w-full p-4">
+        <div className="relative flex items-center justify-center">
+          <ProgressRing percentage={percentage} color={color} strokeWidth={10} noText={true} />
+          {/* Centered text inside the ring */}
+          <div className="absolute flex flex-col items-center">
+            <span className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+              {current} / {goal || "N/A"} {unit}
+            </span>
+          </div>
+        </div>
+        <div className="text-center text-md text-gray-500 dark:text-gray-400 mt-2">
+          {title}
+        </div>
+        {message && <p className="mt-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">{message}</p>}
+      </div>
+    );
+  }
+
+
+  // Page layout with responsive card arrangement
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Your Goals</h1>
-      <GoalsForm onSave={handleSaveGoal} />
+      <GoalsForm onSave={(goalData) => handleSaveGoal(goalData)} />
 
-      <Card className="w-1/2 mx-auto mt-6">
-        <CardHeader>
-          <CardTitle>Calorie Goal</CardTitle>
-          <CardDescription>Daily Calorie Intake Goal</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col justify-center items-center relative">
-          <ProgressRing
-            percentage={caloriePercentage} // Safe percentage value
-            color="#4CAF50"
-            strokeWidth={40} // Thicker stroke width
-            noText={true} // Hide the percentage text
-          />
-          <div className="absolute inset-0 flex items-center justify-center text-xl font-semibold text-gray-700 dark:text-gray-300">
-            {currentCalories} / {calorieGoal || "N/A"} kcal
-          </div>
-          {/* Display Motivational Message */}
-          <p className="mt-4 text-center text-lg font-semibold text-gray-700 dark:text-gray-300">
-            {motivationalMessage}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Weight Tracker component for graphing weight history */}
+      {/* Metabolic Goals */}
       <div className="mt-8">
-        <WeightTracker />
+        <h2 className="text-xl font-semibold mb-4">Metabolic Goals</h2>
+        <Card className="p-6">
+          <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
+            <GoalCard title="Calorie Intake" current={currentCalories} goal={calorieGoal} color="#4CAF50" unit="kcal" message={motivationalMessage} />
+            <GoalCard title="Calories Burned" current={currentCaloriesBurned} goal={caloriesBurnedGoal} color="#FF7043" unit="kcal" />
+            <GoalCard title="Water Consumed" current={currentWaterIntake} goal={waterIntakeGoal} color="#03A9F4" unit="L" />
+          </div>
+        </Card>
       </div>
 
-      <div className="mt-6">
-        {goals.map((goal) => (
-          <div key={goal.id} className="border p-4 mb-4 rounded dark:border-gray-700">
-            <p><strong>Calorie Goal:</strong> {goal.calorieGoal} kcal</p>
-            <p><strong>Weight Goal:</strong> {goal.weightGoal} lbs</p>
-            <p><strong>Goal Period:</strong> {goal.startDate ? new Date(goal.startDate).toLocaleDateString() : "N/A"} - {goal.endDate ? new Date(goal.endDate).toLocaleDateString() : "N/A"}</p>
+      {/* Activity Goals */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Activity Goals</h2>
+        <Card className="p-6">
+          <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
+            <GoalCard title="Steps" current={currentSteps} goal={stepsGoal} color="#FF9800" unit="steps" />
+            <GoalCard title="Flights Climbed" current={currentFlights} goal={flightsGoal} color="#2196F3" unit="flights" />
+            <GoalCard title="Distance" current={currentDistance} goal={distanceGoal} color="#673AB7" unit="km" />
           </div>
-        ))}
+        </Card>
+      </div>
+
+      {/* Weight Tracker */}
+      <div className="mt-8">
+        <WeightTracker />
       </div>
     </div>
   );

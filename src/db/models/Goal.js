@@ -1,4 +1,4 @@
-// Goal.js (your Goal schema file)
+// Goal.js (Schema for Goal in MongoDB)
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -16,13 +16,25 @@ const GoalSchema = new Schema({
         type: Number,
         required: true
     },
-    startDate: {
-        type: Date,
-        required: true
+    stepsGoal: {
+        type: Number,
+        default: 0
     },
-    endDate: {
-        type: Date,
-        required: false
+    flightsClimbedGoal: {
+        type: Number,
+        default: 0
+    },
+    distanceGoal: {
+        type: Number,
+        default: 0
+    },
+    waterIntakeGoal: {
+        type: Number,
+        default: 0
+    },
+    caloriesBurnedGoal: {
+        type: Number,
+        default: 0
     },
     weightHistory: [
         {
@@ -30,16 +42,6 @@ const GoalSchema = new Schema({
             weight: { type: Number, required: true },
         },
     ],
-}, {
-    timestamps: true,
-    toJSON: {
-        transform: (doc, ret) => {
-            ret.id = ret._id;
-            delete ret._id;
-            delete ret.__v;
-            return ret;
-        },
-    },
-});
+}, { timestamps: true });
 
 module.exports = mongoose.models.Goal || mongoose.model('Goal', GoalSchema);

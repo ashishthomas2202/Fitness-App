@@ -1,19 +1,28 @@
+// src/app/api/goals/route.js
 import connectDB from "@/db/db";
 import Goal from "@/db/models/Goal";
+import { authenticatedUser } from "@/lib/user";
 
 export async function GET(req) {
-    await connectDB();
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-        return new Response(JSON.stringify({ error: "User ID is required" }), { status: 400 });
-    }
-
     try {
-        const goals = await Goal.find({ userId });
+        await connectDB();
+
+        const currentUser = await authenticatedUser();
+        if (!currentUser) {
+            return new Response(
+                JSON.stringify({ success: false, message: "Unauthorized User" }),
+                { status: 401 }
+            );
+        }
+
+        const goals = await Goal.find({ userId: currentUser.id }).lean();
+
         return new Response(JSON.stringify({ success: true, data: goals }), { status: 200 });
     } catch (error) {
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+        console.error("Error fetching goals:", error);
+        return new Response(
+            JSON.stringify({ success: false, message: "Failed to fetch goals", error: error.message }),
+            { status: 500 }
+        );
     }
 }
