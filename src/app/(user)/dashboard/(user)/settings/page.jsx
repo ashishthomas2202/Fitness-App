@@ -501,7 +501,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
         </div>
       </div>
       {/*
-      Fitness Goals */}
+      Fitness Goals
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
   <div className="mb-6">
     <h2 className="text-2xl font-bold text-black dark:text-white">Fitness Goals</h2>
@@ -539,7 +539,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
   </div>
 </div>
 
-{/* Unit Preferences */}
+{/* Unit Preferences 
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
   <div className="mb-6">
     <h2 className="text-2xl font-bold text-black dark:text-white">Unit Preferences</h2>
@@ -570,7 +570,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
   </div>
 </div>
 
-{/* Workout Preferences*/}
+{/* Workout Preferences
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
   <div className="mb-6">
     <h2 className="text-2xl font-bold text-black dark:text-white">Workout Preferences</h2>
@@ -614,7 +614,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
   </div>
 </div>
 
-{/* Diet Preferences */}
+{/* Diet Preferences 
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
   <div className="mb-6">
     <h2 className="text-2xl font-bold text-black dark:text-white">Diet Preferences</h2>
@@ -648,7 +648,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
   </div>
 </div>
 
-{/* Privacy Settings */}
+{/* Privacy Settings 
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
   <div className="mb-6">
     <h2 className="text-2xl font-bold text-black dark:text-white">Privacy Settings</h2>
@@ -673,7 +673,7 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
     <Button className="mt-4">Save Privacy Settings</Button>
   </div>
 </div>
-
+*/}
     </div>
   );
 }
