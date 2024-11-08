@@ -18,15 +18,37 @@ import { Button } from "@/components/ui/Button";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import Link from "next/link";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
 
 export const Header = ({ handleSidebar = () => {} }) => {
   const [greeting, setGreeting] = useState(getGreeting());
+  const [minify, setMinify] = useState(false);
+
   const router = useRouter();
   const { data: session, status } = useSession();
   const { profile } = useContext(ProfileContext);
   //   const greeting = `${getGreeting()}, ${session?.user?.firstName}`;
   //   const greeting = "Hello, User";
   //   const greeting = getGreeting();
+
+  const handleScroll = () => {
+    const position = window.pageYOffset;
+    const buffer = 20; // Buffer range for smoother transitions
+
+    if (position > 100 + buffer) {
+      setMinify(true);
+    } else if (position < 100 - buffer) {
+      setMinify(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     setGreeting(`${getGreeting()}, ${session?.user?.firstName || ""}`);
@@ -39,7 +61,9 @@ export const Header = ({ handleSidebar = () => {} }) => {
             <HamburgerMenuIcon size={20} />
           </Button>
 
-          <h2 className="text-3xl font-bold hidden md:block">{greeting}</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold hidden md:block">
+            {greeting}
+          </h2>
 
           <div className="flex gap-4">
             <DarkModeToggle />
@@ -97,7 +121,17 @@ export const Header = ({ handleSidebar = () => {} }) => {
             </DropdownMenu>
           </div>
         </div>
-        <h2 className="text-3xl font-bold mt-2 md:hidden">{greeting}</h2>
+
+        {/* <span className={cn("", minify && "delay")}> */}
+        <h2
+          className={cn(
+            "text-3xl font-bold mt-2 md:hidden opacity-100 transition-all duration-300 h-max",
+            minify && "transform -translate-y-1/2 opacity-0 h-0 mt-0"
+          )}
+        >
+          {greeting}
+        </h2>
+        {/* </span> */}
       </nav>
     </header>
   );
