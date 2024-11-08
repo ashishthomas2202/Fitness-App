@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { Label } from "@/components/ui/Label";
 import { Checkbox } from "@/components/ui/Checkbox";
-import { ScrollArea } from "@/components/ui/Scroll-area";
+import { ScrollArea } from "@/components/ui/Dcroll-area";
 import { PlusCircleIcon, Trash2Icon, CheckCircleIcon } from "lucide-react";
 
 export default function MealPlanDialog({
