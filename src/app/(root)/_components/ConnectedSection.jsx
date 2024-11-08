@@ -1,9 +1,10 @@
+'use client';
 import Image from "next/image";
 import React from "react";
 
 export const ConnectedSection = () => {
   return (
-    <section className="px-4 py-16 max-w-screen-2xl  mx-auto flex flex-col gap-10  lg:flex-row items-center">
+    <section className="px-4 py-16 max-w-screen-2xl mx-auto flex flex-col gap-10 lg:flex-row items-center">
       {/* Left - Image Section */}
       <div className="relative w-full min-h-[400px] max-h-[800px] lg:w-1/2 flex justify-center mb-10 lg:mb-0">
         <Image
@@ -15,11 +16,11 @@ export const ConnectedSection = () => {
       </div>
 
       {/* Right - Text Section */}
-      <div className="w-full lg:w-1/2 text-center lg:text-left">
-        <h2 className="text-4xl lg:text-5xl font-bold mb-4">
+      <div className="w-full lg:w-1/2 text-center lg:text-left select-text">
+        <h2 className="text-4xl lg:text-5xl font-bold mb-4 cursor-text">
           Stay Connected, Anytime, Anywhere
         </h2>
-        <p className="text-lg lg:text-xl font-light mb-6">
+        <p className="text-lg lg:text-xl font-light mb-6 cursor-text">
           Whether you&apos;re on iOS, Android, or using a wearable fitness
           tracker, FlexFit effortlessly syncs your fitness data across all
           devices. Monitor your progress on the go, from your smartphone to your
@@ -27,7 +28,7 @@ export const ConnectedSection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-6 mb-6">
-          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm">
+          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm cursor-text">
             <img
               src="https://ik.imagekit.io/z1gqwes5lg/public/app-store.png?updatedAt=1727911323775"
               alt="Apple Watch"
@@ -38,7 +39,7 @@ export const ConnectedSection = () => {
               <h3 className="text-lg">App Store</h3>
             </div>
           </div>
-          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm">
+          <div className="bg-slate-100 dark:bg-neutral-800 p-2 w-fit mx-auto sm:mx-0 flex justify-center items-center gap-2 rounded-lg dark:text-white shadow-sm cursor-text">
             <img
               src="https://ik.imagekit.io/z1gqwes5lg/public/app.png?updatedAt=1727911323824"
               alt="Google Fit"

@@ -2,6 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar:hover {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #212121;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3b3b;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -89,4 +115,83 @@
 
 * {
   font-family: var(--font-poppins);
+}
+
+:root {
+  --red-300: #fca5a5;
+  --blue-300: #93c5fd;
+  --green-300: #86efac;
+  --yellow-300: #fde047;
+  --purple-300: #d8b4fe;
+  --orange-300: #fdba74;
+}
+
+:root {
+  --font-size-adjust: 1;
+}
+
+/* Apply font size adjustment to all text */
+body {
+  font-size: calc(1rem * var(--font-size-adjust));
+}
+
+.custom-highlight {
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 1px;
+  transition: background-color 0.3s ease;
+}
+
+/* Style the color picker input */
+input[type="color"] {
+  -webkit-appearance: none;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+/* High contrast mode */
+.high-contrast {
+  filter: contrast(2.0);
+}
+
+/* Smooth transitions for accessibility changes */
+body, button, input, select, textarea {
+  transition: font-size 0.3s, background-color 0.3s, color 0.3s;
+}
+
+#speech-controls {
+  transform: translate(-50%, -50%);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+#speech-button {
+  font-size: 1.2rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -30%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
 }
