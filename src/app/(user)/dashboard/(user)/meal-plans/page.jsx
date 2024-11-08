@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { PlusCircleIcon } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -62,11 +62,21 @@ export default function MealPlans() {
   return (
     <div className="p-4">
       <section className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <MealPlanDialog onSave={handleSaveMealPlan} meals={meals} dialogOpen={dialogOpen} setDialogOpen={setDialogOpen}>
-          <Card className="p-2 min-h-52 justify-center cursor-pointer" onClick={() => setDialogOpen(true)}>
+        <MealPlanDialog
+          onSave={handleSaveMealPlan}
+          meals={meals}
+          dialogOpen={dialogOpen}
+          setDialogOpen={setDialogOpen}
+        >
+          <Card
+            className="p-2 min-h-52 justify-center cursor-pointer"
+            onClick={() => setDialogOpen(true)}
+          >
             <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
               <PlusCircleIcon size={60} />
-              <h3 className="text-xl font-light select-none">Create Meal Plan</h3>
+              <h3 className="text-xl font-light select-none">
+                Create Meal Plan
+              </h3>
             </CardContent>
           </Card>
         </MealPlanDialog>
@@ -84,4 +94,3 @@ export default function MealPlans() {
     </div>
   );
 }
-
