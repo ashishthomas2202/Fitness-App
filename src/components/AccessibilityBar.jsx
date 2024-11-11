@@ -9,8 +9,9 @@ import {
   WrapText,
   Eye,
   EyeOff,
+  Eraser,
+  Accessibility,
 } from "lucide-react";
-import { IoAccessibilityOutline } from "react-icons/io5";
 
 export default function AccessibilityBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +24,10 @@ export default function AccessibilityBar() {
   const buttonRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const wasDragging = useRef(false);
+  const [tabPosition, setTabPosition] = useState("right"); // 'right', 'left', 'top', 'bottom'
+  const [tabOffset, setTabOffset] = useState(33); // % along the edge
+  const [isTabDragging, setIsTabDragging] = useState(false);
+  const tabDragStart = useRef({ x: 0, y: 0 });
 
   const colorOptions = [
     "#ffeb3b", // Yellow
@@ -53,7 +58,32 @@ export default function AccessibilityBar() {
     if (savedVisibility !== null) {
       setIsButtonVisible(savedVisibility === "true");
     }
+
+    // Add click listener for highlight removal
+    document.addEventListener("click", handleHighlightClick);
+    return () => {
+      document.removeEventListener("click", handleHighlightClick);
+    };
   }, []);
+
+  const handleHighlightClick = (e) => {
+    const highlight = e.target.closest(".custom-highlight");
+    if (highlight) {
+      // Remove the highlight span and preserve the text content
+      const text = highlight.textContent;
+      const textNode = document.createTextNode(text);
+      highlight.parentNode.replaceChild(textNode, highlight);
+    }
+  };
+
+  const removeAllHighlights = () => {
+    const highlights = document.querySelectorAll(".custom-highlight");
+    highlights.forEach((highlight) => {
+      const text = highlight.textContent;
+      const textNode = document.createTextNode(text);
+      highlight.parentNode.replaceChild(textNode, highlight);
+    });
+  };
 
   useEffect(() => {
     localStorage.setItem(
@@ -72,6 +102,72 @@ export default function AccessibilityBar() {
     };
     e.preventDefault();
   };
+
+  const wasDraggingTab = useRef(false);
+
+  const onTabMouseDown = (e) => {
+    setIsTabDragging(true);
+    wasDraggingTab.current = false;
+    tabDragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+    e.preventDefault();
+  };
+
+  const onTabMouseMove = useCallback(
+    (e) => {
+      if (!isTabDragging) return;
+
+      wasDraggingTab.current = true;
+
+      const deltaX = e.clientX - tabDragStart.current.x;
+      const deltaY = e.clientY - tabDragStart.current.y;
+
+      // Calculate distance from each edge
+      const distanceRight = window.innerWidth - e.clientX;
+      const distanceBottom = window.innerHeight - e.clientY;
+
+      // Find closest edge
+      const distances = [
+        { edge: "right", distance: distanceRight },
+        { edge: "left", distance: e.clientX },
+        { edge: "top", distance: e.clientY },
+        { edge: "bottom", distance: distanceBottom },
+      ];
+
+      const closestEdge = distances.reduce((prev, curr) =>
+        curr.distance < prev.distance ? curr : prev
+      );
+
+      setTabPosition(closestEdge.edge);
+
+      // Calculate offset percentage along the edge
+      if (closestEdge.edge === "left" || closestEdge.edge === "right") {
+        const offsetPercent = (e.clientY / window.innerHeight) * 100;
+        setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
+      } else {
+        const offsetPercent = (e.clientX / window.innerWidth) * 100;
+        setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
+      }
+    },
+    [isTabDragging]
+  );
+
+  const onTabMouseUp = useCallback(() => {
+    setIsTabDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isTabDragging) {
+      window.addEventListener("mousemove", onTabMouseMove);
+      window.addEventListener("mouseup", onTabMouseUp);
+    }
+    return () => {
+      window.removeEventListener("mousemove", onTabMouseMove);
+      window.removeEventListener("mouseup", onTabMouseUp);
+    };
+  }, [isTabDragging, onTabMouseMove, onTabMouseUp]);
 
   const onMouseMove = useCallback(
     (e) => {
@@ -118,8 +214,8 @@ export default function AccessibilityBar() {
     if (!buttonRef.current) return { bottom: "4rem", left: 0 };
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
-    const menuWidth = 200; // min-w-[200px] from our CSS
-    const menuHeight = 300; // Approximate height of the menu
+    const menuWidth = 200;
+    const menuHeight = 300;
 
     const wouldOverflowRight = buttonRect.left + menuWidth > window.innerWidth;
     const closerToBottom = buttonRect.top > window.innerHeight / 2;
@@ -173,6 +269,8 @@ export default function AccessibilityBar() {
         span.className = "custom-highlight";
         span.style.backgroundColor = highlightColor;
         span.style.color = "black";
+        span.style.cursor = "pointer";
+        span.title = "Click to remove highlight";
         range.surroundContents(span);
       }
       selection.removeAllRanges();
@@ -201,10 +299,55 @@ export default function AccessibilityBar() {
     <>
       {!isButtonVisible && (
         <div
-          className="fixed bottom-0 left-0 w-4 h-4 bg-transparent cursor-pointer z-50"
-          onClick={toggleButtonVisibility}
-          title="Show accessibility options"
-        />
+          className={`fixed z-50 cursor-move ${
+            tabPosition === "right"
+              ? "right-0 -translate-y-1/2"
+              : tabPosition === "left"
+              ? "left-0 -translate-y-1/2"
+              : tabPosition === "top"
+              ? "top-0 -translate-x-1/2"
+              : "bottom-0 -translate-x-1/2"
+          }`}
+          style={{
+            [tabPosition === "right" || tabPosition === "left"
+              ? "top"
+              : "left"]: `${tabOffset}%`,
+          }}
+          onMouseDown={onTabMouseDown}
+          onClick={(e) => {
+            if (!wasDraggingTab.current) {
+              toggleButtonVisibility();
+            }
+            wasDraggingTab.current = false;
+          }}
+        >
+          <div
+            className={`
+      bg-violet-500 dark:bg-violet-600 
+      hover:bg-violet-600 dark:hover:bg-violet-700 
+      text-white shadow-lg 
+      transition-colors
+      flex items-center justify-center
+      ${
+        tabPosition === "right"
+          ? "rounded-l-md px-1.5 py-2"
+          : tabPosition === "left"
+          ? "rounded-r-md px-1.5 py-2"
+          : tabPosition === "top"
+          ? "rounded-b-md px-2 py-1.5"
+          : "rounded-t-md px-2 py-1.5"
+      }
+    `}
+          >
+            <Accessibility
+              className={`w-5 h-5 ${
+                tabPosition === "top" || tabPosition === "bottom"
+                  ? ""
+                  : "transform rotate-90"
+              }`}
+            />
+          </div>
+        </div>
       )}
 
       {isButtonVisible && (
@@ -220,14 +363,12 @@ export default function AccessibilityBar() {
           <button
             onMouseDown={onMouseDown}
             onClick={onClick}
-            className={`bg-gradient-to-br from-indigo-400 to-indigo-600 text-white p-2 rounded-full shadow-lg transition-colors duration-300 ${
+            className={`bg-violet-500 dark:bg-violet-600 hover:bg-violet-600 dark:hover:bg-violet-700 text-white p-3 rounded-full shadow-lg transition-colors duration-300 ${
               isDragging ? "cursor-grabbing" : "cursor-grab"
             }`}
             aria-label="Accessibility Controls"
           >
-            <div className="ring-1 rounded-full p-2 ring-white">
-              <IoAccessibilityOutline className="w-6 h-6" />
-            </div>
+            <Settings2 className="w-6 h-6" />
           </button>
 
           {isOpen && (
@@ -265,13 +406,23 @@ export default function AccessibilityBar() {
                     <span className="text-sm font-medium dark:text-gray-200">
                       Text Highlighter
                     </span>
-                    <button
-                      onClick={highlightSelectedText}
-                      className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-700 dark:text-gray-200"
-                      aria-label="Highlight selected text"
-                    >
-                      <WrapText className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={highlightSelectedText}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-700 dark:text-gray-200"
+                        aria-label="Highlight selected text"
+                      >
+                        <WrapText className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={removeAllHighlights}
+                        className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-700 dark:text-gray-200"
+                        aria-label="Remove all highlights"
+                        title="Remove all highlights"
+                      >
+                        <Eraser className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-2 flex-wrap">
@@ -313,7 +464,7 @@ export default function AccessibilityBar() {
                 </div>
 
                 {/* Hide Button Option */}
-                {/* <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <span className="text-sm font-medium dark:text-gray-200">
                     Show Button
                   </span>
@@ -328,7 +479,7 @@ export default function AccessibilityBar() {
                       <EyeOff className="w-4 h-4" />
                     )}
                   </button>
-                </div> */}
+                </div>
               </div>
             </div>
           )}
