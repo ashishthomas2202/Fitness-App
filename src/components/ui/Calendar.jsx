@@ -90,72 +90,73 @@ const Days = [
 export const Calendar = ({
   value = new Date(),
   onChange = () => {},
-  items = [
-    // One-time event
-    { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
-    // Daily recurring event starting today
-    {
-      repeat: "daily",
-      name: "Daily Event",
-      color: "#f59e0b",
-      start: "2024-10-01",
-      time: "3:00 PM",
-    },
-    // Weekly recurring event on Monday and Wednesday starting from a specific date
-    {
-      repeat: "weekly",
-      days: ["Monday", "Wednesday"],
-      name: "Weekly Event",
-      color: "#10b981",
-      start: "2024-09-15",
-    },
-    // Weekly event with a start and end date (limited occurrence)
-    {
-      repeat: "weekly",
-      days: ["Tuesday", "Thursday"],
-      name: "Limited Weekly Event",
-      color: "#f87171",
-      start: "2024-09-10",
-      end: "2024-10-20",
-    },
-    // Monthly recurring event on the 15th of every month
-    {
-      repeat: "monthly",
-      day: 15,
-      name: "Monthly Event",
-      color: "#3b82f6",
-    },
-    // Monthly event starting from October 1st, ending on December 15th
-    {
-      repeat: "monthly",
-      day: 1,
-      name: "Limited Monthly Event",
-      color: "#34d399",
-      start: "2024-10-01",
-      end: "2024-12-15",
-    },
-    // One-time event in the future
-    { date: "2024-12-25", name: "Christmas Event", color: "#ef4444" },
-    // Event repeating only on custom days
-    {
-      repeat: "weekly",
-      days: ["Friday", "Saturday"],
-      name: "Weekend Event",
-      color: "#8b5cf6",
-      start: "2024-09-20",
-      time: "10:00 AM",
-    },
-    {
-      repeat: "weekly",
-      days: ["Friday", "Saturday"],
-      name: "Personal Event",
-      color: "#8b5446",
-      start: "2024-09-20",
-      end: "2024-10-15",
-      startTime: "11:00 AM",
-      endTime: "12:00 PM",
-    },
-  ],
+  // items = [
+  //   // One-time event
+  //   { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
+  //   // Daily recurring event starting today
+  //   {
+  //     repeat: "daily",
+  //     name: "Daily Event",
+  //     color: "#f59e0b",
+  //     start: "2024-10-01",
+  //     time: "3:00 PM",
+  //   },
+  //   // Weekly recurring event on Monday and Wednesday starting from a specific date
+  //   {
+  //     repeat: "weekly",
+  //     days: ["Monday", "Wednesday"],
+  //     name: "Weekly Event",
+  //     color: "#10b981",
+  //     start: "2024-09-15",
+  //   },
+  //   // Weekly event with a start and end date (limited occurrence)
+  //   {
+  //     repeat: "weekly",
+  //     days: ["Tuesday", "Thursday"],
+  //     name: "Limited Weekly Event",
+  //     color: "#f87171",
+  //     start: "2024-09-10",
+  //     end: "2024-10-20",
+  //   },
+  //   // Monthly recurring event on the 15th of every month
+  //   {
+  //     repeat: "monthly",
+  //     day: 15,
+  //     name: "Monthly Event",
+  //     color: "#3b82f6",
+  //   },
+  //   // Monthly event starting from October 1st, ending on December 15th
+  //   {
+  //     repeat: "monthly",
+  //     day: 1,
+  //     name: "Limited Monthly Event",
+  //     color: "#34d399",
+  //     start: "2024-10-01",
+  //     end: "2024-12-15",
+  //   },
+  //   // One-time event in the future
+  //   { date: "2024-12-25", name: "Christmas Event", color: "#ef4444" },
+  //   // Event repeating only on custom days
+  //   {
+  //     repeat: "weekly",
+  //     days: ["Friday", "Saturday"],
+  //     name: "Weekend Event",
+  //     color: "#8b5cf6",
+  //     start: "2024-09-20",
+  //     time: "10:00 AM",
+  //   },
+  //   {
+  //     repeat: "weekly",
+  //     days: ["Friday", "Saturday"],
+  //     name: "Personal Event",
+  //     color: "#8b5446",
+  //     start: "2024-09-20",
+  //     end: "2024-10-15",
+  //     startTime: "11:00 AM",
+  //     endTime: "12:00 PM",
+  //   },
+  // ],
+  items = [],
   selection = true,
 }) => {
   const [year, setYear] = useState(value.getFullYear());
@@ -231,12 +232,12 @@ export const Calendar = ({
       .split("T")[0];
     const dayOfWeek = Days[new Date(eventYear, eventMonth, day).getDay()];
 
-    console.log(
-      "Day of the week:",
-      dayOfWeek,
-      `${eventYear} ${eventMonth} ${day}`,
-      new Date(eventYear, eventMonth, day)
-    );
+    // console.log(
+    //   "Day of the week:",
+    //   dayOfWeek,
+    //   `${eventYear} ${eventMonth} ${day}`,
+    //   new Date(eventYear, eventMonth, day)
+    // );
 
     return items.filter((item) => {
       // Handle one-time events
@@ -275,8 +276,8 @@ export const Calendar = ({
   };
 
   const handleEventClick = ({ day, event }) => {
-    console.log("Day clicked:", month, day, "-", year);
-    console.log("Event clicked:", event);
+    // console.log("Day clicked:", month, day, "-", year);
+    // console.log("Event clicked:", event);
   };
 
   const getHeading = () => {
@@ -314,9 +315,9 @@ export const Calendar = ({
     }
   }, [year, month, date, mode]);
 
-  useEffect(() => {
-    console.log("Current Date:", year, month, date);
-  }, [year, month, date]);
+  // useEffect(() => {
+  //   console.log("Current Date:", year, month, date);
+  // }, [year, month, date]);
   return (
     <section>
       <div className="flex flex-col gap-2 mb-2 justify-between lg:flex-row lg:items-center">
@@ -1148,15 +1149,15 @@ const EventList = ({
                               width: "100%",
                             }}
                             onClick={() => {
-                              console.log(
-                                "Day clicked:",
-                                date.getDate(),
-                                "-",
-                                date.getMonth(),
-                                "-",
-                                date.getFullYear()
-                              );
-                              console.log("Event clicked:", event);
+                              // console.log(
+                              //   "Day clicked:",
+                              //   date.getDate(),
+                              //   "-",
+                              //   date.getMonth(),
+                              //   "-",
+                              //   date.getFullYear()
+                              // );
+                              // console.log("Event clicked:", event);
                             }}
                           />
                         </div>

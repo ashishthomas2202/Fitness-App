@@ -1,10 +1,14 @@
+"use client";
 import { Button } from "@/components/ui/Button";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export const HeroSection = () => {
+  const { data: session } = useSession();
+
   return (
     <section className="w-full lg:flex lg:flex-row-reverse max-w-screen-2xl mx-auto lg:px-4 lg:mt-10">
       <article className="hidden lg:block sm:flex-1">
@@ -44,14 +48,16 @@ export const HeroSection = () => {
             companion.
           </p>
           <footer className="flex gap-2 sm:gap-4 justify-center sm:justify-start items-center mt-16">
-            <Button
-              variant="primary"
-              className="px-2 py-6 shadow-lg "
-              size="lg"
-              asChild
-            >
-              <Link href="/auth/signup">Join Now for Free</Link>
-            </Button>
+            {!session?.user && (
+              <Button
+                variant="primary"
+                className="px-2 py-6 shadow-lg "
+                size="lg"
+                asChild
+              >
+                <Link href="/auth/signup">Join Now for Free</Link>
+              </Button>
+            )}
             <Button
               variant="ghost"
               className="text-white lg:text-black dark:lg:text-white px-2 py-6 shadow-lg lg:border border-slate-50"
