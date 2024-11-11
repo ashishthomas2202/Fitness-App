@@ -8,9 +8,8 @@ export async function GET(req) {
     // console.log("Current user:", currentUser);
 
     await connectDB();
-    // const user = await authenticatedUser();
-    // const workouts = await Workout.find({ createdBy: user.id });
-    const workouts = await Workout.find({});
+    const user = await authenticatedUser();
+    const workouts = await Workout.find({ createdBy: user.id });
 
     return Response.json(
       {

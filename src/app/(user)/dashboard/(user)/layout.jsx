@@ -1,7 +1,7 @@
 "use client";
 import { Header } from "@/components/dashboard/Header";
 import { Sidebar } from "@/components/dashboard/Sidebar";
-import { LuGoal, LuLayoutDashboard } from "react-icons/lu";
+import { LuCalendarDays, LuGoal, LuLayoutDashboard } from "react-icons/lu";
 import { GiKnifeFork } from "react-icons/gi";
 import { IoMdFitness } from "react-icons/io";
 import { PiChartLineUpBold } from "react-icons/pi";
@@ -20,6 +20,11 @@ export default function UserDashboardLayout({ children }) {
       title: "Dashboard",
       icon: <LuLayoutDashboard size={20} />,
       href: "/dashboard",
+    },
+    {
+      title: "Calendar",
+      icon: <LuCalendarDays size={20} />,
+      href: "/dashboard/calendar",
     },
     {
       title: "Goals",
