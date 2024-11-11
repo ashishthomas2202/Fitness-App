@@ -1,4 +1,4 @@
-//import AddWorkoutForm from '../../../../../components/ui/AddWorkoutForm';
+
 import WorkoutForm from "@/components/form/WorkoutForm";
 
 const AddWorkoutPage = () => {

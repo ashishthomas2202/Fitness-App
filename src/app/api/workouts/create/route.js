@@ -1,15 +1,16 @@
+// create.js
 import connectDB from "@/db/db";
 import Workout from "@/db/models/Workout";
-import { authenticatedAdmin } from "@/lib/user";
+import { authenticatedAdmin, authenticatedUser } from "@/lib/user";
 import * as Yup from "yup";
 
 // Define the Yup validation schema
 const workoutSchema = Yup.object().shape({
   name: Yup.string().required("Workout name is required"),
-  type: Yup.array()
+  workoutTypes: Yup.array()
     .of(Yup.string())
     .min(1, "At least one workout type is required"),
-  category: Yup.array()
+  categories: Yup.array()
     .of(Yup.string())
     .min(1, "At least one category is required"),
   muscle_groups: Yup.array()
@@ -32,6 +33,11 @@ const workoutSchema = Yup.object().shape({
     .integer()
     .required("Number of reps is required"),
   description: Yup.string(),
+  dateKey: Yup.string(),
+  startDate: Yup.string().nullable(),
+  endDate: Yup.string().nullable(),
+  color: Yup.string(),
+  id: Yup.string()
 });
 
 // Define the API route handler
@@ -39,9 +45,8 @@ export async function POST(req) {
   try {
     await connectDB();
 
-    const admin = await authenticatedAdmin();
-
-    if (!admin) {
+    const user = await authenticatedUser();
+    if (!user) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -72,8 +77,8 @@ export async function POST(req) {
 
     const {
       name,
-      type,
-      category,
+      workoutTypes: type,
+      categories: category,
       muscle_groups,
       difficulty_level,
       equipment,
@@ -81,20 +86,33 @@ export async function POST(req) {
       calories_burned_per_min,
       sets,
       reps,
+      description,
+      dateKey,
+      startDate,
+      endDate,
+      color,
+      id,
     } = validatedData;
 
     // Create the workout object
     const newWorkout = Workout({
+      id,
       name,
       type,
       category,
       muscle_groups,
-      difficulty_level,
+      difficulty_level: difficulty_level || "beginner",
       equipment,
       duration_min,
       calories_burned_per_min,
       sets,
       reps,
+      dateKey,
+      startDate,
+      endDate,
+      description,
+      color,
+      createdBy: user.id,
     });
 
     // Save the new workout to the database
@@ -129,6 +147,12 @@ async function validateWorkoutData(data) {
     });
     return { isValid: true, validatedData, errors: null };
   } catch (errors) {
-    return { isValid: false, errors };
+    return { 
+      isValid: false, 
+      errors: errors.inner.map(err => ({
+        path: err.path,
+        message: err.message
+      }))
+    };
   }
 }

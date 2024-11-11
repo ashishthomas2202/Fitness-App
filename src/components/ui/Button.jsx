@@ -36,11 +36,17 @@ const buttonVariants = cva(
 );
 
 const Button = React.forwardRef(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants(
+            { variant, size, className },
+            disabled && "cursor-not-allowed"
+          )
+        )}
+        disabled={disabled}
         ref={ref}
         {...props}
       />

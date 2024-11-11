@@ -1,6 +1,6 @@
 import connectDB from "@/db/db";
 import Workout from "@/db/models/Workout";
-import { authenticatedAdmin } from "@/lib/user";
+import { authenticatedAdmin, authenticatedUser } from "@/lib/user";
 import * as Yup from "yup";
 
 // Define the Yup validation schema
@@ -40,7 +40,7 @@ export async function PUT(req, { params }) {
 
   try {
     await connectDB();
-    const admin = await authenticatedAdmin();
+    const admin = await authenticatedUser();
 
     if (!admin) {
       return Response.json(
@@ -54,6 +54,10 @@ export async function PUT(req, { params }) {
 
     // Parse the request body
     const jsonData = await req.json();
+
+    delete jsonData.id;
+    jsonData.type = jsonData.workoutTypes;
+    jsonData.category = jsonData.categories;
 
     // Validate the workout data
     const { isValid, validatedData, errors } = await validateWorkoutData(

@@ -1,3 +1,4 @@
+// Workout.js
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -64,13 +65,32 @@ const WorkoutSchema = new Schema(
       type: String,
       default: "",
     },
+    dateKey: {
+      type: String,
+      default: "",
+    },
+    startDate: {
+      type: String,
+    },
+    endDate: {
+      type: String,
+    },
+    color: {
+      type: String,
+      default: "bg-green-300",
+    },
+    createdBy: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+    },
   },
   {
-    timestamps: true, // Adds createdAt and updatedAt timestamps
+    timestamps: true,
     toJSON: {
+      virtuals: true,
       transform: (doc, ret) => {
         ret.id = ret._id;
-        delete ret._id;
+        // delete ret._id;
         delete ret.__v;
         return ret;
       },
@@ -78,7 +98,6 @@ const WorkoutSchema = new Schema(
   }
 );
 
-// Define the Workout model
 const Workout =
   mongoose.models.Workout || mongoose.model("Workout", WorkoutSchema);
 
