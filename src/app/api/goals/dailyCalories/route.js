@@ -1,7 +1,7 @@
 // import dbConnect from '@/lib/dbConnect';
 import connectDB from "@/db/db";
 import { authenticatedUser } from "@/lib/user";
-import MealPlan from "@/models/MealPlan";
+import MealPlan from "@/db/models/MealPlan";
 
 // export default async function handler(req, res) {
 export async function GET(req) {
