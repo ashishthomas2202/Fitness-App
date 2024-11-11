@@ -117,7 +117,6 @@ export default function GoalsPage() {
       <div className="flex flex-col items-center justify-center w-full p-4">
         <div className="relative flex items-center justify-center">
           <ProgressRing percentage={percentage} color={color} strokeWidth={10} noText={true} />
-          {/* Centered text inside the ring */}
           <div className="absolute flex flex-col items-center">
             <span className="text-xl font-semibold text-gray-700 dark:text-gray-300">
               {current} / {goal || "N/A"} {unit}
