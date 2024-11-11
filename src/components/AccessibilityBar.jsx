@@ -10,7 +10,7 @@ import {
   Eye,
   EyeOff,
   Eraser,
-  Accessibility
+  Accessibility,
 } from "lucide-react";
 
 export default function AccessibilityBar() {
@@ -24,7 +24,7 @@ export default function AccessibilityBar() {
   const buttonRef = useRef(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const wasDragging = useRef(false);
-  const [tabPosition, setTabPosition] = useState('right'); // 'right', 'left', 'top', 'bottom'
+  const [tabPosition, setTabPosition] = useState("right"); // 'right', 'left', 'top', 'bottom'
   const [tabOffset, setTabOffset] = useState(33); // % along the edge
   const [isTabDragging, setIsTabDragging] = useState(false);
   const tabDragStart = useRef({ x: 0, y: 0 });
@@ -115,41 +115,44 @@ export default function AccessibilityBar() {
     e.preventDefault();
   };
 
-  const onTabMouseMove = useCallback((e) => {
-    if (!isTabDragging) return;
+  const onTabMouseMove = useCallback(
+    (e) => {
+      if (!isTabDragging) return;
 
-    wasDraggingTab.current = true;
+      wasDraggingTab.current = true;
 
-    const deltaX = e.clientX - tabDragStart.current.x;
-    const deltaY = e.clientY - tabDragStart.current.y;
-    
-    // Calculate distance from each edge
-    const distanceRight = window.innerWidth - e.clientX;
-    const distanceBottom = window.innerHeight - e.clientY;
-    
-    // Find closest edge
-    const distances = [
-      { edge: 'right', distance: distanceRight },
-      { edge: 'left', distance: e.clientX },
-      { edge: 'top', distance: e.clientY },
-      { edge: 'bottom', distance: distanceBottom }
-    ];
-    
-    const closestEdge = distances.reduce((prev, curr) => 
-      curr.distance < prev.distance ? curr : prev
-    );
+      const deltaX = e.clientX - tabDragStart.current.x;
+      const deltaY = e.clientY - tabDragStart.current.y;
 
-    setTabPosition(closestEdge.edge);
-    
-    // Calculate offset percentage along the edge
-    if (closestEdge.edge === 'left' || closestEdge.edge === 'right') {
-      const offsetPercent = (e.clientY / window.innerHeight) * 100;
-      setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
-    } else {
-      const offsetPercent = (e.clientX / window.innerWidth) * 100;
-      setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
-    }
-  }, [isTabDragging]);
+      // Calculate distance from each edge
+      const distanceRight = window.innerWidth - e.clientX;
+      const distanceBottom = window.innerHeight - e.clientY;
+
+      // Find closest edge
+      const distances = [
+        { edge: "right", distance: distanceRight },
+        { edge: "left", distance: e.clientX },
+        { edge: "top", distance: e.clientY },
+        { edge: "bottom", distance: distanceBottom },
+      ];
+
+      const closestEdge = distances.reduce((prev, curr) =>
+        curr.distance < prev.distance ? curr : prev
+      );
+
+      setTabPosition(closestEdge.edge);
+
+      // Calculate offset percentage along the edge
+      if (closestEdge.edge === "left" || closestEdge.edge === "right") {
+        const offsetPercent = (e.clientY / window.innerHeight) * 100;
+        setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
+      } else {
+        const offsetPercent = (e.clientX / window.innerWidth) * 100;
+        setTabOffset(Math.max(0, Math.min(100, offsetPercent)));
+      }
+    },
+    [isTabDragging]
+  );
 
   const onTabMouseUp = useCallback(() => {
     setIsTabDragging(false);
@@ -157,12 +160,12 @@ export default function AccessibilityBar() {
 
   useEffect(() => {
     if (isTabDragging) {
-      window.addEventListener('mousemove', onTabMouseMove);
-      window.addEventListener('mouseup', onTabMouseUp);
+      window.addEventListener("mousemove", onTabMouseMove);
+      window.addEventListener("mouseup", onTabMouseUp);
     }
     return () => {
-      window.removeEventListener('mousemove', onTabMouseMove);
-      window.removeEventListener('mouseup', onTabMouseUp);
+      window.removeEventListener("mousemove", onTabMouseMove);
+      window.removeEventListener("mouseup", onTabMouseUp);
     };
   }, [isTabDragging, onTabMouseMove, onTabMouseUp]);
 
@@ -295,45 +298,58 @@ export default function AccessibilityBar() {
   return (
     <>
       {!isButtonVisible && (
-  <div 
-    className={`fixed z-50 cursor-move ${
-      tabPosition === 'right' ? 'right-0 -translate-y-1/2' :
-      tabPosition === 'left' ? 'left-0 -translate-y-1/2' :
-      tabPosition === 'top' ? 'top-0 -translate-x-1/2' :
-      'bottom-0 -translate-x-1/2'
-    }`}
-    style={{
-      [tabPosition === 'right' || tabPosition === 'left' ? 'top' : 'left']: `${tabOffset}%`,
-    }}
-    onMouseDown={onTabMouseDown}
-    onClick={(e) => {
-      if (!wasDraggingTab.current) {
-        toggleButtonVisibility();
-      }
-      wasDraggingTab.current = false;
-    }}
-  >
-    <div className={`
+        <div
+          className={`fixed z-50 cursor-move ${
+            tabPosition === "right"
+              ? "right-0 -translate-y-1/2"
+              : tabPosition === "left"
+              ? "left-0 -translate-y-1/2"
+              : tabPosition === "top"
+              ? "top-0 -translate-x-1/2"
+              : "bottom-0 -translate-x-1/2"
+          }`}
+          style={{
+            [tabPosition === "right" || tabPosition === "left"
+              ? "top"
+              : "left"]: `${tabOffset}%`,
+          }}
+          onMouseDown={onTabMouseDown}
+          onClick={(e) => {
+            if (!wasDraggingTab.current) {
+              toggleButtonVisibility();
+            }
+            wasDraggingTab.current = false;
+          }}
+        >
+          <div
+            className={`
       bg-violet-500 dark:bg-violet-600 
       hover:bg-violet-600 dark:hover:bg-violet-700 
       text-white shadow-lg 
       transition-colors
       flex items-center justify-center
-      ${tabPosition === 'right' ? 'rounded-l-md px-1.5 py-2' :
-        tabPosition === 'left' ? 'rounded-r-md px-1.5 py-2' :
-        tabPosition === 'top' ? 'rounded-b-md px-2 py-1.5' :
-        'rounded-t-md px-2 py-1.5'
+      ${
+        tabPosition === "right"
+          ? "rounded-l-md px-1.5 py-2"
+          : tabPosition === "left"
+          ? "rounded-r-md px-1.5 py-2"
+          : tabPosition === "top"
+          ? "rounded-b-md px-2 py-1.5"
+          : "rounded-t-md px-2 py-1.5"
       }
-    `}>
-      <Accessibility 
-        className={`w-5 h-5 ${
-          tabPosition === 'top' || tabPosition === 'bottom' ? '' : 'transform rotate-90'
-        }`}
-      />
-    </div>
-  </div>
-)}
-      
+    `}
+          >
+            <Accessibility
+              className={`w-5 h-5 ${
+                tabPosition === "top" || tabPosition === "bottom"
+                  ? ""
+                  : "transform rotate-90"
+              }`}
+            />
+          </div>
+        </div>
+      )}
+
       {isButtonVisible && (
         <div
           ref={buttonRef}

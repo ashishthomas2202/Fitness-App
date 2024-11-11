@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useLayoutEffect, useContext } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { DarkModeToggle } from "@/components/DarkModeToggle";
 import { AiOutlineUser } from "react-icons/ai";
 import {
@@ -10,7 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/Dropdown-menu";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";

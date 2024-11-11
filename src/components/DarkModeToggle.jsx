@@ -1,6 +1,6 @@
 "use client";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { useContext } from "react";
 import { ThemeContext } from "@/providers/ThemeProvider";

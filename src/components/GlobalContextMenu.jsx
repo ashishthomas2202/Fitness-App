@@ -1,9 +1,13 @@
 // components/GlobalContextMenu.jsx
-'use client';
+"use client";
 import React, { useCallback, useState, useEffect } from "react";
 
 export const GlobalContextMenu = () => {
-  const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0 });
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+  });
 
   const handleContextMenu = useCallback((e) => {
     e.preventDefault();
@@ -25,7 +29,7 @@ export const GlobalContextMenu = () => {
       setContextMenu({
         visible: true,
         x,
-        y
+        y,
       });
     }
   }, []);
@@ -41,7 +45,10 @@ export const GlobalContextMenu = () => {
   const handleSearchText = useCallback(() => {
     const selectedText = window.getSelection()?.toString();
     if (selectedText) {
-      window.open(`https://www.google.com/search?q=${encodeURIComponent(selectedText)}`, '_blank');
+      window.open(
+        `https://www.google.com/search?q=${encodeURIComponent(selectedText)}`,
+        "_blank"
+      );
     }
     setContextMenu({ visible: false, x: 0, y: 0 });
   }, []);
@@ -61,12 +68,12 @@ export const GlobalContextMenu = () => {
   }, []);
 
   useEffect(() => {
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('click', handleClickOutside);
-    
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("click", handleClickOutside);
+
     return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, [handleContextMenu, handleClickOutside]);
 
@@ -74,15 +81,12 @@ export const GlobalContextMenu = () => {
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-50"
-        onClick={handleClickOutside}
-      />
+      <div className="fixed inset-0 z-50" onClick={handleClickOutside} />
       <div
         className="fixed z-50 bg-white dark:bg-neutral-800 shadow-lg rounded-lg overflow-hidden min-w-[150px]"
         style={{
           top: `${contextMenu.y}px`,
-          left: `${contextMenu.x}px`
+          left: `${contextMenu.x}px`,
         }}
       >
         <button
