@@ -324,7 +324,7 @@ export default function SettingsPage() {
           <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 rounded-lg">
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             <p>
-              You're signed in with Google. Password management is handled
+              You&apos;re signed in with Google. Password management is handled
               through your Google account.
             </p>
           </div>
