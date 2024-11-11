@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/Dropdown-menu";
 
 import { cn } from "@/lib/utils";
 import { Pen, Trash2 } from "lucide-react";
@@ -312,8 +312,8 @@ const DaysList = ({ days = [] }) => {
         <li
           key={index}
           className={cn(
-            "w-8 h-8 flex justify-center items-center border rounded-full text-sm font-light text-primary border-primary",
-            daysList[d].selected ? "bg-primary text-white" : "bg-transparent"
+            "w-8 h-8 flex justify-center items-center border rounded-full text-sm font-light text-violet-500 border-violet-500",
+            daysList[d].selected ? "bg-violet-500 text-white" : "bg-transparent"
           )}
         >
           {daysList[d].symbol}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useLayoutEffect, useState } from "react";
 import axios from "axios";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { PencilIcon, PencilLineIcon, Trash2 } from "lucide-react";

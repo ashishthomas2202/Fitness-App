@@ -30,7 +30,7 @@ export default function DashboardPage() {
       goal: 2500,
     },
     distanceCovered: {
-      distance: 0.85,
+      distance: 0.8,
       goal: 2,
     },
     flights: {

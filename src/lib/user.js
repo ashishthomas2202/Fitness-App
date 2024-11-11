@@ -14,7 +14,10 @@ export async function authenticate(email, password) {
     // const user = await getUser(email);
     await connectDB();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate({
+      path: "profile",
+      select: "profilePicture",
+    });
 
     if (!user) {
       // No user found with this email
@@ -79,6 +82,8 @@ export async function createUser({ firstName, lastName, email, password }) {
 
   const newProfile = new Profile({
     userId: newUser.id,
+    profilePicture:
+      "https://ik.imagekit.io/z1gqwes5lg/public/default-profile.avif?updatedAt=1730742807049",
   });
   await newProfile.save();
 
@@ -92,22 +97,38 @@ export async function linkGoogleAuth({ email, name, googleId, picture }) {
     await connectDB();
 
     // Insert the new user into the database
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate({
+      path: "profile",
+      select: "profilePicture",
+    });
+    let newPicture = picture;
+
     if (user) {
       //check if the user has googleId
       if (!user?.googleId) {
-        console.log("User exists but no googleId");
         user.googleId = googleId;
-        if (user?.picture === null) {
-          user.picture = picture;
+
+        newPicture =
+          "https://ik.imagekit.io/z1gqwes5lg/public/default-profile.avif?updatedAt=1730742807049";
+
+        if (user?.profile?.profilePicture === null) {
+          const profile = Profile.findOneAndUpdate(
+            { profile: user.id },
+            { profilePicture: newPicture },
+            { new: true }
+          );
+
+          await profile.save();
         }
         await user.save();
       }
 
       const { hashedPassword, __v, ...filteredUser } = user.toJSON();
-      return filteredUser;
+      return {
+        ...filteredUser,
+        profilePicture: user?.profile?.profilePicture || newPicture,
+      };
     } else {
-      console.log("User does not exist");
       const newUser = new User({
         firstName: name.split(" ")[0],
         lastName: name.split(" ")[1],
@@ -118,13 +139,22 @@ export async function linkGoogleAuth({ email, name, googleId, picture }) {
       });
 
       await newUser.save();
+
+      const newPicture =
+        picture ||
+        "https://ik.imagekit.io/z1gqwes5lg/public/default-profile.avif?updatedAt=1730742807049";
+
       const newProfile = new Profile({
         userId: newUser.id,
+        profilePicture: newPicture,
       });
       await newProfile.save();
 
       const { hashedPassword, __v, ...filteredUser } = newUser.toJSON();
-      return filteredUser;
+      return {
+        ...filteredUser,
+        profilePicture: newPicture,
+      };
     }
   } catch (error) {
     return null;
@@ -135,8 +165,6 @@ export async function authenticatedUser() {
   await connectDB();
   const session = await getServerAuthSession();
 
-  // console.log("Session:", session);
-
   if (!session || !session?.user?.id) {
     return null;
   }
@@ -146,8 +174,6 @@ export async function authenticatedUser() {
 export async function authenticatedAdmin() {
   await connectDB();
   const session = await getServerAuthSession();
-
-  // console.log("Session:", session);
 
   if (!session || !session?.user?.id) {
     return null;
@@ -164,8 +190,6 @@ export async function authenticatedAdmin() {
 export async function authenticatedTrainer() {
   await connectDB();
   const session = await getServerAuthSession();
-
-  // console.log("Session:", session);
 
   if (!session || !session?.user?.id) {
     return null;

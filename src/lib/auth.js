@@ -77,6 +77,7 @@ export const authOptions = {
           lastName: user.lastName,
           googleId: user.googleId,
           picture: user.picture,
+          profilePicture: user.profilePicture,
         };
       }
 
@@ -88,10 +89,11 @@ export const authOptions = {
             ...jsonData,
           };
         }
-        token.expires = new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000
-        ).toISOString(); // 30 days from now
       }
+
+      token.expires = new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000
+      ).toISOString(); // 30 days from now
       return token;
     },
     async session({ session, token }) {
