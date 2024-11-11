@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
 import { Loader2, User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -67,12 +67,12 @@ export default function SettingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-const [showNewPassword, setShowNewPassword] = useState(false);
-const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-const { data: session } = useSession();
-const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { data: session } = useSession();
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
 
-  console.log('Password Change Schema:', passwordChangeSchema.describe());
+  console.log("Password Change Schema:", passwordChangeSchema.describe());
 
   const {
     register,
@@ -91,43 +91,43 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
     reset: resetPassword,
   } = useForm({
     resolver: yupResolver(passwordChangeSchema),
-    mode: 'onChange' // This will validate on change
+    mode: "onChange", // This will validate on change
   });
 
-  // Fetch profile data on mount  
-    useEffect(() => {
-      const fetchProfile = async () => {
-        try {
-          // Check for Google authentication using googleId
-          const isGoogle = !!session?.user?.googleId;
-          setIsGoogleUser(isGoogle);
-          
-          // Debug logs
-          console.log('Session data:', session);
-          console.log('Is Google User:', isGoogle);
-          
-          const response = await axios.get("/api/profile/get-profile");
-          if (response.data.success) {
-            const profileData = response.data.data;
-            reset({
-              firstName: profileData.firstName,
-              lastName: profileData.lastName,
-              gender: profileData.gender,
-              dob: format(new Date(profileData.dob), "yyyy-MM-dd"),
-              height: profileData.height,
-              weight: profileData.weight,
-              phoneNumber: profileData.phoneNumber || "",
-            });
-          }
-        } catch (error) {
-          toast.error("Failed to load profile data");
+  // Fetch profile data on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        // Check for Google authentication using googleId
+        const isGoogle = !!session?.user?.googleId;
+        setIsGoogleUser(isGoogle);
+
+        // Debug logs
+        console.log("Session data:", session);
+        console.log("Is Google User:", isGoogle);
+
+        const response = await axios.get("/api/profile/get-profile");
+        if (response.data.success) {
+          const profileData = response.data.data;
+          reset({
+            firstName: profileData.firstName,
+            lastName: profileData.lastName,
+            gender: profileData.gender,
+            dob: format(new Date(profileData.dob), "yyyy-MM-dd"),
+            height: profileData.height,
+            weight: profileData.weight,
+            phoneNumber: profileData.phoneNumber || "",
+          });
         }
-      };
-  
-      if (session) {
-        fetchProfile();
+      } catch (error) {
+        toast.error("Failed to load profile data");
       }
-    }, [reset, session]);
+    };
+
+    if (session) {
+      fetchProfile();
+    }
+  }, [reset, session]);
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
@@ -149,32 +149,32 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
     setIsChangingPassword(true);
     try {
       // Log the data being sent
-      console.log('Sending password change request with:', {
+      console.log("Sending password change request with:", {
         hasCurrentPassword: !!data.currentPassword,
         hasNewPassword: !!data.newPassword,
-        hasConfirmPassword: !!data.confirmPassword
+        hasConfirmPassword: !!data.confirmPassword,
       });
-  
+
       // Send all required fields
-      const response = await axios.post('/api/user/change-password', {
+      const response = await axios.post("/api/user/change-password", {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
-        confirmPassword: data.confirmPassword  // Add this field
+        confirmPassword: data.confirmPassword, // Add this field
       });
-  
+
       if (response.data.success) {
-        toast.success('Password updated successfully');
+        toast.success("Password updated successfully");
         resetPassword();
       }
     } catch (error) {
       if (error.response?.data?.errors) {
-        error.response.data.errors.forEach(err => toast.error(err));
+        error.response.data.errors.forEach((err) => toast.error(err));
       } else if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error('Failed to update password. Please try again.');
+        toast.error("Failed to update password. Please try again.");
       }
-      console.log('Full error response:', error.response?.data);
+      console.log("Full error response:", error.response?.data);
     } finally {
       setIsChangingPassword(false);
     }
@@ -226,8 +226,10 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
               <select
                 id="gender"
                 {...register("gender")}
-                className={`w-full p-2 rounded-md border ${
-                  errors.gender ? "border-red-500" : "border-gray-300"
+                className={`w-full p-2 rounded-md border dark:bg-neutral-700 ${
+                  errors.gender
+                    ? "border-red-500"
+                    : "border-gray-300 dark:border-gray-800"
                 }`}
               >
                 <option value="">Select gender</option>
@@ -308,124 +310,136 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
       </div>
 
       {/* Password Section */}
-    <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-black dark:text-white">Password & Security</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Update your password and security settings.
-        </p>
-      </div>
-
-      {isGoogleUser ? (
-        <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 rounded-lg">
-          <AlertCircle className="h-5 w-5 flex-shrink-0" />
-          <p>
-            You're signed in with Google. Password management is handled through your Google account.
+      <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-black dark:text-white">
+            Password & Security
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Update your password and security settings.
           </p>
         </div>
-  ) : (
-    <form onSubmit={handlePasswordSubmit(onPasswordSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="currentPassword">Current Password</Label>
-        <div className="relative">
-          <Input 
-            type={showCurrentPassword ? "text" : "password"}
-            id="currentPassword"
-            {...registerPassword("currentPassword")}
-            className={`pr-10 ${passwordErrors.currentPassword ? "border-red-500" : ""}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            {showCurrentPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        {passwordErrors.currentPassword && (
-          <p className="text-red-500 text-sm">
-            {passwordErrors.currentPassword.message}
-          </p>
-        )}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="newPassword">New Password</Label>
-        <div className="relative">
-          <Input 
-            type={showNewPassword ? "text" : "password"}
-            id="newPassword"
-            {...registerPassword("newPassword")}
-            className={`pr-10 ${passwordErrors.newPassword ? "border-red-500" : ""}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword(!showNewPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            {showNewPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        {passwordErrors.newPassword && (
-          <p className="text-red-500 text-sm">
-            {passwordErrors.newPassword.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm New Password</Label>
-        <div className="relative">
-          <Input 
-            type={showConfirmPassword ? "text" : "password"}
-            id="confirmPassword"
-            {...registerPassword("confirmPassword")}
-            className={`pr-10 ${passwordErrors.confirmPassword ? "border-red-500" : ""}`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            {showConfirmPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        {passwordErrors.confirmPassword && (
-          <p className="text-red-500 text-sm">
-            {passwordErrors.confirmPassword.message}
-          </p>
-        )}
-      </div>
-
-      <Button 
-        type="submit"
-        disabled={isChangingPassword}
-        className="mt-4"
-      >
-        {isChangingPassword ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Updating Password...
-          </>
+        {isGoogleUser ? (
+          <div className="flex items-center gap-2 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-200 rounded-lg">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <p>
+              You're signed in with Google. Password management is handled
+              through your Google account.
+            </p>
+          </div>
         ) : (
-          'Update Password'
+          <form
+            onSubmit={handlePasswordSubmit(onPasswordSubmit)}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative">
+                <Input
+                  type={showCurrentPassword ? "text" : "password"}
+                  id="currentPassword"
+                  {...registerPassword("currentPassword")}
+                  className={`pr-10 ${
+                    passwordErrors.currentPassword ? "border-red-500" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {passwordErrors.currentPassword && (
+                <p className="text-red-500 text-sm">
+                  {passwordErrors.currentPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  id="newPassword"
+                  {...registerPassword("newPassword")}
+                  className={`pr-10 ${
+                    passwordErrors.newPassword ? "border-red-500" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {passwordErrors.newPassword && (
+                <p className="text-red-500 text-sm">
+                  {passwordErrors.newPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  {...registerPassword("confirmPassword")}
+                  className={`pr-10 ${
+                    passwordErrors.confirmPassword ? "border-red-500" : ""
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+              {passwordErrors.confirmPassword && (
+                <p className="text-red-500 text-sm">
+                  {passwordErrors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isChangingPassword}
+              className="mt-4"
+            >
+              {isChangingPassword ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating Password...
+                </>
+              ) : (
+                "Update Password"
+              )}
+            </Button>
+          </form>
         )}
-      </Button>
-    </form>
-  )}
-</div>
+      </div>
 
       {/* Notification Preferences */}
       <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
