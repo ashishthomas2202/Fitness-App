@@ -7,7 +7,7 @@ import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm"
 import WeightTracker from "@/app/(user)/dashboard/(user)/goals/components/WeightTracker";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Card } from "@/components/ui/Card";
-import { FaFire, FaWeight, FaTint, FaShoePrints, FaWalking, FaMountain, FaRuler, FaRulerVertical, FaEdit, FaBurn } from "react-icons/fa";
+import { FaFire, FaMapMarkerAlt, FaTint, FaWalking, FaMountain, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GoalsPage() {
@@ -94,15 +94,27 @@ export default function GoalsPage() {
   }, [session]);
 
   useEffect(() => {
-    const achieved = [calorieGoal, caloriesBurnedGoal, stepsGoal, flightsGoal, distanceGoal, waterIntakeGoal]
-      .map((goal, index) => {
-        const current = [currentCalories, currentCaloriesBurned, currentSteps, currentFlights, currentDistance, currentWaterIntake][index];
-        return current >= goal;
-      })
-      .filter(Boolean).length;
+    const goals = [
+      { current: currentCalories, goal: calorieGoal },
+      { current: currentCaloriesBurned, goal: caloriesBurnedGoal },
+      { current: currentSteps, goal: stepsGoal },
+      { current: currentFlights, goal: flightsGoal },
+      { current: currentDistance, goal: distanceGoal },
+      { current: currentWaterIntake, goal: waterIntakeGoal },
+    ];
 
-    setGoalsAchieved(achieved);
-  }, [currentCalories, currentCaloriesBurned, currentSteps, currentFlights, currentDistance, currentWaterIntake]);
+    // Count how many goals are achieved
+    const achievedCount = goals.reduce((count, { current, goal }) => {
+      // Ensure goal is defined and greater than zero, and current meets or exceeds goal
+      if (goal > 0 && current >= goal) {
+        return count + 1;
+      }
+      return count;
+    }, 0);
+
+    setGoalsAchieved(achievedCount);
+  }, [currentCalories, currentCaloriesBurned, currentSteps, currentFlights, currentDistance, currentWaterIntake, calorieGoal, caloriesBurnedGoal, stepsGoal, flightsGoal, distanceGoal, waterIntakeGoal]);
+
 
   // Congratulatory message for progress
   useEffect(() => {
@@ -189,23 +201,46 @@ export default function GoalsPage() {
     );
   }
 
-
-
-
-
   // Today's Summary
   function TodaysSummary() {
+    let achievementColor = "bg-red-100 text-red-700";
+    let emoji = "💪";
+    let message = "You're just getting started! Aim higher tomorrow!";
+
+    if (goalsAchieved === 6) {
+      achievementColor = "bg-green-100 text-green-700";
+      emoji = "🎉";
+      message = "Amazing! You've achieved all your goals today!";
+    } else if (goalsAchieved >= 4) {
+      achievementColor = "bg-yellow-100 text-yellow-700";
+      emoji = "👍";
+      message = "Great job! You’re close to hitting all your goals!";
+    } else if (goalsAchieved >= 2) {
+      achievementColor = "bg-orange-100 text-orange-700";
+      emoji = "💪";
+      message = "Good effort! Keep pushing to achieve more tomorrow!";
+    }
+
     return (
-      <div className="summary mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg text-center">
-        <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-300">
+      <div className={`mb-6 p-6 ${achievementColor} rounded-lg shadow-lg text-center`}>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
           Today’s Summary
         </h2>
-        <p className="text-sm text-blue-600 dark:text-blue-400">
-          You met {goalsAchieved} out of 6 goals today!
+        <div className="flex justify-center items-center space-x-2 mb-4">
+          <span className="text-3xl">{emoji}</span>
+          <p className="text-xl font-semibold">
+            You met {goalsAchieved} out of 6 goals today!
+          </p>
+        </div>
+        <p className="text-lg font-medium">
+          {message}
         </p>
       </div>
     );
   }
+
+
+
 
   return (
     <div className="p-4">
@@ -232,7 +267,7 @@ export default function GoalsPage() {
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
             <GoalCard title="Steps" current={currentSteps} goal={stepsGoal} color="#FF9800" unit="steps" icon={<FaWalking />} onSaveGoal={setStepsGoal} onClearGoal={() => setStepsGoal(null)} />
             <GoalCard title="Flights Climbed" current={currentFlights} goal={flightsGoal} color="#2196F3" unit="flights" icon={<FaMountain />} onSaveGoal={setFlightsGoal} onClearGoal={() => setFlightsGoal(null)} />
-            <GoalCard title="Distance" current={currentDistance} goal={distanceGoal} color="#673AB7" unit="km" icon={<FaRulerVertical />} onSaveGoal={setDistanceGoal} onClearGoal={() => setDistanceGoal(null)} />
+            <GoalCard title="Distance" current={currentDistance} goal={distanceGoal} color="#673AB7" unit="km" icon={<FaMapMarkerAlt />} onSaveGoal={setDistanceGoal} onClearGoal={() => setDistanceGoal(null)} />
           </div>
         </Card>
       </div>
