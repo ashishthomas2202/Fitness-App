@@ -179,7 +179,7 @@ export default function GoalsPage() {
     return (
       <motion.div layout className="w-full">
         <div
-          className={`goal-card flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg transform transition-transform ${
+          className={`goal-card flex flex-col items-center justify-center p-6 bg-white dark:bg-neutral-900 rounded-lg shadow-lg transform transition-transform ${
             !isEditing ? "hover:scale-105 hover:shadow-xl" : ""
           }`}
         >
@@ -280,7 +280,7 @@ export default function GoalsPage() {
       <div
         className={`mb-6 p-6 ${achievementColor} rounded-lg shadow-lg text-center`}
       >
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-neutral-800">
           Today’s Summary
         </h2>
         <div className="flex justify-center items-center space-x-2 mb-4">
@@ -303,7 +303,7 @@ export default function GoalsPage() {
       {/* Metabolic Goals */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Metabolic Goals</h2>
-        <Card className="p-6 bg-gray-100 dark:bg-gray-900 rounded-lg">
+        <Card className="p-6 bg-gray-100 dark:bg-neutral-800 rounded-lg">
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
             <GoalCard
               title="Calorie Intake"
@@ -343,7 +343,7 @@ export default function GoalsPage() {
       {/* Activity Goals */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Activity Goals</h2>
-        <Card className="p-6 bg-gray-100 dark:bg-gray-900 rounded-lg">
+        <Card className="p-6 bg-gray-100 dark:bg-neutral-800 rounded-lg">
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
             <GoalCard
               title="Steps"
