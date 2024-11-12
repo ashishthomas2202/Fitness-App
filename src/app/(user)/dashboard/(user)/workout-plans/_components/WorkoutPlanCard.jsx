@@ -17,7 +17,14 @@ import { cn } from "@/lib/utils";
 import { Pen, Trash2 } from "lucide-react";
 import moment from "moment-timezone";
 import { useLayoutEffect, useState } from "react";
-import { WorkoutDialog } from "./WorkoutDialog";
+import { WorkoutDialog } from "@/app/(user)/dashboard/(user)/workout-plans/_components/WorkoutDialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/Dialog";
 
 export const WorkoutPlanCard = ({
   workouts = [],
@@ -32,6 +39,7 @@ export const WorkoutPlanCard = ({
     totalCalories: 0,
     totalUniqueWorkouts: 0,
     mostTargetedMuscleGroup: "",
+    uniqueWorkouts: new Set(),
   });
   const [disableDelete, setDisableDelete] = useState(false);
 
@@ -70,7 +78,7 @@ export const WorkoutPlanCard = ({
         totalCalories += duration * caloriesPerMin;
 
         // Track unique workout names
-        uniqueWorkouts.add(workoutData.name);
+        uniqueWorkouts.add(workoutData.id);
 
         // Track muscle group frequency
         workoutData.muscle_groups.forEach((group) => {
@@ -97,6 +105,7 @@ export const WorkoutPlanCard = ({
       totalCalories, // Total calories burned
       totalUniqueWorkouts, // Total unique workouts in the plan
       mostTargetedMuscleGroup, // Most frequently targeted muscle group
+      uniqueWorkouts, // Set of unique workout names
     };
 
     // Use this to set state or return the stats as needed
@@ -253,6 +262,11 @@ export const WorkoutPlanCard = ({
             <Pen />
           </Button>
         </WorkoutDialog>
+        <WorkoutViewDialog
+          // plan={workoutPlan}
+          workouts={workoutStats?.uniqueWorkouts}
+          listOfWorkouts={workouts}
+        />
         <Button
           className="h-10 w-10 p-2  text-rose-500 border-rose-500 bg-transparent hover:bg-rose-500 hover:text-white"
           variant="outline"
@@ -320,5 +334,61 @@ const DaysList = ({ days = [] }) => {
         </li>
       ))}
     </ul>
+  );
+};
+
+const WorkoutViewDialog = ({ workouts = [], listOfWorkouts }) => {
+  const mapWorkouts = () => {
+    return [...workouts].map((workout) => {
+      const currentWorkout = listOfWorkouts.find((w) => w.id === workout);
+      return {
+        ...currentWorkout,
+      };
+    });
+  };
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-violet-400 hover:bg-violet-500 text-white">
+          View Workouts
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>Workouts</DialogTitle>
+        <DialogDescription>
+          List of workouts in the workout plan
+        </DialogDescription>
+        <ul className="grid grid-cols-2 gap-2">
+          {mapWorkouts().map((workout) => (
+            <li
+              key={workout.id}
+              className="border dark:border-neutral-700 p-2 rounded-lg shadow-sm space-y-2"
+            >
+              <p className="text-sm font-semibold">{workout?.name}</p>
+              <p className="text-xs text-gray-500">{workout?.description}</p>
+              <p className="text-xs text-gray-500">
+                Muscle Groups: {workout?.muscle_groups.join(", ")}
+              </p>
+
+              <p className="text-xs text-gray-500">
+                Calorie Burn: {workout?.calories_burned_per_min} kCal/min
+              </p>
+              <p className="text-xs text-gray-500">
+                Duration: {workout?.duration_min} mins
+              </p>
+              <p className="text-xs text-gray-500">
+                Equipment: {workout?.equipment.join(", ")}
+              </p>
+              <p className="text-xs text-gray-500">
+                Difficulty: {workout?.difficulty_level}
+              </p>
+              <p className="text-xs text-gray-500">
+                Sets: {workout?.sets} Reps: {workout?.reps}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 };

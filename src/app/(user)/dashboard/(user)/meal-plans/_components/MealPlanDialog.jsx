@@ -172,8 +172,8 @@ export default function MealPlanDialog({
             >
               <option value="">All</option>
               {Array.from(new Set(meals.map((meal) => meal.category))).map(
-                (category) => (
-                  <option key={category} value={category}>
+                (category, i) => (
+                  <option key={`${category}-${i}`} value={category}>
                     {category}
                   </option>
                 )
@@ -191,8 +191,8 @@ export default function MealPlanDialog({
               <option value="">All</option>
               {Array.from(
                 new Set(meals.flatMap((meal) => meal.diet || []))
-              ).map((diet) => (
-                <option key={diet} value={diet}>
+              ).map((diet, i) => (
+                <option key={`${diet}-${i}`} value={diet}>
                   {diet}
                 </option>
               ))}
@@ -202,9 +202,9 @@ export default function MealPlanDialog({
 
         <div className="mt-4">
           <ScrollArea className="h-40 border rounded-md mt-2 p-3">
-            {filteredMeals.map((meal) => (
+            {filteredMeals.map((meal, i) => (
               <div
-                key={meal.id}
+                key={`${meal.id}-${i}`}
                 className="flex justify-between items-center p-3 bg-gray-100 rounded-md mb-2"
               >
                 <div>
