@@ -53,8 +53,8 @@ export const Header = () => {
       href: "/",
     },
     {
-      name: "Services",
-      href: "/",
+      name: "Faqs",
+      href: "/faq",
     },
     {
       name: "Calorie Calculator",
@@ -132,15 +132,20 @@ export const Header = () => {
                   <DropdownMenuLabel>{session?.user?.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/workouts">Workouts</Link>
+                    <Link href="/dashboard/workout-plans">Workout Plans</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard/meals">Meals</Link>
+                    <Link href="/dashboard/meal-plans">Meal Plans</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/dashboard/settings">Settings</Link>
+                  </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={async () => {

@@ -7,7 +7,14 @@ import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm"
 import WeightTracker from "@/app/(user)/dashboard/(user)/goals/components/WeightTracker";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Card } from "@/components/ui/Card";
-import { FaFire,FaUtensils, FaMapMarkerAlt, FaTint, FaWalking, FaMountain, FaEdit } from "react-icons/fa";
+import {
+  FaFire,
+  FaMapMarkerAlt,
+  FaTint,
+  FaWalking,
+  FaMountain,
+  FaEdit,
+} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GoalsPage() {
@@ -49,7 +56,8 @@ export default function GoalsPage() {
         setWaterIntakeGoal(goal.waterIntakeGoal);
       }
     } catch (error) {
-      toast.error("Failed to fetch goals.");
+      // toast.error("Failed to fetch goals.");
+      console.error("Failed to fetch goals:", error);
     }
   };
 
@@ -66,7 +74,8 @@ export default function GoalsPage() {
       setCurrentDistance(activityData.distance || 0);
       setCurrentWaterIntake(activityData.waterIntake || 0);
     } catch (error) {
-      toast.error("Failed to fetch today's activity data.");
+      // toast.error("Failed to fetch today's activity data.");
+      console.error("Failed to fetch today's activity data:", error);
     }
   };
 
@@ -84,7 +93,9 @@ export default function GoalsPage() {
       toast.success("Goal saved successfully!");
       fetchGoals();
     } catch (error) {
-      toast.error(`Error saving goal: ${error.response?.data?.error || error.message}`);
+      toast.error(
+        `Error saving goal: ${error.response?.data?.error || error.message}`
+      );
     }
   };
 
@@ -113,19 +124,44 @@ export default function GoalsPage() {
     }, 0);
 
     setGoalsAchieved(achievedCount);
-  }, [currentCalories, currentCaloriesBurned, currentSteps, currentFlights, currentDistance, currentWaterIntake, calorieGoal, caloriesBurnedGoal, stepsGoal, flightsGoal, distanceGoal, waterIntakeGoal]);
-
+  }, [
+    currentCalories,
+    currentCaloriesBurned,
+    currentSteps,
+    currentFlights,
+    currentDistance,
+    currentWaterIntake,
+    calorieGoal,
+    caloriesBurnedGoal,
+    stepsGoal,
+    flightsGoal,
+    distanceGoal,
+    waterIntakeGoal,
+  ]);
 
   // Congratulatory message for progress
   useEffect(() => {
-    if (currentCalories >= calorieGoal) setMotivationalMessage("🎉 Congratulations! You've met your calorie intake goal!");
-    else if (currentCalories >= calorieGoal * 0.75) setMotivationalMessage("Almost there! Keep going!");
+    if (currentCalories >= calorieGoal)
+      setMotivationalMessage(
+        "🎉 Congratulations! You've met your calorie intake goal!"
+      );
+    else if (currentCalories >= calorieGoal * 0.75)
+      setMotivationalMessage("Almost there! Keep going!");
     else setMotivationalMessage("Let's keep going towards your goals!");
   }, [currentCalories]);
 
-
   // Interactive Goal Card with edit option
-  function GoalCard({ title, current, goal, color, unit, icon, message, onSaveGoal, onClearGoal }) {
+  function GoalCard({
+    title,
+    current,
+    goal,
+    color,
+    unit,
+    icon,
+    message,
+    onSaveGoal,
+    onClearGoal,
+  }) {
     const [isEditing, setIsEditing] = useState(false);
     const [newGoal, setNewGoal] = useState(goal);
     const percentage = Math.min((current / (goal || 1)) * 100, 100);
@@ -143,18 +179,28 @@ export default function GoalsPage() {
     return (
       <motion.div layout className="w-full">
         <div
-          className={`goal-card flex flex-col items-center justify-center p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg transform transition-transform ${!isEditing ? 'hover:scale-105 hover:shadow-xl' : ''
-            }`}
+          className={`goal-card flex flex-col items-center justify-center p-6 bg-white dark:bg-neutral-900 rounded-lg shadow-lg transform transition-transform ${
+            !isEditing ? "hover:scale-105 hover:shadow-xl" : ""
+          }`}
         >
-          <motion.div layout className="relative flex items-center justify-center mb-4">
+          <motion.div
+            layout
+            className="relative flex items-center justify-center mb-4"
+          >
             {/* Render ProgressRing without percentage text */}
-            <ProgressRing percentage={percentage} color={color} strokeWidth={10} noText={true} />
+            <ProgressRing
+              percentage={percentage}
+              color={color}
+              strokeWidth={10}
+              noText={true}
+            />
 
             {/* Centered container for icon and text */}
             <div className="absolute flex flex-col items-center">
-              <div className="text-2xl mb-1">{icon}</div> {/* Icon positioned above text */}
+              <div className="text-2xl mb-1">{icon}</div>{" "}
+              {/* Icon positioned above text */}
               <span className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-                {current} / {goal || "N/A"} {unit}
+                {current} / {goal || 0} {unit}
               </span>
             </div>
           </motion.div>
@@ -183,15 +229,24 @@ export default function GoalsPage() {
                   onChange={(e) => setNewGoal(e.target.value)}
                   className="border rounded px-2 py-1"
                 />
-                <button onClick={handleSave} className="px-2 py-1 text-sm bg-green-500 text-white rounded">
+                <button
+                  onClick={handleSave}
+                  className="px-2 py-1 text-sm bg-green-500 text-white rounded"
+                >
                   Confirm
                 </button>
-                <button onClick={handleEditToggle} className="px-2 py-1 text-sm bg-gray-300 rounded">
+                <button
+                  onClick={handleEditToggle}
+                  className="px-2 py-1 text-sm bg-gray-300 rounded"
+                >
                   Cancel
                 </button>
               </motion.div>
             ) : (
-              <button onClick={handleEditToggle} className="mt-4 px-2 py-1 text-sm bg-blue-500 text-white rounded">
+              <button
+                onClick={handleEditToggle}
+                className="mt-4 px-2 py-1 text-sm bg-blue-500 text-white rounded"
+              >
                 <FaEdit />
               </button>
             )}
@@ -222,8 +277,10 @@ export default function GoalsPage() {
     }
 
     return (
-      <div className={`mb-6 p-6 ${achievementColor} rounded-lg shadow-lg text-center`}>
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">
+      <div
+        className={`mb-6 p-6 ${achievementColor} rounded-lg shadow-lg text-center`}
+      >
+        <h2 className="text-2xl font-bold mb-4 text-neutral-800">
           Today’s Summary
         </h2>
         <div className="flex justify-center items-center space-x-2 mb-4">
@@ -232,15 +289,10 @@ export default function GoalsPage() {
             You met {goalsAchieved} out of 6 goals today!
           </p>
         </div>
-        <p className="text-lg font-medium">
-          {message}
-        </p>
+        <p className="text-lg font-medium">{message}</p>
       </div>
     );
   }
-
-
-
 
   return (
     <div className="p-4">
@@ -251,11 +303,39 @@ export default function GoalsPage() {
       {/* Metabolic Goals */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Metabolic Goals</h2>
-        <Card className="p-6 bg-gray-100 dark:bg-gray-900 rounded-lg">
+        <Card className="p-6 bg-gray-100 dark:bg-neutral-800 rounded-lg">
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
-            <GoalCard title="Calorie Intake" current={currentCalories} goal={calorieGoal} color="#4CAF50" unit="kcal" icon={<FaUtensils />} message={motivationalMessage} onSaveGoal={setCalorieGoal} onClearGoal={() => setCalorieGoal(null)} />
-            <GoalCard title="Calories Burned" current={currentCaloriesBurned} goal={caloriesBurnedGoal} color="#FF7043" unit="kcal" icon={<FaFire />} onSaveGoal={setCaloriesBurnedGoal} onClearGoal={() => setCaloriesBurnedGoal(null)} />
-            <GoalCard title="Water Consumed" current={currentWaterIntake} goal={waterIntakeGoal} color="#03A9F4" unit="L" icon={<FaTint />} onSaveGoal={setWaterIntakeGoal} onClearGoal={() => setWaterIntakeGoal(null)} />
+            <GoalCard
+              title="Calorie Intake"
+              current={currentCalories}
+              goal={calorieGoal}
+              color="#4CAF50"
+              unit="kcal"
+              icon={<FaFire />}
+              message={motivationalMessage}
+              onSaveGoal={setCalorieGoal}
+              onClearGoal={() => setCalorieGoal(null)}
+            />
+            <GoalCard
+              title="Calories Burned"
+              current={currentCaloriesBurned}
+              goal={caloriesBurnedGoal}
+              color="#FF7043"
+              unit="kcal"
+              icon={<FaFire />}
+              onSaveGoal={setCaloriesBurnedGoal}
+              onClearGoal={() => setCaloriesBurnedGoal(null)}
+            />
+            <GoalCard
+              title="Water Consumed"
+              current={currentWaterIntake}
+              goal={waterIntakeGoal}
+              color="#03A9F4"
+              unit="L"
+              icon={<FaTint />}
+              onSaveGoal={setWaterIntakeGoal}
+              onClearGoal={() => setWaterIntakeGoal(null)}
+            />
           </div>
         </Card>
       </div>
@@ -263,11 +343,38 @@ export default function GoalsPage() {
       {/* Activity Goals */}
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Activity Goals</h2>
-        <Card className="p-6 bg-gray-100 dark:bg-gray-900 rounded-lg">
+        <Card className="p-6 bg-gray-100 dark:bg-neutral-800 rounded-lg">
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
-            <GoalCard title="Steps" current={currentSteps} goal={stepsGoal} color="#FF9800" unit="steps" icon={<FaWalking />} onSaveGoal={setStepsGoal} onClearGoal={() => setStepsGoal(null)} />
-            <GoalCard title="Flights Climbed" current={currentFlights} goal={flightsGoal} color="#2196F3" unit="flights" icon={<FaMountain />} onSaveGoal={setFlightsGoal} onClearGoal={() => setFlightsGoal(null)} />
-            <GoalCard title="Distance" current={currentDistance} goal={distanceGoal} color="#673AB7" unit="km" icon={<FaMapMarkerAlt />} onSaveGoal={setDistanceGoal} onClearGoal={() => setDistanceGoal(null)} />
+            <GoalCard
+              title="Steps"
+              current={currentSteps}
+              goal={stepsGoal}
+              color="#FF9800"
+              unit="steps"
+              icon={<FaWalking />}
+              onSaveGoal={setStepsGoal}
+              onClearGoal={() => setStepsGoal(null)}
+            />
+            <GoalCard
+              title="Flights Climbed"
+              current={currentFlights}
+              goal={flightsGoal}
+              color="#2196F3"
+              unit="flights"
+              icon={<FaMountain />}
+              onSaveGoal={setFlightsGoal}
+              onClearGoal={() => setFlightsGoal(null)}
+            />
+            <GoalCard
+              title="Distance"
+              current={currentDistance}
+              goal={distanceGoal}
+              color="#673AB7"
+              unit="km"
+              icon={<FaMapMarkerAlt />}
+              onSaveGoal={setDistanceGoal}
+              onClearGoal={() => setDistanceGoal(null)}
+            />
           </div>
         </Card>
       </div>
