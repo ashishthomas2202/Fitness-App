@@ -338,8 +338,6 @@ const DaysList = ({ days = [] }) => {
 };
 
 const WorkoutViewDialog = ({ workouts = [], listOfWorkouts }) => {
-  // console.log(plan);
-  // console.log(workouts);
   const mapWorkouts = () => {
     return [...workouts].map((workout) => {
       const currentWorkout = listOfWorkouts.find((w) => w.id === workout);
