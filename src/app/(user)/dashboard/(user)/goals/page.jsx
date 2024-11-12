@@ -7,7 +7,7 @@ import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm"
 import WeightTracker from "@/app/(user)/dashboard/(user)/goals/components/WeightTracker";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Card } from "@/components/ui/Card";
-import { FaFire, FaMapMarkerAlt, FaTint, FaWalking, FaMountain, FaEdit } from "react-icons/fa";
+import { FaFire,FaUtensils, FaMapMarkerAlt, FaTint, FaWalking, FaMountain, FaEdit } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GoalsPage() {
@@ -253,7 +253,7 @@ export default function GoalsPage() {
         <h2 className="text-xl font-semibold mb-4">Metabolic Goals</h2>
         <Card className="p-6 bg-gray-100 dark:bg-gray-900 rounded-lg">
           <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-around">
-            <GoalCard title="Calorie Intake" current={currentCalories} goal={calorieGoal} color="#4CAF50" unit="kcal" icon={<FaFire />} message={motivationalMessage} onSaveGoal={setCalorieGoal} onClearGoal={() => setCalorieGoal(null)} />
+            <GoalCard title="Calorie Intake" current={currentCalories} goal={calorieGoal} color="#4CAF50" unit="kcal" icon={<FaUtensils />} message={motivationalMessage} onSaveGoal={setCalorieGoal} onClearGoal={() => setCalorieGoal(null)} />
             <GoalCard title="Calories Burned" current={currentCaloriesBurned} goal={caloriesBurnedGoal} color="#FF7043" unit="kcal" icon={<FaFire />} onSaveGoal={setCaloriesBurnedGoal} onClearGoal={() => setCaloriesBurnedGoal(null)} />
             <GoalCard title="Water Consumed" current={currentWaterIntake} goal={waterIntakeGoal} color="#03A9F4" unit="L" icon={<FaTint />} onSaveGoal={setWaterIntakeGoal} onClearGoal={() => setWaterIntakeGoal(null)} />
           </div>

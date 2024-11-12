@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { FaFire, FaWeight, FaShoePrints, FaMountain, FaMapMarkerAlt, FaTint, FaBurn } from "react-icons/fa";
+import { FaUtensils, FaWeight, FaShoePrints, FaMountain, FaMapMarkerAlt, FaTint, FaBurn } from "react-icons/fa";
 
 // Define Yup validation schema
 const validationSchema = Yup.object().shape({
@@ -55,8 +55,8 @@ export default function GoalsForm({ onSave, currentGoals }) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 bg-gray-50 p-6 rounded-lg shadow-md">
             {/* Calorie Goal */}
             <div className="flex items-center space-x-3">
-                <FaFire className="text-red-500" />
-                <Label className="w-36">Calorie Goal (kcal)</Label>
+                <FaUtensils className="text-red-500" />
+                <Label className="w-36">Calorie Intake Goal (kcal)</Label>
                 <div className="w-full">
                     <Input type="number" {...register("calorieGoal")} className="bg-gray-100 w-full" />
                     {errors.calorieGoal && <p className="text-red-500 text-sm">{errors.calorieGoal.message}</p>}
