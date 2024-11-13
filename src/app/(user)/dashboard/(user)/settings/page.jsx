@@ -13,6 +13,9 @@ import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 // Profile validation schema
 const profileSchema = yup.object().shape({
@@ -71,6 +74,8 @@ const [showNewPassword, setShowNewPassword] = useState(false);
 const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 const { data: session } = useSession();
 const [isGoogleUser, setIsGoogleUser] = useState(false);
+const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
+const router = useRouter();
 
   console.log('Password Change Schema:', passwordChangeSchema.describe());
 
@@ -459,47 +464,107 @@ const [isGoogleUser, setIsGoogleUser] = useState(false);
 
       {/* Connected Accounts */}
       <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold">Connected Accounts</h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage your connected fitness devices and apps.
-          </p>
-        </div>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center space-x-4">
-              <img
-                src="https://ik.imagekit.io/z1gqwes5lg/public/app-store.png?updatedAt=1727911323775"
-                alt="Apple Health"
-                className="w-8 h-8"
-              />
-              <div>
-                <h4 className="font-semibold">Apple Health</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Connected
-                </p>
-              </div>
-            </div>
-            <Button variant="outline">Disconnect</Button>
-          </div>
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center space-x-4">
-              <img
-                src="https://ik.imagekit.io/z1gqwes5lg/public/app.png?updatedAt=1727911323824"
-                alt="Google Fit"
-                className="w-8 h-8"
-              />
-              <div>
-                <h4 className="font-semibold">Google Fit</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Not Connected
-                </p>
-              </div>
-            </div>
-            <Button>Connect</Button>
-          </div>
+  <div className="mb-6">
+    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Connected Accounts</h2>
+    <p className="text-gray-600 dark:text-gray-400">
+      Manage your connected fitness devices and apps.
+    </p>
+  </div>
+  <div className="space-y-4">
+    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-neutral-700 rounded-lg">
+      <div className="flex items-center space-x-4">
+        <img
+          src="https://ik.imagekit.io/z1gqwes5lg/public/app-store.png?updatedAt=1727911323775"
+          alt="Apple Health"
+          className="w-8 h-8"
+        />
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white">Apple Health</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Connected</p>
         </div>
       </div>
+      <Button className="bg-blue-500 text-white dark:bg-blue-700 dark:text-white hover:bg-blue-600 dark:hover:bg-blue-800">
+        Disconnect
+      </Button>
+    </div>
+    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-neutral-700 rounded-lg">
+      <div className="flex items-center space-x-4">
+        <img
+          src="https://ik.imagekit.io/z1gqwes5lg/public/app.png?updatedAt=1727911323824"
+          alt="Google Fit"
+          className="w-8 h-8"
+        />
+        <div>
+          <h4 className="font-semibold text-gray-900 dark:text-white">Google Fit</h4>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Not Connected</p>
+        </div>
+      </div>
+      <Button className="bg-blue-500 text-white dark:bg-blue-700 dark:text-white hover:bg-blue-600 dark:hover:bg-blue-800">
+        Connect
+      </Button>
+    </div>
+  </div>
+</div>
+
+      {/* Deactivate Account */}
+<div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
+  <div className="mb-6">
+    <h2 className="text-2xl font-bold text-black dark:text-white">Deactivate Account</h2>
+    <p className="text-gray-600 dark:text-gray-400">
+      Temporarily disable your account.
+    </p>
+  </div>
+
+  {/* Deactivate Button */}
+  <button
+    onClick={() => setShowDeactivateDialog(true)}
+    className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+  >
+    <Trash2 className="h-4 w-4" />
+    Deactivate Account
+  </button>
+
+  {/* Dialog Overlay */}
+  {showDeactivateDialog && (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      {/* Dialog Content */}
+      <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 max-w-md mx-4 relative">
+        {/* Close Button */}
+        <button
+          onClick={() => setShowDeactivateDialog(false)}
+          className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        {/* Dialog Header */}
+        <h3 className="text-xl font-semibold mb-2 text-black dark:text-white">
+          Deactivate Account
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Are you sure you want to deactivate your account? Your account will be deactivated until the next time you log in.
+        </p>
+
+        {/* Dialog Buttons */}
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setShowDeactivateDialog(false)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+            Deactivate
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+</div>
       {/*
       Fitness Goals
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
