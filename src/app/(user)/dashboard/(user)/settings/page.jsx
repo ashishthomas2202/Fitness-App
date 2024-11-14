@@ -83,7 +83,27 @@ export default function SettingsPage() {
   } = useForm({
     resolver: yupResolver(profileSchema),
   });
-
+ 
+  const handleRegisterAsTrainer = async () => {
+    try {
+      const response = await fetch('/api/is-trainer/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: session?.user?.id }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert(data.message); 
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error('Failed to update role:', error);
+    }
+  };
+  
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,
@@ -514,6 +534,22 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+        <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
+        <div className="mb-6">
+        <h2 className="text-2xl font-bold">Become a Trainer</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+        Apply to become a trainer and share your knowledge with others.
+        </p>
+        </div>
+
+        <Button
+        onClick={handleRegisterAsTrainer}
+        className="mt-4"
+        disabled={isSubmitting || isChangingPassword} 
+        >
+        Register as Trainer
+        </Button>
+        </div>
       {/*
       Fitness Goals
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
