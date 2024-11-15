@@ -86,23 +86,26 @@ export default function SettingsPage() {
  
   const handleRegisterAsTrainer = async () => {
     try {
-      const response = await fetch('/api/is-trainer/route', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: session?.user?.id }),
+      const response = await fetch("/api/is-trainer", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: session?.user.id }),
       });
   
-      const data = await response.json();
-  
       if (response.ok) {
-        alert(data.message); 
+        alert("Successfully updated to trainer role!");
       } else {
-        console.error(data.message);
+        const data = await response.json();
+        alert(data.error || "Failed to update role.");
       }
     } catch (error) {
-      console.error('Failed to update role:', error);
+      console.error("Error:", error);
+      alert("An error occurred.");
     }
   };
+  
   
   const {
     register: registerPassword,
