@@ -1,9 +1,9 @@
 import MealPlan from "@/db/models/MealPlan";
 import connectDB from "@/db/db";
-import * as yup from "yup";
+import * as yup from 'yup';
 import { authenticatedUser } from "@/lib/user";
 
-// Define meal, day, and meal plan schemas
+// Import validation schemas from create API route
 const mealSchema = yup.object().shape({
     mealId: yup.string().required("Meal ID is required"),
     mealType: yup
@@ -47,11 +47,12 @@ const mealPlanSchema = yup.object().shape({
     color: yup.string().required("Color is required"),
 });
 
-export async function POST(req) {
+export async function PUT(req, { params }) {
     try {
         await connectDB();
 
         const currentUser = await authenticatedUser();
+
         if (!currentUser) {
             return Response.json(
                 { success: false, message: "Unauthorized User" },
@@ -59,41 +60,58 @@ export async function POST(req) {
             );
         }
 
+        const { id } = params;
+
+        if (!id) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Meal plan ID is required"
+                },
+                { status: 400 }
+            );
+        }
+
         const jsonData = await req.json();
+        console.log("Incoming data for update:", jsonData);  // Log incoming data
 
         // Validate the request body with Yup
-        const { isValid, validatedData, errors } = await validateMealPlanData(
-            jsonData
-        );
+        const { isValid, validatedData, errors } = await validateMealPlanData(jsonData);
+        console.log("Validation results:", { isValid, validatedData, errors });  // Log validation results
 
         if (!isValid) {
             return Response.json(
                 {
                     success: false,
                     message: "Validation failed",
-                    errors,
+                    errors
                 },
                 { status: 400 }
             );
         }
 
-        const { planName, days, note, startDate, endDate, color } = validatedData;
+        const { planName, days, note, startDate, endDate, status, color } = validatedData;
 
-        // Save the meal plan to the database
-        const mealPlan = new MealPlan({
-            userId: currentUser.id,
-            planName,
-            days,
-            note,
-            startDate: startDate || new Date(),
-            endDate: endDate || null,
-            color,
-        });
+        // Find and update the meal plan by ID
+        const mealPlan = await MealPlan.findOneAndUpdate(
+            { _id: id, userId: currentUser.id },
+            { planName, days, note, startDate, endDate, status, color },
+            { new: true, runValidators: true }
+        );
+        console.log("Meal plan found and updated:", mealPlan);  // Log the result of the update
 
-        await mealPlan.save();
+        if (!mealPlan) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Meal plan not found or you are not authorized to update it",
+                },
+                { status: 404 }
+            );
+        }
 
+        // Set other meal plans to "complete" if this one is "in progress"
         if (mealPlan.status === "in progress") {
-            // Change the status of all other meal plans to "complete"
             await MealPlan.updateMany(
                 { userId: currentUser.id, _id: { $ne: mealPlan._id } },
                 { status: "complete" }
@@ -103,17 +121,17 @@ export async function POST(req) {
         return Response.json(
             {
                 success: true,
-                message: "Meal plan created successfully",
+                message: "Meal plan updated successfully",
                 mealPlan,
             },
-            { status: 201 }
+            { status: 200 }
         );
     } catch (error) {
-        console.error("Error creating meal plan:", error);
+        console.error("Error updating meal plan:", error);  // Log error details
         return Response.json(
             {
                 success: false,
-                message: "Failed to create meal plan",
+                message: "Failed to update meal plan",
                 error: error.message,
             },
             { status: 500 }
@@ -121,7 +139,9 @@ export async function POST(req) {
     }
 }
 
+
 async function validateMealPlanData(data) {
+    console.log("Data being validated:", data); // Log the raw payload
     try {
         await mealPlanSchema.validate(data, { abortEarly: false });
         return { isValid: true, validatedData: data, errors: null };
