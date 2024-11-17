@@ -12,11 +12,14 @@ import { Brand } from "@/components/Brand";
 import { FcGoogle } from "react-icons/fc";
 import Image from "next/image";
 import Link from "next/link";
+import { Label } from "@/components/ui/Label";
+import { LuEye, LuEyeOff } from "react-icons/lu";
 
 export default function SignIn() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
 
   const schema = yup.object().shape({
@@ -35,7 +38,9 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (data) => {
-    const { email, password } = data;
+    // const { email, password } = data;
+    const email = data?.email?.toLowerCase();
+    const password = data?.password;
 
     setLoading(true);
     let result;
@@ -109,6 +114,9 @@ export default function SignIn() {
               </p>
             )}
             <form onSubmit={handleSubmit(onSubmit)}>
+              <Label className="font-light text-slate-400 dark:text-neutral-700">
+                Email
+              </Label>
               <Input
                 className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="email"
@@ -116,12 +124,29 @@ export default function SignIn() {
                 placeholder="Enter your email"
               />
               <p className="mb-4 text-red-500">{errors?.email?.message}</p>
-              <Input
-                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
-                type="password"
-                {...register("password")}
-                placeholder="Enter your password"
-              />
+
+              <Label className="font-light text-slate-400 dark:text-neutral-700">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
+                  type={passwordVisible ? "text" : "password"}
+                  {...register("password")}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  className="absolute right-4 top-4"
+                >
+                  {passwordVisible ? (
+                    <LuEyeOff size={20} />
+                  ) : (
+                    <LuEye size={20} />
+                  )}
+                </button>
+              </div>
               <p className="mb-4 text-red-500">{errors?.password?.message}</p>
               <p className="text-sm text-right cursor-pointer text-white lg:text-black dark:text-white">
                 Forgot password?

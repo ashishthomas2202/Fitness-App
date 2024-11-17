@@ -13,9 +13,14 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import _ from "lodash";
+import { Label } from "@/components/ui/Label";
+import { LuEye, LuEyeOff } from "react-icons/lu";
 export default function SignUp() {
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -28,7 +33,7 @@ export default function SignUp() {
       .required("Password is required")
       .min(8, "Password must be at least 8 characters")
       .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=])[A-Za-z\d!@#$%^&*()_\-+=]{8,}$/,
         "Password must contain at least one uppercase letter, one lowercase letter, one number and one special character"
       ),
     confirmPassword: yup
@@ -130,6 +135,9 @@ export default function SignUp() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <fieldset className="flex flex-col sm:flex-row gap-2">
                 <div className="flex-1">
+                  <Label className="font-light text-slate-400 dark:text-neutral-700">
+                    First Name
+                  </Label>
                   <Input
                     className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                     type="text"
@@ -141,6 +149,9 @@ export default function SignUp() {
                   </p>
                 </div>
                 <div className="flex-1">
+                  <Label className="font-light text-slate-400 dark:text-neutral-700">
+                    Last Name
+                  </Label>
                   <Input
                     className="bg-white lg:dark:bg-neutral-800
                   lg:dark:text-white mb-1"
@@ -154,6 +165,9 @@ export default function SignUp() {
                 </div>
               </fieldset>
 
+              <Label className="font-light text-slate-400 dark:text-neutral-700">
+                Email
+              </Label>
               <Input
                 className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
                 type="email"
@@ -161,20 +175,55 @@ export default function SignUp() {
                 placeholder="Enter your email"
               />
               <p className="mb-4 text-red-500">{errors?.email?.message}</p>
-              <Input
-                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
-                type="password"
-                {...register("password")}
-                placeholder="Enter your password"
-              />
+              <Label className="font-light text-slate-400 dark:text-neutral-700">
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
+                  // type="password"
+                  type={passwordVisible ? "text" : "password"}
+                  {...register("password")}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  className="absolute right-4 top-4"
+                >
+                  {passwordVisible ? (
+                    <LuEyeOff size={20} />
+                  ) : (
+                    <LuEye size={20} />
+                  )}
+                </button>
+              </div>
               <p className="mb-4 text-red-500">{errors?.password?.message}</p>
 
-              <Input
-                className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
-                type="password"
-                {...register("confirmPassword")}
-                placeholder="Enter your password again"
-              />
+              <Label className="font-light text-slate-400 dark:text-neutral-700">
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Input
+                  className="bg-white lg:dark:bg-neutral-800 lg:dark:text-white mb-1"
+                  type={confirmPasswordVisible ? "text" : "password"}
+                  {...register("confirmPassword")}
+                  placeholder="Enter your password again"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setConfirmPasswordVisible(!confirmPasswordVisible)
+                  }
+                  className="absolute right-4 top-4"
+                >
+                  {confirmPasswordVisible ? (
+                    <LuEyeOff size={20} />
+                  ) : (
+                    <LuEye size={20} />
+                  )}
+                </button>
+              </div>
               <p className="mb-4 text-red-500">
                 {errors?.confirmPassword?.message}
               </p>
