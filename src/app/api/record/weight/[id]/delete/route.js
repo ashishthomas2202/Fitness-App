@@ -34,13 +34,11 @@ export async function DELETE(req, { params }) {
       { status: 200 }
     );
   } catch (error) {
-    return Response.json(
-      {
-        success: false,
-        message: "An unexpected error occurred.",
-        error: error.message,
-      },
-      { status: 500 }
-    );
+    console.error("Delete weight error:", error);
+    return Response.json({
+      success: false,
+      message: "An unexpected error occurred.",
+      error: error.message
+    }, { status: 500 });
   }
 }

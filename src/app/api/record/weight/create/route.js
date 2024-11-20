@@ -15,9 +15,9 @@ const weightSchema = Yup.object().shape({
   unit: Yup.string()
     .oneOf(['kg', 'lbs'], "Invalid unit")
     .required("Unit is required"),
-  date: Yup.date()
+    date: Yup.date()
     .required("Date is required")
-    .max(new Date(), "Date cannot be in the future"),
+    .max(new Date(new Date().setHours(23, 59, 59)), "Date cannot be in the future"),
   note: Yup.string()
     .nullable()
 });
@@ -27,17 +27,30 @@ export async function POST(req) {
     await connectDB();
     const user = await authenticatedUser();
     if (!user) {
-      return new Response(
-        JSON.stringify({ success: false, message: "Unauthorized User" }),
+      return Response.json(
+        { success: false, message: "Unauthorized User" },
         { status: 401 }
       );
     }
 
     const data = await req.json();
+    console.log('Received data:', data);  // Debug log
     
+    const weightData = {
+      ...data,
+      unit: data.unit || 'lbs',
+      date: (() => {
+        const date = new Date(data.date);
+        date.setHours(12, 0, 0, 0);
+        return date;
+      })(),
+      note: data.note || ''
+    };
+
     try {
-      await weightSchema.validate(data);
+      await weightSchema.validate(weightData);
     } catch (validationError) {
+      console.log('Validation error:', validationError.errors);  // Debug log
       return Response.json(
         {
           success: false,
@@ -48,9 +61,36 @@ export async function POST(req) {
       );
     }
 
+    const startOfDay = new Date(weightData.date);
+startOfDay.setHours(0, 0, 0, 0);
+
+const endOfDay = new Date(weightData.date);
+endOfDay.setHours(23, 59, 59, 999);
+
+    const existingWeight = await Weight.findOne({
+      userId: user.id,
+      date: {
+        $gte: startOfDay,
+        $lte: endOfDay
+      }
+    });
+
+    if (existingWeight) {
+      existingWeight.weight = weightData.weight;
+      existingWeight.unit = weightData.unit;
+      existingWeight.note = weightData.note;
+      await existingWeight.save();
+
+      return Response.json({
+        success: true,
+        message: "Weight record updated successfully",
+        data: existingWeight,
+      });
+    }
+
     const weightRecord = new Weight({
       userId: user.id,
-      ...data
+      ...weightData
     });
 
     await weightRecord.save();
@@ -64,6 +104,7 @@ export async function POST(req) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("Weight creation error:", error);
     return Response.json(
       {
         success: false,
