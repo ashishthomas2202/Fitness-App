@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
@@ -71,6 +71,7 @@ export default function SettingsPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { data: session } = useSession();
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [isTrainer, setIsTrainer] = useState(false);
 
   console.log("Password Change Schema:", passwordChangeSchema.describe());
 
@@ -83,30 +84,66 @@ export default function SettingsPage() {
   } = useForm({
     resolver: yupResolver(profileSchema),
   });
- 
-  const handleRegisterAsTrainer = async () => {
-    try {
-      const response = await fetch("/api/is-trainer", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: session?.user.id }),
+
+  // const handleRegisterAsTrainer = async () => {
+  //   try {
+  //     const response = await fetch("/api/is-trainer", {
+  //       method: "PATCH",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ userId: session?.user.id }),
+  //     });
+
+  //     if (response.ok) {
+  //       alert("Successfully updated to trainer role!");
+  //     } else {
+  //       const data = await response.json();
+  //       alert(data.error || "Failed to update role.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     alert("An error occurred.");
+  //   }
+  // };
+
+  const checkIfTrainer = async () => {
+    return await axios
+      .get("/api/user/is-trainer")
+      .then((response) => {
+        if (response.data.success) {
+          setIsTrainer(true);
+        } else {
+          setIsTrainer(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking if user is a trainer:", error);
+        setIsTrainer(false);
       });
-  
-      if (response.ok) {
-        alert("Successfully updated to trainer role!");
-      } else {
-        const data = await response.json();
-        alert(data.error || "Failed to update role.");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred.");
-    }
   };
-  
-  
+
+  useEffect(() => {
+    if (session) {
+      checkIfTrainer();
+    }
+  }, []);
+  const handleRegisterAsTrainer = async () => {
+    return await axios
+      .patch("/api/user/become-trainer", {
+        becomeTrainer: true,
+      })
+      .then((response) => {
+        if (response.data.success) {
+          toast.success("Successfully updated to trainer role!");
+          setIsTrainer(true);
+        } else {
+          toast.error("Failed to update role.");
+        }
+      })
+      .catch((error) => {});
+  };
+
   const {
     register: registerPassword,
     handleSubmit: handlePasswordSubmit,
@@ -537,22 +574,24 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      {!isTrainer && (
         <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">
-        <div className="mb-6">
-        <h2 className="text-2xl font-bold">Become a Trainer</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-        Apply to become a trainer and share your knowledge with others.
-        </p>
-        </div>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold">Become a Trainer</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              Apply to become a trainer and share your knowledge with others.
+            </p>
+          </div>
 
-        <Button
-        onClick={handleRegisterAsTrainer}
-        className="mt-4"
-        disabled={isSubmitting || isChangingPassword} 
-        >
-        Register as Trainer
-        </Button>
+          <Button
+            onClick={handleRegisterAsTrainer}
+            className="mt-4"
+            disabled={isSubmitting || isChangingPassword}
+          >
+            Register as Trainer
+          </Button>
         </div>
+      )}
       {/*
       Fitness Goals
 <div className="bg-white dark:bg-neutral-900 rounded-lg p-6 shadow-lg">

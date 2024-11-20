@@ -15,7 +15,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-export default function AdminDashboardLayout({ children }) {
+export default function TrainerDashboardLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
@@ -73,12 +73,12 @@ export default function AdminDashboardLayout({ children }) {
   //     setLoading(false);
   //   }, []);
 
-  const isAdmin = async () => {
-    const admin = await axios
-      .get("/api/user/is-admin")
+  const isTrainer = async () => {
+    const trainer = await axios
+      .get("/api/user/is-trainer")
       .then((response) => {
         if (response?.data?.success) {
-          return response.data.data;
+          return true;
         }
         return null;
       })
@@ -86,17 +86,17 @@ export default function AdminDashboardLayout({ children }) {
         return null;
       });
 
-    if (!admin) {
+    if (!trainer) {
       router.push("/dashboard");
       toast.error("Unauthorized User");
     } else {
       setLoading(false);
     }
-    return admin;
+    return trainer;
   };
 
   useLayoutEffect(() => {
-    isAdmin();
+    isTrainer();
   }, []);
 
   if (loading) {
