@@ -200,7 +200,11 @@ export async function authenticatedTrainer() {
     return null;
   }
 
-  return user?.userRole === "trainer" ? user : null;
+  return user?.userRole === "trainer"
+    ? user
+    : user?.userRole === "admin"
+    ? user
+    : null;
 }
 
 // export function authenticatedUser() {

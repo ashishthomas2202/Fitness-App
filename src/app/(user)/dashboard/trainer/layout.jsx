@@ -78,7 +78,7 @@ export default function TrainerDashboardLayout({ children }) {
       .get("/api/user/is-trainer")
       .then((response) => {
         if (response?.data?.success) {
-          return response.data.data;
+          return true;
         }
         return null;
       })
@@ -89,14 +89,14 @@ export default function TrainerDashboardLayout({ children }) {
     if (!trainer) {
       router.push("/dashboard");
       toast.error("Unauthorized User");
+    } else {
+      setLoading(false);
     }
-
-    setLoading(false);
     return trainer;
   };
 
   useLayoutEffect(() => {
-    istrainer();
+    isTrainer();
   }, []);
 
   if (loading) {

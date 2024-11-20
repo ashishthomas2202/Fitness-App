@@ -89,9 +89,9 @@ export default function AdminDashboardLayout({ children }) {
     if (!admin) {
       router.push("/dashboard");
       toast.error("Unauthorized User");
+    } else {
+      setLoading(false);
     }
-
-    setLoading(false);
     return admin;
   };
 

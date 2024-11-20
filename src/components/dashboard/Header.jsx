@@ -95,6 +95,12 @@ export const Header = ({ handleSidebar = () => {} }) => {
                     <Link href="/dashboard/admin">Admin Dashboard</Link>
                   </DropdownMenuItem>
                 )}
+                {session?.user?.userRole == "admin" ||
+                  (session?.user?.userRole == "trainer" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/trainer">Trainer Dashboard</Link>
+                    </DropdownMenuItem>
+                  ))}
                 <DropdownMenuItem asChild>
                   <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
