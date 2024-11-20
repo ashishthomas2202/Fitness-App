@@ -73,8 +73,8 @@ export default function TrainerDashboardLayout({ children }) {
   //     setLoading(false);
   //   }, []);
 
-  const isAdmin = async () => {
-    const admin = await axios
+  const isTrainer = async () => {
+    const trainer = await axios
       .get("/api/user/is-trainer")
       .then((response) => {
         if (response?.data?.success) {
@@ -86,13 +86,13 @@ export default function TrainerDashboardLayout({ children }) {
         return null;
       });
 
-    if (!admin) {
+    if (!trainer) {
       router.push("/dashboard");
       toast.error("Unauthorized User");
     }
 
     setLoading(false);
-    return admin;
+    return trainer;
   };
 
   useLayoutEffect(() => {

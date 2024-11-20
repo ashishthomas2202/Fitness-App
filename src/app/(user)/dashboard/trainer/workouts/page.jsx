@@ -65,7 +65,7 @@ export default function WorkoutsPage() {
           asChild
           //   className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
         >
-          <Link href="/dashboard/admin/workouts/add">Add New Workout</Link>
+          <Link href="/dashboard/trainer/workouts/add">Add New Workout</Link>
         </Button>
       </div>
 
