@@ -709,6 +709,7 @@ export default function ProgressPage() {
                   <h3 className="text-lg font-medium">Photo History</h3>
                   <Button
                     variant="outline"
+                    className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                     onClick={() => setIsComparisonOpen(true)}
                   >
                     Compare Photos
