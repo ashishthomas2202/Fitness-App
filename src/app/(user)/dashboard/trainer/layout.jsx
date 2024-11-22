@@ -122,14 +122,14 @@
 //   );
 // }
 "use client";
+import React, { useState, useLayoutEffect } from "react";
 import { Header } from "@/components/dashboard/Header";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { GiNoodles } from "react-icons/gi";
 import { IoMdFitness } from "react-icons/io";
-import { Loader2 } from "lucide-react";
-import React, { useState, useLayoutEffect } from "react";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
@@ -137,8 +137,6 @@ import { toast } from "react-toastify";
 export default function TrainerDashboardLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [totalFollowers, setTotalFollowers] = useState(0);
-
   const router = useRouter();
 
   const menu = [
@@ -160,32 +158,26 @@ export default function TrainerDashboardLayout({ children }) {
   ];
 
   const isTrainer = async () => {
-    try {
-      const trainer = await axios.get("/api/user/is-trainer");
-      if (trainer?.data?.success) {
-        setLoading(false);
-      } else {
-        router.push("/dashboard");
-        toast.error("Unauthorized User");
-      }
-    } catch {
+    const trainer = await axios
+      .get("/api/user/is-trainer")
+      .then((response) => {
+        if (response?.data?.success) {
+          return true;
+        }
+        return null;
+      })
+      .catch(() => null);
+
+    if (!trainer) {
       router.push("/dashboard");
       toast.error("Unauthorized User");
-    }
-  };
-
-  const fetchFollowersCount = async () => {
-    try {
-      const response = await axios.get("/api/follower/total/followers");
-      setTotalFollowers(response.data.data.followers|| 0);
-    } catch (error) {
-      setTotalFollowers(0);
+    } else {
+      setLoading(false);
     }
   };
 
   useLayoutEffect(() => {
     isTrainer();
-    fetchFollowersCount();
   }, []);
 
   if (loading) {
@@ -206,12 +198,9 @@ export default function TrainerDashboardLayout({ children }) {
         )}
       >
         <Header handleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <div className="p-4 bg-white dark:bg-neutral-800 shadow rounded-lg mb-4">
-          <h2 className="text-xl font-bold">Followers</h2>
-          <p className="text-2xl">{followersCount}</p>
-        </div>
         <main className="rounded-xl overflow-y-auto">{children}</main>
       </article>
     </section>
   );
 }
+
