@@ -1,4 +1,6 @@
 import MealPlan from "@/db/models/MealPlan";
+import Achievement from "@/db/models/Achievement"; // Ensure this import is added
+import UserAchievement from "@/db/models/UserAchievement";
 import connectDB from "@/db/db";
 import * as yup from "yup";
 import { authenticatedUser } from "@/lib/user";
@@ -79,6 +81,22 @@ export async function POST(req) {
 
         const { planName, days, note, startDate, endDate, color } = validatedData;
 
+        // Check if a meal plan with the same name already exists for the user
+        const existingMealPlan = await MealPlan.findOne({
+            userId: currentUser.id,
+            planName,
+        });
+
+        if (existingMealPlan) {
+            return Response.json(
+                {
+                    success: false,
+                    message: "Meal plan with this name already exists.",
+                },
+                { status: 400 }
+            );
+        }
+
         // Save the meal plan to the database
         const mealPlan = new MealPlan({
             userId: currentUser.id,
@@ -92,13 +110,33 @@ export async function POST(req) {
 
         await mealPlan.save();
 
-        if (mealPlan.status === "in progress") {
-            // Change the status of all other meal plans to "complete"
-            await MealPlan.updateMany(
-                { userId: currentUser.id, _id: { $ne: mealPlan._id } },
-                { status: "complete" }
-            );
+        // Achievement Logic
+        const achievement = await Achievement.findOne({ title: "First Meal Plan" });
+        if (achievement) {
+            let userAchievement = await UserAchievement.findOne({
+                userId: currentUser.id,
+                achievementId: achievement._id,
+            });
+
+            if (!userAchievement) {
+                userAchievement = new UserAchievement({
+                    userId: currentUser.id,
+                    achievementId: achievement._id,
+                    progress: 1,
+                    completed: true,
+                });
+
+                await userAchievement.save();
+                console.log(
+                    `Achievement "First Meal Plan" granted to user ${currentUser.id}`
+                );
+            } else {
+                console.log("User already has the 'First Meal Plan' achievement.");
+            }
+        } else {
+            console.log("Achievement 'First Meal Plan' not found.");
         }
+
 
         return Response.json(
             {

@@ -42,6 +42,16 @@ const GoalSchema = new Schema({
             weight: { type: Number, required: true },
         },
     ],
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    toJSON: {
+        transform: (doc, ret) => {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+            return ret;
+        },
+    },
+});
 
 module.exports = mongoose.models.Goal || mongoose.model('Goal', GoalSchema);

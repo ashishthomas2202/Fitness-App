@@ -1,10 +1,11 @@
+//src\app\(user)\dashboard\(user)\goals\page.jsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm";
-import WeightTracker from "@/app/(user)/dashboard/(user)/goals/components/WeightTracker";
+import GoalHistory from "./components/GoalHistoryCard";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Card } from "@/components/ui/Card";
 import {
@@ -22,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function GoalsPage() {
   const { data: session } = useSession();
   const [goals, setGoals] = useState(null); // Change to null to check if goals exist
+  const [refreshGoalHistory, setRefreshGoalHistory] = useState(null);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [currentCalories, setCurrentCalories] = useState(0);
   const [currentCaloriesBurned, setCurrentCaloriesBurned] = useState(0);
@@ -83,6 +85,68 @@ export default function GoalsPage() {
     }
   };
 
+
+  const updateGoalHistory = async (completedGoals) => {
+    if (!session?.user) return;
+    try {
+      await axios.post("/api/goals/add-history", { goals: completedGoals });
+      if (refreshGoalHistory) refreshGoalHistory();
+    } catch (error) {
+      console.error("Failed to update goal history:", error);
+    }
+  };
+
+  const checkGoalCompletion = () => {
+    if (calorieGoal > 0 && currentCalories >= calorieGoal) {
+      updateGoalHistory({
+        name: "Calorie Intake",
+        progress: currentCalories,
+        target: calorieGoal,
+        isCompleted: true,
+      });
+    }
+    if (caloriesBurnedGoal > 0 && currentCaloriesBurned >= caloriesBurnedGoal) {
+      updateGoalHistory({
+        name: "Calories Burned",
+        progress: currentCaloriesBurned,
+        target: caloriesBurnedGoal,
+        isCompleted: true,
+      });
+    }
+    if (stepsGoal > 0 && currentSteps >= stepsGoal) {
+      updateGoalHistory({
+        name: "Steps",
+        progress: currentSteps,
+        target: stepsGoal,
+        isCompleted: true,
+      });
+    }
+    if (flightsGoal > 0 && currentFlights >= flightsGoal) {
+      updateGoalHistory({
+        name: "Flights Climbed",
+        progress: currentFlights,
+        target: flightsGoal,
+        isCompleted: true,
+      });
+    }
+    if (distanceGoal > 0 && currentDistance >= distanceGoal) {
+      updateGoalHistory({
+        name: "Distance",
+        progress: currentDistance,
+        target: distanceGoal,
+        isCompleted: true,
+      });
+    }
+    if (waterIntakeGoal > 0 && currentWaterIntake >= waterIntakeGoal) {
+      updateGoalHistory({
+        name: "Water Intake",
+        progress: currentWaterIntake,
+        target: waterIntakeGoal,
+        isCompleted: true,
+      });
+    }
+  };
+
   const handleSaveGoal = async (goalData) => {
     if (!session || !session.user) {
       toast.error("User is not authenticated.");
@@ -118,12 +182,17 @@ export default function GoalsPage() {
     }
   };
 
+  const handleRefreshHistory = useCallback((fetchGoalHistory) => {
+    setRefreshGoalHistory(() => fetchGoalHistory);
+  }, []);
+
   useEffect(() => {
     fetchGoals();
     fetchTodayActivity();
   }, [session]);
 
   useEffect(() => {
+    checkGoalCompletion();
     const goals = [
       { current: currentCalories, goal: calorieGoal },
       { current: currentCaloriesBurned, goal: caloriesBurnedGoal },
@@ -326,9 +395,9 @@ export default function GoalsPage() {
           </div>
         </Card>
       </div>
-      <div className="mt-8">
-        <WeightTracker />
-      </div>
+      <GoalHistory userId={session?.user?.id}
+        onRefreshHistory={handleRefreshHistory}
+      />
     </div>
   );
 }
