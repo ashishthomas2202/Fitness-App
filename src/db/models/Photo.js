@@ -29,6 +29,10 @@ const PhotoSchema = new Schema({
   note: {
     type: String,
     default: "",
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true });
 

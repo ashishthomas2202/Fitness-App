@@ -3,6 +3,13 @@ import { authenticatedUser } from "@/lib/user";
 import Photo from "@/db/models/Photo";
 import connectDB from "@/db/db";
 import { uploadFile } from "@/integration/Imagekit"; 
+import ImageKit from "imagekit";
+
+const imagekit = new ImageKit({
+  publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
+});
 
 export const revalidate = 60;
 
@@ -23,11 +30,22 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    const imageUrl = await uploadFile(`/progress-photos/${user.id}`, file);
+    // Convert file to base64
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const base64File = buffer.toString('base64');
+
+    // Upload directly using server-side ImageKit instance
+    const uploadResponse = await imagekit.upload({
+      file: base64File,
+      fileName: `${Date.now()}-${file.name}`,
+      folder: `/progress-photos/${user.id}`,
+    });
 
     const photo = new Photo({
       userId: user.id,
-      imageUrl,
+      imageUrl: uploadResponse.url,
+      imageKitFileId: uploadResponse.fileId,
       type,
       date: new Date()
     });
@@ -42,7 +60,7 @@ export async function POST(req) {
   } catch (error) {
     console.error("Photo upload error:", error);
     return Response.json({
-      success: false,
+      success: false, 
       message: error.message || "Failed to upload photo"
     }, { status: 500 });
   }

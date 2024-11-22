@@ -54,6 +54,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { PhotoFullscreenView } from "@/components/PhotoFullscreenView";
+import { PhotoComparisonView } from "@/components/PhotoComparisonView";
 
 export default function ProgressPage() {
   const [activeTab, setActiveTab] = useState("weight");
@@ -82,12 +84,22 @@ export default function ProgressPage() {
   const [selectedMeasurement, setSelectedMeasurement] = useState(null);
   const [isMeasurementDeleteDialogOpen, setIsMeasurementDeleteDialogOpen] =
     useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const [isComparisonOpen, setIsComparisonOpen] = useState(false);
+  const [selectedBeforeAfter, setSelectedBeforeAfter] = useState({
+    before: null,
+    after: null,
+  });
+  const [photoNote, setPhotoNote] = useState("");
 
   const {
     photos,
     photoHistory,
     loading: photosLoading,
     error: photosError,
+    handlePhotoUpload,
+    updatePhotoNote,
     deletePhoto,
   } = usePhotos();
 
@@ -301,15 +313,6 @@ export default function ProgressPage() {
         biceps: "",
         thighs: "",
       });
-    }
-  };
-
-  const handlePhotoUpload = async (type, file) => {
-    if (!file) return;
-    try {
-      await photos.uploadPhoto(type, file);
-    } catch (err) {
-      setError("Failed to upload photo");
     }
   };
 
@@ -635,74 +638,140 @@ export default function ProgressPage() {
                     <label className="block text-sm font-medium capitalize">
                       {view} View
                     </label>
-                    <div className="relative aspect-square border-2 border-dashed rounded-lg overflow-hidden">
-                      {photos[view] ? (
-                        <div className="relative group">
-                          <img
-                            src={photos[view].imageUrl}
-                            alt={`${view} view`}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={() => deletePhoto(photos[view].id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <label className="block w-full h-full cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handlePhotoUpload(view, e.target.files[0])
-                            }
-                          />
-                          <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
-                            <Upload className="h-8 w-8 mb-2" />
-                            <span className="text-sm">Upload {view} view</span>
-                          </div>
-                        </label>
-                      )}
-                    </div>
+                    <div className="relative aspect-square border-2 border-dashed rounded-lg">
+  {photos[view] ? (
+    <div className="space-y-2">
+      <div className="relative group h-full">
+        <div 
+          className="w-full h-full cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSelectedPhoto(photos[view]);
+            setIsFullscreenOpen(true);
+          }}
+        >
+          <img
+            src={photos[view].imageUrl}
+            alt={`${view} view`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <Button
+          variant="destructive"
+          size="icon"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all z-10"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            deletePhoto(photos[view].id);
+          }}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  ) : (
+    <label className="block w-full h-full cursor-pointer">
+    <input
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => handlePhotoUpload(view, e.target.files[0])}
+    />
+    <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground">
+      <Upload className="h-8 w-8 mb-2" />
+      <span className="text-sm">Upload {view} view</span>
+    </div>
+  </label>
+)}
+</div>
+{photos[view] && (
+<div className="mt-2">
+  <Input
+    placeholder="Add a note..."
+    value={photos[view].note || ""}
+    onChange={async (e) => {
+      const success = await updatePhotoNote(photos[view].id, e.target.value);
+      if (!success) {
+        setError("Failed to update note");
+      }
+    }}
+  />
+</div>
+)}
                   </div>
                 ))}
               </div>
 
               <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Photo History</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium">Photo History</h3>
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsComparisonOpen(true)}
+                  >
+                    Compare Photos
+                  </Button>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {photoHistory.map((photo) => (
                     <div key={photo.id} className="relative group">
-                      <img
-                        src={photo.imageUrl}
-                        alt={`Progress ${format(
-                          new Date(photo.date),
-                          "MMM d, yyyy"
-                        )}`}
-                        className="aspect-square object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => deletePhoto(photo.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedPhoto(photo);
+                          setIsFullscreenOpen(true);
+                        }}
+                      >
+                        <img
+                          src={photo.imageUrl}
+                          alt={`Progress ${format(
+                            new Date(photo.date),
+                            "MMM d, yyyy"
+                          )}`}
+                          className="aspect-square object-cover rounded-lg"
+                        />
                       </div>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all z-10"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deletePhoto(photo.id, true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      {photo.note && (
+                        <p className="mt-1 text-sm text-gray-500 truncate">
+                          {photo.note}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
+
+              <PhotoFullscreenView
+                isOpen={isFullscreenOpen}
+                onClose={() => setIsFullscreenOpen(false)}
+                photo={selectedPhoto}
+              />
+
+              <PhotoComparisonView
+                isOpen={isComparisonOpen}
+                onClose={() => setIsComparisonOpen(false)}
+                photoHistory={photoHistory}
+              />
             </CardContent>
           </Card>
         );
+
       case "measurements":
         return (
           <Card>
