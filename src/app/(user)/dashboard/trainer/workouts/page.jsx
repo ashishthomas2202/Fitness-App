@@ -81,7 +81,7 @@ export default function WorkoutsPage() {
               key={workout.id}
               workout={workout}
               onUpdate={() =>
-                router.push(`/dashboard/admin/workouts/update/${workout.id}`)
+                router.push(`/dashboard/trainer/workouts/update/${workout.id}`)
               }
               onDelete={() => deleteWorkout(workout.id)}
             />
