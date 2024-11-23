@@ -16,7 +16,7 @@ const PublishWorkouts = () => {
     try {
       const response = await axios.get(`/api/workouts`);
       if (response?.data?.success) {
-        setWorkouts(response.data.data); // Assume data contains an array of workouts
+        setWorkouts(response.data.data);
       }
     } catch (error) {
       console.error("Error fetching workouts:", error);
@@ -35,7 +35,7 @@ const PublishWorkouts = () => {
       const response = await axios.post(`/api/workouts/${selectedWorkoutID}/publish`);
       if (response?.data?.success) {
         alert("Workout published successfully!");
-        router.push("/dashboard"); // Redirect to dashboard or another page
+        router.push("/dashboard"); 
       } else {
         alert("Failed to publish workout. Please try again.");
       }
