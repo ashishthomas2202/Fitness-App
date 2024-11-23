@@ -1,3 +1,4 @@
+//src/app/achievements/all/route.js
 import connectDB from "@/db/db";
 import Achievement from "@/db/models/Achievement";
 import UserAchievement from "@/db/models/UserAchievement";

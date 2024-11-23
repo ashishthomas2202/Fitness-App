@@ -21,21 +21,24 @@ export async function GET(req) {
     try {
         const query = { userId: currentUser.id };
 
-        // Add date filtering
+        // Adjust `from` and `to` to include the entire day
         if (from || to) {
-            query.date = {};
-            if (from) query.date.$gte = new Date(from);
-            if (to) query.date.$lte = new Date(to);
+            query.completedAt = {};
+            if (from) query.completedAt.$gte = new Date(`${from}T00:00:00.000Z`);
+            if (to) query.completedAt.$lte = new Date(`${to}T23:59:59.999Z`);
         }
 
+
         const history = await GoalHistory.find(query)
-            .sort({ date: -1 })
-            .select("userId date goals notes createdAt updatedAt"); // Explicitly include notes
+            .sort({ completedAt: -1 })
+            .select("userId completedAt name progress target isCompleted");
+
 
         return new Response(JSON.stringify({ success: true, data: history }), {
             status: 200,
         });
     } catch (error) {
+        console.error("Failed to fetch goal history:", error);
         return new Response(
             JSON.stringify({
                 success: false,
@@ -46,4 +49,3 @@ export async function GET(req) {
         );
     }
 }
-

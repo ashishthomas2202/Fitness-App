@@ -1,54 +1,43 @@
 import mongoose from "mongoose";
-const Schema = mongoose.Schema;
 
-
-const GoalHistorySchema = new Schema(
-    {
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        date: {
-            type: Date,
-            required: true,
-        },
-        goals: [
-            {
-                name: {
-                    type: String,
-                    required: true,
-                },
-                target: {
-                    type: Number,
-                    required: true,
-                },
-                progress: {
-                    type: Number,
-                    required: true,
-                },
-                isCompleted: {
-                    type: Boolean,
-                    required: true,
-                },
-            },
-        ],
-        notes: {
-            type: String, // Ensure this field is present
-            default: "",
+const GoalHistorySchema = new mongoose.Schema({
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    name: {
+        type: String,
+        required: true
+    }, // Goal name
+    progress: {
+        type: Number,
+        required: true
+    }, // Achieved progress
+    target: {
+        type: Number,
+        required: true
+    }, // Goal target
+    isCompleted: {
+        type: Boolean,
+        required: true
+    },
+    completedAt: {
+        type: Date, default: Date.now
+    },
+}, {
+    timestamps: true,
+    toJSON: {
+        transform: (doc, ret) => {
+            ret.id = ret._id;
+            delete ret._id;
+            delete ret.__v;
+            return ret;
         },
     },
-    {
-        timestamps: true,
-        toJSON: {
-            transform: (doc, ret) => {
-                ret.id = ret._id;
-                delete ret._id;
-                delete ret.__v;
-                return ret;
-            },
-        },
-    }
+}
 );
 
-export default mongoose.models.GoalHistory || mongoose.model("GoalHistory", GoalHistorySchema);
+const GoalHistory = mongoose.models.GoalHistory || mongoose.model("GoalHistory", GoalHistorySchema);
+
+export default GoalHistory;

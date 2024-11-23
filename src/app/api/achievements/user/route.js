@@ -1,3 +1,4 @@
+//src/app/achievements/user/route.js
 import connectDB from "@/db/db";
 import UserAchievement from "@/db/models/UserAchievement";
 import { authenticatedUser } from "@/lib/user";

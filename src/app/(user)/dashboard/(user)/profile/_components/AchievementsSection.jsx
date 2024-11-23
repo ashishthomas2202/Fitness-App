@@ -52,3 +52,4 @@ export default function AchievementsSection({ onAchievementCompleted }) {
         </section>
     );
 }
+

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import GoalsForm from "@/app/(user)/dashboard/(user)/goals/components/GoalsForm";
-import GoalHistory from "./components/GoalHistoryCard";
+import GoalHistoryCard from "./components/GoalHistoryCard";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { Card } from "@/components/ui/Card";
 import {
@@ -23,7 +23,6 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function GoalsPage() {
   const { data: session } = useSession();
   const [goals, setGoals] = useState(null); // Change to null to check if goals exist
-  const [refreshGoalHistory, setRefreshGoalHistory] = useState(null);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [currentCalories, setCurrentCalories] = useState(0);
   const [currentCaloriesBurned, setCurrentCaloriesBurned] = useState(0);
@@ -37,8 +36,13 @@ export default function GoalsPage() {
   const [flightsGoal, setFlightsGoal] = useState(null);
   const [distanceGoal, setDistanceGoal] = useState(null);
   const [waterIntakeGoal, setWaterIntakeGoal] = useState(null);
-  const [motivationalMessage, setMotivationalMessage] = useState("");
   const [goalsAchieved, setGoalsAchieved] = useState(0);
+  const [loggedGoals, setLoggedGoals] = useState([]);
+  const [hasLoggedCalorieAchievement, setHasLoggedCalorieAchievement] = useState(false);
+  const [achievementDate, setAchievementDate] = useState(null); 
+
+
+
 
   const fetchGoals = async () => {
     if (!session || !session.user) {
@@ -86,66 +90,74 @@ export default function GoalsPage() {
   };
 
 
-  const updateGoalHistory = async (completedGoals) => {
-    if (!session?.user) return;
+  const fetchLoggedGoals = async (date) => {
     try {
-      await axios.post("/api/goals/add-history", { goals: completedGoals });
-      if (refreshGoalHistory) refreshGoalHistory();
+      const from = date.toISOString().split("T")[0];
+      const response = await axios.get("/api/goals/get-history", {
+        params: { userId: session?.user.id, from, to: from },
+      });
+      const loggedGoalNames = response.data.data.map((goal) => goal.name);
+      setLoggedGoals(loggedGoalNames);
     } catch (error) {
-      console.error("Failed to update goal history:", error);
+      console.error("Failed to fetch logged goals:", error);
     }
   };
 
-  const checkGoalCompletion = () => {
-    if (calorieGoal > 0 && currentCalories >= calorieGoal) {
-      updateGoalHistory({
-        name: "Calorie Intake",
-        progress: currentCalories,
-        target: calorieGoal,
-        isCompleted: true,
-      });
+  const checkGoalCompletion = async () => {
+    const completedGoals = [];
+    const goalChecks = [
+      { name: "Calorie Intake", current: currentCalories, target: calorieGoal },
+      { name: "Calories Burned", current: currentCaloriesBurned, target: caloriesBurnedGoal },
+      { name: "Steps", current: currentSteps, target: stepsGoal },
+      { name: "Flights Climbed", current: currentFlights, target: flightsGoal },
+      { name: "Distance", current: currentDistance, target: distanceGoal },
+      { name: "Water Intake", current: currentWaterIntake, target: waterIntakeGoal },
+    ];
+
+    goalChecks.forEach(({ name, current, target }) => {
+      if (target && current >= target && !loggedGoals.includes(name)) {
+        completedGoals.push({
+          name,
+          progress: current,
+          target,
+          isCompleted: true,
+          completedAt: new Date(),
+        });
+      }
+    });
+
+    if (!hasLoggedCalorieAchievement && calorieGoal && currentCalories >= calorieGoal) {
+      const today = new Date().toISOString().split("T")[0];
+      if (achievementDate !== today) {
+        console.log("Tracking calorie achievement...");
+        await trackCalorieAchievement();
+        setAchievementDate(today);
+        setHasLoggedCalorieAchievement(true);
+      }
     }
-    if (caloriesBurnedGoal > 0 && currentCaloriesBurned >= caloriesBurnedGoal) {
-      updateGoalHistory({
-        name: "Calories Burned",
-        progress: currentCaloriesBurned,
-        target: caloriesBurnedGoal,
-        isCompleted: true,
-      });
-    }
-    if (stepsGoal > 0 && currentSteps >= stepsGoal) {
-      updateGoalHistory({
-        name: "Steps",
-        progress: currentSteps,
-        target: stepsGoal,
-        isCompleted: true,
-      });
-    }
-    if (flightsGoal > 0 && currentFlights >= flightsGoal) {
-      updateGoalHistory({
-        name: "Flights Climbed",
-        progress: currentFlights,
-        target: flightsGoal,
-        isCompleted: true,
-      });
-    }
-    if (distanceGoal > 0 && currentDistance >= distanceGoal) {
-      updateGoalHistory({
-        name: "Distance",
-        progress: currentDistance,
-        target: distanceGoal,
-        isCompleted: true,
-      });
-    }
-    if (waterIntakeGoal > 0 && currentWaterIntake >= waterIntakeGoal) {
-      updateGoalHistory({
-        name: "Water Intake",
-        progress: currentWaterIntake,
-        target: waterIntakeGoal,
-        isCompleted: true,
-      });
+
+
+    if (completedGoals.length > 0) {
+      await axios.post("/api/goals/add-history", { goals: completedGoals });
+      fetchLoggedGoals(new Date());
     }
   };
+
+  // Check 3-day calorie goal streak achievement
+  const trackCalorieAchievement = async () => {
+    try {
+      await axios.post("/api/achievements/track", {
+        achievementKey: "Weekly Calorie Goal",
+        progressIncrement: 1,
+      });
+
+      console.log("Achievement progress updated successfully.");
+    } catch (error) {
+      console.error("Failed to track calorie achievement:", error.response?.data || error.message);
+    }
+  };
+
+
 
   const handleSaveGoal = async (goalData) => {
     if (!session || !session.user) {
@@ -182,13 +194,13 @@ export default function GoalsPage() {
     }
   };
 
-  const handleRefreshHistory = useCallback((fetchGoalHistory) => {
-    setRefreshGoalHistory(() => fetchGoalHistory);
-  }, []);
-
+  //initialize data
   useEffect(() => {
-    fetchGoals();
-    fetchTodayActivity();
+    if (session?.user) {
+      fetchGoals();
+      fetchTodayActivity();
+      fetchLoggedGoals(new Date());
+    }
   }, [session]);
 
   useEffect(() => {
@@ -223,22 +235,31 @@ export default function GoalsPage() {
     flightsGoal,
     distanceGoal,
     waterIntakeGoal,
+    hasLoggedCalorieAchievement,
+    achievementDate,
   ]);
 
-  useEffect(() => {
-    if (calorieGoal > 0 && currentCalories >= calorieGoal) {
-      setMotivationalMessage("🎉 Congratulations! You've met your calorie intake goal!");
-    } else if (calorieGoal > 0 && currentCalories >= calorieGoal * 0.75) {
-      setMotivationalMessage("Almost there! Keep going!");
-    } else {
-      setMotivationalMessage("Let's keep going towards your goals!");
-    }
-  }, [currentCalories, calorieGoal]);
-
-  function GoalCard({ goalId, title, field, current, goal, color, unit, icon, message, onSaveGoal }) {
+  function GoalCard({ goalId, title, field, current, goal, color, unit, icon, onSaveGoal }) {
     const [isEditing, setIsEditing] = useState(false);
     const [newGoal, setNewGoal] = useState(goal);
     const percentage = Math.min((current / (goal || 1)) * 100, 100);
+
+    const getMotivationalMessage = (current, goal) => {
+      if (current === 0) {
+        return "";
+      }
+      if (goal > 0 && current >= goal) {
+        return "🎉 Goal achieved! Amazing work!";
+      } else if (goal > 0 && current >= goal * 0.75) {
+        return "👍 Almost there! Keep pushing!";
+      } else if (goal > 0 && current >= goal * 0.5) {
+        return "💪 You're halfway there!";
+      } else {
+        return "🌟 Great start! Keep going!";
+      }
+    };
+
+    const message = getMotivationalMessage(current, goal);
 
     const handleEditToggle = () => {
       setIsEditing(!isEditing);
@@ -250,6 +271,7 @@ export default function GoalsPage() {
       handleUpdateGoal(goalId, { [field]: newGoal });
       setIsEditing(false);
     };
+
 
     return (
       <motion.div layout className="w-full">
@@ -333,7 +355,6 @@ export default function GoalsPage() {
               color="#4CAF50"
               unit="kcal"
               icon={<FaUtensils />}
-              message={motivationalMessage}
               onSaveGoal={setCalorieGoal} />
             <GoalCard
               title="Calories Burned"
@@ -395,9 +416,7 @@ export default function GoalsPage() {
           </div>
         </Card>
       </div>
-      <GoalHistory userId={session?.user?.id}
-        onRefreshHistory={handleRefreshHistory}
-      />
+      <GoalHistoryCard userId={session?.user?.id} />
     </div>
   );
 }
