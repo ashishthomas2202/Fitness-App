@@ -69,7 +69,7 @@ const PublishWorkouts = () => {
             id="workout"
             value={selectedWorkoutID}
             onChange={(e) => setSelectedWorkoutID(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-blue-300"
+            className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring focus:border-purple-300"
           >
             <option value="" disabled>
               Select a workout
@@ -83,7 +83,7 @@ const PublishWorkouts = () => {
         </div>
         <Button
           onClick={handlePublish}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg"
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg"
         >
           Publish Workout
         </Button>
