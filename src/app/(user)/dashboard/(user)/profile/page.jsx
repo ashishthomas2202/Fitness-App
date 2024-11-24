@@ -1,5 +1,6 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
+import AchievementsSection from "@/app/(user)/dashboard/(user)/profile/_components/AchievementsSection";
 import { UserProfileForm } from "@/components/form/UserProfileForm";
 import { Loader2, Pencil } from "lucide-react";
 import { ProfileContext } from "@/providers/ProfileProvider";
@@ -163,10 +164,15 @@ export default function UserProfilePage() {
           </section>
         </>
       )}
+      <AchievementsSection
+        userId={profile?.userId}
+        onAchievementCompleted={(completedCount) => setTotalBadges(completedCount)}
+      />
     </Page>
-    // <section className="max-w-screen-sm mx-auto bg-gray-50 dark:bg-neutral-900 shadow-md p-2 rounded-xl my-10">
-    //   <h1 className="text-2xl font-bold text-center my-4">User Profile</h1>
-
-    // </section>
   );
 }
+
+// <section className="max-w-screen-sm mx-auto bg-gray-50 dark:bg-neutral-900 shadow-md p-2 rounded-xl my-10">
+//   <h1 className="text-2xl font-bold text-center my-4">User Profile</h1>
+
+// </section>
