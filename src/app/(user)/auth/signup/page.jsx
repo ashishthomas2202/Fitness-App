@@ -15,6 +15,9 @@ import axios from "axios";
 import _ from "lodash";
 import { Label } from "@/components/ui/Label";
 import { LuEye, LuEyeOff } from "react-icons/lu";
+import { render } from "@react-email/render";
+import SignupEmail from "@/components/emails/signup";
+
 export default function SignUp() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -53,6 +56,24 @@ export default function SignUp() {
 
   const [loading, setLoading] = useState(false);
 
+  const sendSignUpEmail = async (email, firstName) => {
+    console.log("email:::", email);
+    console.log();
+    return await axios
+      .post("/api/email/send-email", {
+        to: email,
+        from: {
+          name: "FlexFit",
+          email: process.env.NEXT_PUBLIC_TRANSACTIONAL_EMAIL,
+        },
+        subject: "Welcome to FlexFit!",
+        html: await render(<SignupEmail firstName={firstName} />),
+      })
+      .catch((error) => {
+        console.error("Error sending email:", error);
+      });
+  };
+
   const onSubmit = async (data) => {
     const { firstName, lastName, email, password } = data;
 
@@ -68,6 +89,8 @@ export default function SignUp() {
         })
         .then(async (response) => {
           if (response?.data?.success) {
+            sendSignUpEmail(email, _.startCase(firstName));
+
             let result = await signIn("credentials", {
               redirect: false,
               email,
