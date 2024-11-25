@@ -39,8 +39,10 @@ export default function GoalsPage() {
   const [goalsAchieved, setGoalsAchieved] = useState(0);
   const [loggedGoals, setLoggedGoals] = useState([]);
   const [hasLoggedCalorieAchievement, setHasLoggedCalorieAchievement] = useState(false);
-  const [achievementDate, setAchievementDate] = useState(null); 
-
+  const [achievementDate, setAchievementDate] = useState(() => {
+    const storedDate = localStorage.getItem("achievementDate");
+    return storedDate ? storedDate : null;
+  });
 
 
 
@@ -105,6 +107,7 @@ export default function GoalsPage() {
 
   const checkGoalCompletion = async () => {
     const completedGoals = [];
+    const today = new Date().toISOString().split("T")[0];
     const goalChecks = [
       { name: "Calorie Intake", current: currentCalories, target: calorieGoal },
       { name: "Calories Burned", current: currentCaloriesBurned, target: caloriesBurnedGoal },
@@ -127,15 +130,14 @@ export default function GoalsPage() {
     });
 
     if (!hasLoggedCalorieAchievement && calorieGoal && currentCalories >= calorieGoal) {
-      const today = new Date().toISOString().split("T")[0];
       if (achievementDate !== today) {
         console.log("Tracking calorie achievement...");
         await trackCalorieAchievement();
         setAchievementDate(today);
         setHasLoggedCalorieAchievement(true);
+        localStorage.setItem("achievementDate", today); // Persist the date
       }
     }
-
 
     if (completedGoals.length > 0) {
       await axios.post("/api/goals/add-history", { goals: completedGoals });
@@ -143,7 +145,6 @@ export default function GoalsPage() {
     }
   };
 
-  // Check 3-day calorie goal streak achievement
   const trackCalorieAchievement = async () => {
     try {
       await axios.post("/api/achievements/track", {
@@ -194,7 +195,7 @@ export default function GoalsPage() {
     }
   };
 
-  //initialize data
+  // Initialize data
   useEffect(() => {
     if (session?.user) {
       fetchGoals();
@@ -203,6 +204,7 @@ export default function GoalsPage() {
     }
   }, [session]);
 
+  // Check for goal completion and update achievements
   useEffect(() => {
     checkGoalCompletion();
     const goals = [
