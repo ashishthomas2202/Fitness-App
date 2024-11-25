@@ -1,4 +1,3 @@
-//src\app\(user)\dashboard\(user)\profile\_components\AchievementsSection.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AchievementCard from "./AchievementCard";
@@ -40,16 +39,21 @@ export default function AchievementsSection({ onAchievementCompleted }) {
             {loading ? (
                 <p className="text-center">Loading...</p>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-                    {achievements.map((achievement, index) => (
-                        <AchievementCard
-                            key={achievement._id || index} // Use fallback if _id is missing
-                            achievement={achievement}
-                        />
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    {achievements.length > 0 ? (
+                        achievements.map((achievement, index) => (
+                            <AchievementCard
+                                key={achievement._id || index} // Use fallback if _id is missing
+                                achievement={achievement}
+                            />
+                        ))
+                    ) : (
+                        <p className="text-center col-span-full text-gray-600">
+                            No achievements to display.
+                        </p>
+                    )}
                 </div>
             )}
         </section>
     );
 }
-
