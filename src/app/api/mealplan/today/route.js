@@ -2,7 +2,7 @@
 
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
-import { format } from "date-fns";  // For getting the day name
+import { format } from "date-fns";  
 
 export async function GET(req) {
     try {
@@ -18,25 +18,23 @@ export async function GET(req) {
         }
 
         const today = new Date();
-        const todayName = format(today, "EEEE"); // Gets the day name like "Monday"
+        const todayName = format(today, "EEEE"); 
 
         const mealPlans = await MealPlan.find({
             userId,
-            "days.day": todayName,  // Check if today's day name matches
+            "days.day": todayName,  
         });
 
         console.log("Meal Plans for today:", mealPlans);
 
         let totalCalories = 0;
 
-        // Loop through each meal plan
+        //loop through each meal plan
         mealPlans.forEach((plan) => {
             plan.days.forEach((dayPlan) => {
                 if (dayPlan.day === todayName) {
-                    console.log(`Matching Day Plan for today: ${dayPlan.day}`);
 
                     dayPlan.meals.forEach((meal) => {
-                        console.log(`Meal: ${meal.name}, Calories: ${meal.calories}`);
                         totalCalories += meal.calories;
                     });
                 }

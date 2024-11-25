@@ -1,3 +1,4 @@
+//src\app\(user)\dashboard\(user)\workout-plans\_components\CreateWorkoutPlanCard.jsx
 "use client";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -23,7 +24,7 @@ import { toast } from "react-toastify";
 import { Label } from "@/components/ui/Label";
 import moment from "moment-timezone";
 
-export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
+export const CreateWorkoutPlanCard = ({ onCreate = () => { }, data }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planName, setPlanName] = useState("");
   const [workouts, setWorkouts] = useState([]);
@@ -118,9 +119,9 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
       prev.map((workout) =>
         workout.id === id
           ? {
-              ...workout,
-              custom: { ...workout.custom, [field]: Number(value) },
-            }
+            ...workout,
+            custom: { ...workout.custom, [field]: Number(value) },
+          }
           : workout
       )
     );
@@ -464,7 +465,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
   );
 };
 
-const DaySelector = ({ value = [], onChange = () => {} }) => {
+const DaySelector = ({ value = [], onChange = () => { } }) => {
   const [error, setError] = useState(null);
   let days = [
     { Monday: "M" },
@@ -526,3 +527,5 @@ const DaySelector = ({ value = [], onChange = () => {} }) => {
     </div>
   );
 };
+
+

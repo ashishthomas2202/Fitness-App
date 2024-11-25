@@ -35,9 +35,9 @@ const MealPlanSchema = new Schema(
                             required: true,
                         },
                         macros: {
-                            protein: { type: Number, required: true },
-                            carbs: { type: Number, required: true },
-                            fat: { type: Number, required: true },
+                            protein: { type: Number, default: null },
+                            carbs: { type: Number, default: null },
+                            fat: { type: Number, default: null },
                         },
                         calories: {
                             type: Number,
@@ -55,19 +55,25 @@ const MealPlanSchema = new Schema(
         startDate: {
             type: Date,
             required: true,
+            default: Date.now,
         },
         endDate: {
             type: Date,
-            required: false,
+            nullable: true,
+            default: null,
         },
         status: {
             type: String,
-            enum: ["complete", "in progress"],
+            enum: ["in progress", "complete"],
             default: "in progress",
         },
         note: {
             type: String,
             default: "",
+        },
+        color: {
+            type: String,
+            default: "#4F46E5",
         },
     },
     {
@@ -84,3 +90,4 @@ const MealPlanSchema = new Schema(
 );
 
 module.exports = mongoose.models.MealPlan || mongoose.model("MealPlan", MealPlanSchema);
+

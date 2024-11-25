@@ -1,7 +1,5 @@
-// src/app/api/mealplan/index.js
 import connectDB from "@/db/db";
 import MealPlan from "@/db/models/MealPlan";
-import Meal from "@/db/models/Meal";
 import { authenticatedUser } from "@/lib/user";
 
 export async function GET(req) {
@@ -9,31 +7,50 @@ export async function GET(req) {
     await connectDB();
     const currentUser = await authenticatedUser();
 
-    if (!currentUser)
+    if (!currentUser) {
       return Response.json(
-        { success: false, message: "Unauthorized User" },
+        {
+          success: false,
+          message: "Unauthorized User",
+        },
         { status: 401 }
       );
+    }
 
-    const mealPlans = await MealPlan.findOne({
+    const activeMealPlan = await MealPlan.findOne({
       userId: currentUser.id,
-      status: "in progress",
+      status: "active",
     })
       .populate({
         path: "days.meals.mealId",
-        select: "name macros calories", // Include name, macros, and calories from the Meal document
+        model: "Meal", 
+        select: "name macros calories", 
       })
-      .sort({ status: 1, createdAt: -1 });
+      .sort({ createdAt: -1 });
+
+    if (!activeMealPlan) {
+      return Response.json(
+        {
+          success: false,
+          message: "No active meal plans found",
+        },
+        { status: 404 }
+      );
+    }
 
     return Response.json(
-      { success: true, message: "Meal plans retrieved", data: mealPlans },
+      {
+        success: true,
+        message: "Active meal plan retrieved successfully",
+        data: activeMealPlan,
+      },
       { status: 200 }
     );
   } catch (error) {
     return Response.json(
       {
         success: false,
-        message: "Failed to get meal plans",
+        message: "Failed to get active meal plan",
         error: error.message,
       },
       { status: 500 }

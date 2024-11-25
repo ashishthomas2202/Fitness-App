@@ -1,52 +1,104 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { Page } from "@/components/dashboard/Page";
+import axios from "axios";
+import { Calendar } from "@/components/ui/Calendar";
+import { MealDialog } from "./_components/MealDialog";
+import { MealPlanCard } from "./_components/MealPlanCard";
 import { Card, CardContent } from "@/components/ui/Card";
 import { PlusCircleIcon } from "lucide-react";
-import axios from "axios";
 import { toast } from "react-toastify";
-import MealPlanCard from "./_components/MealPlanCard";
-import MealPlanDialog from "./_components/MealPlanDialog";
 
 export default function MealPlans() {
   const [mealPlans, setMealPlans] = useState([]);
   const [meals, setMeals] = useState([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchMealPlans = async () => {
-    try {
-      const response = await axios.get("/api/mealplan");
-      setMealPlans(response.data.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch meal plans");
-    }
+    return await axios.get("/api/mealplan")
+      .then((response) => {
+        if (response?.data?.success) {
+          setMealPlans(response?.data?.data || []);
+          return response?.data?.data || [];
+        }
+        return [];
+      })
+      .catch((error) => {
+        return [];
+      });
   };
 
   const fetchMeals = async () => {
-    try {
-      const response = await axios.get("/api/meals");
-      setMeals(response.data.data || []);
-    } catch (error) {
-      toast.error("Failed to fetch meals");
-    }
+    return await axios
+      .get("/api/meals")
+      .then((response) => {
+        if (response?.data?.success) {
+          setMeals(response?.data?.data || []);
+          return response?.data?.data || [];
+        }
+        return [];
+      })
+      .catch((error) => {
+        return [];
+      });
   };
 
-  const handleSaveMealPlan = async (data) => {
+  const createMealPlan = async (data) => {
+    console.log("Payload sent to create meal plan:", data); // Debugging
     try {
-      if (data.id) {
-        await axios.put(`/api/mealplan/${data.id}`, data);
-      } else {
-        await axios.post("/api/mealplan/create", data);
-      }
-      toast.success("Meal plan saved successfully");
+      await axios.post("/api/mealplan/create", data);
+      toast.success("Meal plan created successfully");
       fetchMealPlans();
-    } catch {
-      toast.error("Failed to save meal plan");
+    } catch (error) {
+      console.error("Error creating meal plan:", error.response?.data || error.message);
+      toast.error("Failed to create meal plan");
     }
   };
 
-  const handleDeleteMealPlan = async (id) => {
+  const updateMealPlan = async (planId, data) => {
+    return await axios
+      .put(`/api/mealplan/${planId}/update`, data)
+      .then((response) => {
+        if (response?.data?.success) {
+          toast.success("Meal plan updated successfully");
+          fetchMealPlans();
+        }
+      })
+      .catch((error) => {
+        toast.error("Failed to update meal plan");
+      });
+  };
+
+  const updateMealPlanStatus = async (planId, status) => {
+    return await axios
+      .patch(`/api/mealplan/${planId}/update-status`, { status })
+      .then((response) => {
+        if (response?.data?.success) {
+          toast.success("Meal plan status updated successfully");
+          fetchMealPlans();
+        }
+      })
+      .catch((error) => {
+        toast.error("Failed to update meal plan status");
+      });
+  };
+
+  const updateMealPlanColor = async (planId, color) => {
+    return await axios
+      .patch(`/api/mealplan/${planId}/update-color`, { color })
+      .then((response) => {
+        if (response?.data?.success) {
+          toast.success("Meal plan color updated successfully");
+          fetchMealPlans();
+        }
+      })
+      .catch((error) => {
+        toast.error("Failed to update meal plan color");
+      });
+  };
+
+  const handleDelete = async (planId) => {
     try {
-      await axios.delete(`/api/mealplan/delete/${id}`);
+      await axios.delete(`/api/mealplan/${planId}/delete`);
       toast.success("Meal plan deleted successfully");
       fetchMealPlans();
     } catch {
@@ -60,18 +112,11 @@ export default function MealPlans() {
   }, []);
 
   return (
-    <div className="p-4">
+    <Page title="Meal Plans">
       <section className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        <MealPlanDialog
-          onSave={handleSaveMealPlan}
-          meals={meals}
-          dialogOpen={dialogOpen}
-          setDialogOpen={setDialogOpen}
-        >
-          <Card
-            className="p-2 min-h-52 justify-center cursor-pointer"
-            onClick={() => setDialogOpen(true)}
-          >
+        {/* Create Meal Plan Dialog */}
+        <MealDialog onCreate={createMealPlan} meals={meals}>
+          <Card className="p-2 min-h-52 justify-center cursor-pointer">
             <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
               <PlusCircleIcon size={60} />
               <h3 className="text-xl font-light select-none">
@@ -79,18 +124,21 @@ export default function MealPlans() {
               </h3>
             </CardContent>
           </Card>
-        </MealPlanDialog>
+        </MealDialog>
 
+        {/* Meal Plan Cards */}
         {mealPlans.map((mealPlan) => (
           <MealPlanCard
             key={mealPlan.id}
-            mealPlan={mealPlan}
             meals={meals}
-            onDelete={handleDeleteMealPlan}
-            onSave={handleSaveMealPlan}
+            mealPlan={mealPlan}
+            onUpdate={updateMealPlan}
+            updateColor={updateMealPlanColor}
+            updateStatus={updateMealPlanStatus}
+            onDelete={handleDelete}
           />
         ))}
       </section>
-    </div>
+    </Page>
   );
 }
