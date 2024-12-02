@@ -6,6 +6,7 @@ export const Page = ({
   children,
   className,
   noBackground = false,
+  noTitle = false,
 }) => {
   return (
     <section
@@ -15,9 +16,11 @@ export const Page = ({
         className
       )}
     >
-      <h1 className="text-3xl font-bold text-center sm:text-left mb-10">
-        {title}
-      </h1>
+      {!noTitle && (
+        <h1 className="text-3xl font-bold text-center sm:text-left mb-10">
+          {title}
+        </h1>
+      )}
       <div>{children}</div>
     </section>
   );

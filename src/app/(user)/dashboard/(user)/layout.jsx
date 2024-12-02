@@ -10,6 +10,7 @@ import { FiSettings } from "react-icons/fi";
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
+import { FiMessageCircle } from "react-icons/fi";
 
 export default function UserDashboardLayout({ children }) {
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,11 @@ export default function UserDashboardLayout({ children }) {
       title: "Community",
       icon: <HiUserGroup size={20} />,
       href: "/dashboard/community",
+    },
+    {
+      title: "Direct Messages",
+      icon: <FiMessageCircle size={20} />,
+      href: "/dashboard/direct-messages",
     },
     {
       title: "Settings",
