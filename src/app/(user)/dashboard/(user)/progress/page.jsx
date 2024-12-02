@@ -324,7 +324,7 @@ export default function ProgressPage() {
     switch (activeTab) {
       case "weight":
         return (
-          <Card>
+          <Card className="dark:bg-neutral-900">
             <CardHeader>
               <CardTitle>Weight Tracking</CardTitle>
             </CardHeader>
@@ -350,25 +350,24 @@ export default function ProgressPage() {
                         }
                       }}
                       placeholder="Enter weight (lbs)"
-                      className="flex-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
+                      className="flex-1 dark:bg-neutral-800"
                     />
                     <DatePicker
                       selected={selectedDate}
                       onChange={(date) => setSelectedDate(date)}
                       maxDate={new Date()}
                       dateFormat="MMM d, yyyy"
-                      calendarClassName="!bg-white dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700"
                       className="w-[150px]"
                       customInput={
                         <Input
                           type="text"
-                          className="w-[150px] dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                          className="w-[150px] dark:bg-neutral-800"
                         />
                       }
                     />
                     <Button
                       type="submit"
-                      className="whitespace-nowrap"
+                      className="whitespace-nowrap py-6 "
                       disabled={loading}
                     >
                       Log Weight
@@ -597,7 +596,7 @@ export default function ProgressPage() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+                    <AlertDialogCancel className="dark:bg-neutral-950 dark:text-white dark:hover:bg-neutral-900">
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction
@@ -627,7 +626,7 @@ export default function ProgressPage() {
         );
       case "photos":
         return (
-          <Card>
+          <Card className="dark:bg-neutral-900">
             <CardHeader>
               <CardTitle>Progress Photos</CardTitle>
             </CardHeader>
@@ -780,7 +779,7 @@ export default function ProgressPage() {
 
       case "measurements":
         return (
-          <Card>
+          <Card className="dark:bg-neutral-900">
             <CardHeader>
               <CardTitle>Body Measurements</CardTitle>
             </CardHeader>
@@ -808,7 +807,7 @@ export default function ProgressPage() {
                           }
                         }}
                         placeholder={`Enter ${key} measurement`}
-                        className="dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:placeholder-gray-400"
+                        className="dark:bg-neutral-800 dark:text-white dark:border-neutral-600 dark:placeholder-neutral-400"
                         required
                       />
                     </div>
@@ -827,16 +826,15 @@ export default function ProgressPage() {
                     onChange={(date) => setSelectedDate(date)}
                     maxDate={new Date()}
                     dateFormat="MMM d, yyyy"
-                    calendarClassName="!bg-white dark:!bg-gray-800 !border-gray-200 dark:!border-gray-700"
                     className="w-[150px]"
                     customInput={
                       <Input
                         type="text"
-                        className="w-[150px] dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                        className="w-[150px] dark:bg-neutral-900 dark:text-white dark:border-gray-600"
                       />
                     }
                   />
-                  <Button type="submit" className="whitespace-nowrap">
+                  <Button type="submit" className="whitespace-nowrap py-6">
                     Log Measurements
                   </Button>
                 </div>
@@ -1158,7 +1156,7 @@ export default function ProgressPage() {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+                    <AlertDialogCancel className="dark:bg-neutral-950 dark:text-white dark:hover:bg-neutral-900">
                       Cancel
                     </AlertDialogCancel>
                   </AlertDialogFooter>
@@ -1176,13 +1174,13 @@ export default function ProgressPage() {
     <div className="container mx-auto p-6 max-w-6xl">
       <h1 className="text-3xl font-bold mb-6">Progress Tracker</h1>
 
-      <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+      <div className="flex space-x-1 mb-8 bg-white dark:bg-neutral-800 rounded-lg p-1">
         <button
           onClick={() => setActiveTab("weight")}
           className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md flex-1 transition-colors ${
             activeTab === "weight"
-              ? "bg-white dark:bg-gray-700 shadow-sm"
-              : "hover:bg-gray-200 dark:hover:bg-gray-600"
+              ? "bg-neutral-100 dark:bg-neutral-950 shadow-sm"
+              : "hover:bg-neutral-50 dark:hover:bg-neutral-900"
           }`}
         >
           <Scale className="w-4 h-4" />
@@ -1192,8 +1190,8 @@ export default function ProgressPage() {
           onClick={() => setActiveTab("photos")}
           className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md flex-1 transition-colors ${
             activeTab === "photos"
-              ? "bg-white dark:bg-gray-700 shadow-sm"
-              : "hover:bg-gray-200 dark:hover:bg-gray-600"
+              ? "bg-neutral-100 dark:bg-neutral-950 shadow-sm"
+              : "hover:bg-neutral-50 dark:hover:bg-neutral-900"
           }`}
         >
           <Camera className="w-4 h-4" />
@@ -1203,8 +1201,8 @@ export default function ProgressPage() {
           onClick={() => setActiveTab("measurements")}
           className={`flex items-center justify-center gap-2 px-4 py-2 rounded-md flex-1 transition-colors ${
             activeTab === "measurements"
-              ? "bg-white dark:bg-gray-700 shadow-sm"
-              : "hover:bg-gray-200 dark:hover:bg-gray-600"
+              ? "bg-neutral-100 dark:bg-neutral-950 shadow-sm"
+              : "hover:bg-neutral-50 dark:hover:bg-neutral-900"
           }`}
         >
           <Ruler className="w-4 h-4" />
