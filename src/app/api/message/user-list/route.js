@@ -17,6 +17,44 @@ export async function GET(req) {
       );
     }
 
+    // const conversations = await Message.aggregate([
+    //   {
+    //     $match: {
+    //       $or: [
+    //         { sender: new mongoose.Types.ObjectId(currentUser.id) },
+    //         { receiver: new mongoose.Types.ObjectId(currentUser.id) },
+    //       ],
+    //     },
+    //   },
+    //   {
+    //     $group: {
+    //       _id: null,
+    //       users: {
+    //         $addToSet: {
+    //           $cond: [
+    //             {
+    //               $ne: ["$sender", new mongoose.Types.ObjectId(currentUser.id)],
+    //             },
+    //             "$sender",
+    //             "$receiver",
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+    // ]);
+
+    // console.log("conversations", conversations);
+    // const userIds = conversations[0]?.users || [];
+
+    // // Fetch user details for the conversation list
+    // const users = await User.find({ _id: { $in: userIds } })
+    //   .select("firstName lastName email profile")
+    //   .populate({
+    //     path: "profile",
+    //     select: "profilePicture firstName lastName email",
+    //   });
+
     const conversations = await Message.aggregate([
       {
         $match: {
@@ -27,25 +65,28 @@ export async function GET(req) {
         },
       },
       {
+        $sort: { timestamp: -1 }, // Sort by latest message timestamp
+      },
+      {
         $group: {
-          _id: null,
-          users: {
-            $addToSet: {
-              $cond: [
-                {
-                  $ne: ["$sender", new mongoose.Types.ObjectId(currentUser.id)],
-                },
-                "$sender",
-                "$receiver",
-              ],
-            },
+          _id: {
+            $cond: [
+              {
+                $ne: ["$sender", new mongoose.Types.ObjectId(currentUser.id)],
+              },
+              "$sender",
+              "$receiver",
+            ],
           },
+          lastMessage: { $first: "$timestamp" }, // Keep the latest timestamp
         },
+      },
+      {
+        $sort: { lastMessage: -1 }, // Sort users by latest conversation
       },
     ]);
 
-    console.log("conversations", conversations);
-    const userIds = conversations[0]?.users || [];
+    const userIds = conversations.map((conversation) => conversation._id);
 
     // Fetch user details for the conversation list
     const users = await User.find({ _id: { $in: userIds } })
@@ -55,10 +96,15 @@ export async function GET(req) {
         select: "profilePicture firstName lastName email",
       });
 
+    // Map the users to maintain the sorted order
+    const sortedUsers = userIds.map((id) =>
+      users.find((user) => user._id.toString() === id.toString())
+    );
+
     return new Response(
       JSON.stringify({
         success: true,
-        data: users,
+        data: sortedUsers,
       }),
       { status: 200 }
     );

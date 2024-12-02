@@ -325,11 +325,39 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
       });
   };
 
+  // useEffect(() => {
+  //   setMessages([]);
+  //   if (user) {
+  //     // fetch messages periodically
+  //     setInterval(() => {
+  //       fetchMessages();
+  //     }, 2000);
+
+  //     // fetch messages on mount
+  //     fetchMessages();
+  //   }
+  // }, [user]);
   useEffect(() => {
     setMessages([]);
+
+    let intervalId;
+
     if (user) {
+      // Fetch messages on mount
       fetchMessages();
+
+      // Set up periodic fetching
+      intervalId = setInterval(() => {
+        fetchMessages();
+      }, 2000);
     }
+
+    // Cleanup function to clear the interval
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, [user]);
 
   return (
@@ -375,7 +403,7 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
                       "px-4 py-2 w-fit rounded-lg",
                       item?.receiver === user?.id
                         ? "justify-self-end bg-violet-200 dark:bg-violet-500"
-                        : "justify-self-start"
+                        : "justify-self-start bg-neutral-100 dark:bg-neutral-800"
                     )}
                   >
                     {item?.content}
@@ -387,12 +415,24 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
           <footer className="py-2 px-2">
             <div className="flex gap-2">
               <Input
+                className="dark:bg-neutral-800"
                 type="text"
                 placeholder="Type a message"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    if (message.trim().length > 0) {
+                      sendMessage();
+                    }
+                  }
+                }}
               />
-              <Button className="py-6 text-2xl" onClick={sendMessage}>
+              <Button
+                className="py-6 text-2xl"
+                onClick={sendMessage}
+                disabled={message.trim().length == 0}
+              >
                 <IoIosSend />
               </Button>
             </div>
