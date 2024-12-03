@@ -18,7 +18,7 @@ import { Loader2 } from "lucide-react";
 import { MdArrowBack } from "react-icons/md";
 import { Input } from "@/components/ui/Input";
 import { IoIosSend } from "react-icons/io";
-
+import moment from "moment";
 export default function DirectMessagePage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -114,7 +114,6 @@ const AddUserDialog = ({ onAdd = () => {} }) => {
         ) : users.length > 0 ? (
           <main className="space-y-2 overflow-y-auto max-h-60 p-2 shadow-inner bg-neutral-50 dark:bg-neutral-900 rounded-lg">
             {users.map((user, i) => {
-              console.log(user);
               return (
                 <div
                   key={`${user?.id}-user-list`}
@@ -179,7 +178,6 @@ const Sidebar = ({
       .get(`/api/message/user-list`)
       .then((res) => {
         if (res.data.success) {
-          console.log(res.data);
           setUsers(res.data.data);
           return res.data.data;
         }
@@ -292,7 +290,6 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
       .get(`/api/message/${user?.id}/get`)
       .then((res) => {
         if (res.data.success) {
-          console.log(res.data.data);
           setMessages(res.data.data);
           return res.data.data;
         }
@@ -325,18 +322,6 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
       });
   };
 
-  // useEffect(() => {
-  //   setMessages([]);
-  //   if (user) {
-  //     // fetch messages periodically
-  //     setInterval(() => {
-  //       fetchMessages();
-  //     }, 2000);
-
-  //     // fetch messages on mount
-  //     fetchMessages();
-  //   }
-  // }, [user]);
   useEffect(() => {
     setMessages([]);
 
@@ -363,7 +348,7 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
   return (
     <section
       className={cn(
-        "flex-1 bg-white dark:bg-neutral-900 rounded-lg",
+        "flex-1 bg-white dark:bg-neutral-900 rounded-lg max-h-[calc(100vh-150px)]",
         !user && "hidden sm:flex justify-center items-center",
         active ? "block" : "hidden sm:block"
       )}
@@ -393,22 +378,54 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
               </h2>
             </div>
           </header>
-          <main className="flex-1 px-2 py-2 flex flex-col justify-end">
+          <main className="flex-1 overflow-y-auto py-2  flex flex-col justify-end">
             {messages.length > 0 && (
-              <ul className="space-y-4">
-                {messages.map((item) => (
-                  <div
-                    key={`message-${item?._id}`}
-                    className={cn(
-                      "px-4 py-2 w-fit rounded-lg",
-                      item?.receiver === user?.id
-                        ? "justify-self-end bg-violet-200 dark:bg-violet-500"
-                        : "justify-self-start bg-neutral-100 dark:bg-neutral-800"
-                    )}
-                  >
-                    {item?.content}
-                  </div>
-                ))}
+              <ul className="space-y-4 h-fit overflow-y-auto px-2">
+                {messages.map((item, index) => {
+                  const currentDate = moment(item?.timestamp).format(
+                    "YYYY-MM-DD"
+                  );
+                  const previousDate =
+                    index > 0
+                      ? moment(messages[index - 1]?.timestamp).format(
+                          "YYYY-MM-DD"
+                        )
+                      : null;
+
+                  const isNewDay = currentDate !== previousDate;
+
+                  return (
+                    <div key={`message-${item?._id}`}>
+                      {/* Display date if it's a new day */}
+                      {isNewDay && (
+                        <div className="text-center text-sm text-gray-500 mb-4">
+                          {moment(item?.timestamp).format("MMMM DD, YYYY")}
+                        </div>
+                      )}
+
+                      <div
+                        className={cn(
+                          "px-4 py-2 w-fit rounded-lg break-words",
+                          item?.receiver === user?.id
+                            ? "justify-self-end bg-violet-200 dark:bg-violet-500"
+                            : "justify-self-start bg-neutral-100 dark:bg-neutral-800"
+                        )}
+                      >
+                        {item?.content}
+                      </div>
+                      <p
+                        className={cn(
+                          "text-[12px] dark:text-neutral-500 font-light",
+                          item?.receiver === user?.id
+                            ? "text-right"
+                            : "text-left"
+                        )}
+                      >
+                        {moment(item?.timestamp).format("hh:mm:A")}
+                      </p>
+                    </div>
+                  );
+                })}
               </ul>
             )}
           </main>
@@ -440,35 +457,5 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
         </article>
       )}
     </section>
-  );
-};
-
-// const DMList = ({ list = [] }) => {
-//   return list.length > 0 ? (
-//     <ul className="space-y-4">
-//       {list.map((item) => (
-//         <DMItem key={item.id} {...item} />
-//       ))}
-//     </ul>
-//   ) : (
-//     <p className="text-center text-gray-500 dark:text-gray-400">
-//       No messages to show
-//     </p>
-//   );
-// };
-
-const DMItem = ({ id, user, message, timestamp }) => {
-  return (
-    <li className="flex items-center space-x-4">
-      <img
-        src={user.avatar}
-        alt={user.name}
-        className="w-12 h-12 rounded-full"
-      />
-      <div>
-        <h3 className="font-semibold">{user.name}</h3>
-        <p className="text-gray-500 dark:text-gray-400">{message}</p>
-      </div>
-    </li>
   );
 };
