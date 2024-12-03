@@ -1068,6 +1068,7 @@ const DayEventList = ({
                     // >
                     <DetailedEvent
                       event={event}
+                      key={`event-${event.name}-${eventIndex}`}
                       onClick={() => {
                         console.log("Event clicked:", event);
                       }}
