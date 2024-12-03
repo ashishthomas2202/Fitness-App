@@ -51,6 +51,7 @@ import { cn } from "@/lib/utils";
 import React, { useEffect, useState, useLayoutEffect } from "react";
 import { useScreenSize } from "@/hooks/useScreenSize";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import moment from "moment";
 
 const getCurrentWeek = (selectedDate) => {
   const startOfWeek = new Date(
@@ -90,73 +91,73 @@ const Days = [
 export const Calendar = ({
   value = new Date(),
   onChange = () => {},
-  // items = [
-  //   // One-time event
-  //   { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
-  //   // Daily recurring event starting today
-  //   {
-  //     repeat: "daily",
-  //     name: "Daily Event",
-  //     color: "#f59e0b",
-  //     start: "2024-10-01",
-  //     time: "3:00 PM",
-  //   },
-  //   // Weekly recurring event on Monday and Wednesday starting from a specific date
-  //   {
-  //     repeat: "weekly",
-  //     days: ["Monday", "Wednesday"],
-  //     name: "Weekly Event",
-  //     color: "#10b981",
-  //     start: "2024-09-15",
-  //   },
-  //   // Weekly event with a start and end date (limited occurrence)
-  //   {
-  //     repeat: "weekly",
-  //     days: ["Tuesday", "Thursday"],
-  //     name: "Limited Weekly Event",
-  //     color: "#f87171",
-  //     start: "2024-09-10",
-  //     end: "2024-10-20",
-  //   },
-  //   // Monthly recurring event on the 15th of every month
-  //   {
-  //     repeat: "monthly",
-  //     day: 15,
-  //     name: "Monthly Event",
-  //     color: "#3b82f6",
-  //   },
-  //   // Monthly event starting from October 1st, ending on December 15th
-  //   {
-  //     repeat: "monthly",
-  //     day: 1,
-  //     name: "Limited Monthly Event",
-  //     color: "#34d399",
-  //     start: "2024-10-01",
-  //     end: "2024-12-15",
-  //   },
-  //   // One-time event in the future
-  //   { date: "2024-12-25", name: "Christmas Event", color: "#ef4444" },
-  //   // Event repeating only on custom days
-  //   {
-  //     repeat: "weekly",
-  //     days: ["Friday", "Saturday"],
-  //     name: "Weekend Event",
-  //     color: "#8b5cf6",
-  //     start: "2024-09-20",
-  //     time: "10:00 AM",
-  //   },
-  //   {
-  //     repeat: "weekly",
-  //     days: ["Friday", "Saturday"],
-  //     name: "Personal Event",
-  //     color: "#8b5446",
-  //     start: "2024-09-20",
-  //     end: "2024-10-15",
-  //     startTime: "11:00 AM",
-  //     endTime: "12:00 PM",
-  //   },
-  // ],
-  items = [],
+  items = [
+    // One-time event
+    { date: "2024-10-05", name: "One-time Event", color: "#8b5cf6" },
+    // Daily recurring event starting today
+    {
+      repeat: "daily",
+      name: "Daily Event",
+      color: "#f59e0b",
+      start: "2024-10-01",
+      time: "3:00 PM",
+    },
+    // Weekly recurring event on Monday and Wednesday starting from a specific date
+    {
+      repeat: "weekly",
+      days: ["Monday", "Wednesday"],
+      name: "Weekly Event",
+      color: "#10b981",
+      start: "2024-09-15",
+    },
+    // Weekly event with a start and end date (limited occurrence)
+    {
+      repeat: "weekly",
+      days: ["Tuesday", "Thursday"],
+      name: "Limited Weekly Event",
+      color: "#f87171",
+      start: "2024-09-10",
+      end: "2024-10-20",
+    },
+    // Monthly recurring event on the 15th of every month
+    {
+      repeat: "monthly",
+      day: 15,
+      name: "Monthly Event",
+      color: "#3b82f6",
+    },
+    // Monthly event starting from October 1st, ending on December 15th
+    {
+      repeat: "monthly",
+      day: 1,
+      name: "Limited Monthly Event",
+      color: "#34d399",
+      start: "2024-10-01",
+      end: "2024-12-15",
+    },
+    // One-time event in the future
+    { date: "2024-12-25", name: "Christmas Event", color: "#ef4444" },
+    // Event repeating only on custom days
+    {
+      repeat: "weekly",
+      days: ["Friday", "Saturday"],
+      name: "Weekend Event",
+      color: "#8b5cf6",
+      start: "2024-09-20",
+      time: "10:00 AM",
+    },
+    {
+      repeat: "weekly",
+      days: ["Friday", "Saturday"],
+      name: "Personal Event",
+      color: "#8b5446",
+      start: "2024-09-20",
+      end: "2024-10-15",
+      startTime: "11:00 AM",
+      endTime: "1:00 PM",
+    },
+  ],
+  // items = [],
   selection = true,
 }) => {
   const [year, setYear] = useState(value.getFullYear());
@@ -396,9 +397,52 @@ export const Calendar = ({
           selection={selection}
         />
       )}
+      {mode == "day" && (
+        <DayView
+          key={`${year}-${month}-${date}-dayView`} // Force re-render on key change
+          date={{
+            year: year,
+            month: month,
+            date: date,
+          }}
+          setDate={{
+            year: setYear,
+            month: setMonth,
+            date: setDate,
+          }}
+          onChange={onChange}
+          getEventsForDay={getEventsForDay}
+          handleEventClick={handleEventClick}
+          selection={selection}
+        />
+      )}
     </section>
   );
 };
+
+const DayView = ({
+  date: selectedDate = {},
+  setDate = {},
+  onChange = () => {},
+  getEventsForDay = () => [],
+  handleEventClick = () => {},
+  selection = false,
+}) => {
+  return (
+    <>
+      <DayEventList
+        date={{
+          year: selectedDate.year,
+          month: selectedDate.month,
+          date: selectedDate.date,
+        }}
+        getEventsForDay={getEventsForDay}
+        selection={selection}
+      />
+    </>
+  );
+};
+
 const WeekView = ({
   date: selectedDate = {},
   setDate = {},
@@ -410,50 +454,13 @@ const WeekView = ({
 }) => {
   return (
     <>
-      {/* <div className="grid grid-cols-7 sm:gap-2 pl-10">
-        {weekDates.map((date) => {
-          const day = date.getDate();
-          const month = date.getMonth(); // Track the correct month
-          const year = date.getFullYear(); // Track the correct year
-
-          return (
-            <DateBlock
-              key={date.toISOString()}
-              day={date.getDate()}
-              selected={
-                selection &&
-                date.getDate() == selectedDate?.date &&
-                date.getMonth() == selectedDate?.month &&
-                date.getFullYear() == selectedDate?.year
-              }
-              onClick={() => {
-                const selectedDate = new Date(date);
-                setDate?.year(selectedDate.getFullYear());
-                setDate?.month(selectedDate.getMonth());
-                setDate?.date(selectedDate.getDate());
-                onChange(selectedDate);
-              }}
-            >
-              {getEventsForDay({ day, month, year }).map((event, index) => (
-                <Event
-                  key={`event-${index}`}
-                  event={event}
-                  onClick={() =>
-                    handleEventClick({ day: date.getDate(), event })
-                  }
-                />
-              ))}
-            </DateBlock>
-          );
-        })}
-      </div> */}
-
-      <EventList
+      <WeekEventList
         date={{
           year: selectedDate.year,
           month: selectedDate.month,
           date: selectedDate.date,
         }}
+        setDate={setDate}
         getEventsForDay={getEventsForDay}
         weekDates={weekDates}
         selection={selection}
@@ -461,6 +468,7 @@ const WeekView = ({
     </>
   );
 };
+
 const MonthView = ({
   preDays = [],
   daysInMonth = [],
@@ -631,6 +639,19 @@ const Navigator = ({ date, set, mode }) => {
     set?.month(newDate.getMonth());
     set?.date(newDate.getDate());
   };
+  const getNextDay = () => {
+    const newDate = new Date(date.year, date.month, date.date + 1);
+    set?.year(newDate.getFullYear());
+    set?.month(newDate.getMonth());
+    set?.date(newDate.getDate());
+  };
+
+  const getPrevDay = () => {
+    const newDate = new Date(date.year, date.month, date.date - 1);
+    set?.year(newDate.getFullYear());
+    set?.month(newDate.getMonth());
+    set?.date(newDate.getDate());
+  };
 
   const getToday = () => {
     set?.year(new Date().getFullYear());
@@ -643,6 +664,8 @@ const Navigator = ({ date, set, mode }) => {
       getNextMonth();
     } else if (mode === "week") {
       getNextWeek();
+    } else if (mode === "day") {
+      getNextDay();
     }
   };
 
@@ -651,6 +674,8 @@ const Navigator = ({ date, set, mode }) => {
       getPrevMonth();
     } else if (mode === "week") {
       getPrevWeek();
+    } else if (mode === "day") {
+      getPrevDay();
     }
   };
 
@@ -779,10 +804,7 @@ const DetailedEvent = ({ event, onClick = () => {} }) => (
   </div>
 );
 
-// /**
-//  * Displays events with and without specific times.
-//  */
-// const EventList = ({
+// const DayEventList = ({
 //   date: selectedDate = {},
 //   getEventsForDay = () => [],
 //   weekDates,
@@ -798,93 +820,60 @@ const DetailedEvent = ({ event, onClick = () => {} }) => (
 //     return { hours: parseInt(hours), minutes: parseInt(minutes) };
 //   };
 
+//   const currentDate = selectedDate.date;
+//   const currentMonth = selectedDate.month;
+//   const currentYear = selectedDate.year;
+
+//   const dayEvents = getEventsForDay({
+//     day: currentDate,
+//     month: currentMonth,
+//     year: currentYear,
+//   });
+//   const [timedEvents, untimedEvents] = dayEvents.reduce(
+//     ([timed, untimed], event) => {
+//       if (event.startTime || event.endTime || event.time) timed.push(event);
+//       else untimed.push(event);
+//       return [timed, untimed];
+//     },
+//     [[], []]
+//   );
+
 //   return (
-//     <>
-//       <div className="grid grid-cols-8">
-//         <div className="col-span-1"></div>
-//         {weekDates.map((date) => {
-//           const currentDate = date.getDate();
-//           const currentMonth = date.getMonth();
-//           const currentYear = date.getFullYear();
-//           const currentDay = date.getDay();
-//           const dayEvents = getEventsForDay({
-//             day: currentDate,
-//             month: currentMonth,
-//             year: currentYear,
-//           });
-
-//           const [timedEvents, untimedEvents] = dayEvents.reduce(
-//             ([timed, untimed], event) => {
-//               if (event.startTime || event.endTime || event.time)
-//                 timed.push(event);
-//               else untimed.push(event);
-//               return [timed, untimed];
-//             },
-//             [[], []]
-//           );
-
-//           return (
-//             <div
-//               key={`${date.toISOString()}-weekday-weekview`}
-//               className="px-2"
-//             >
-//               <div
-//                 className={cn(
-//                   "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square",
-//                   selection &&
-//                     selectedDate.date == currentDate &&
-//                     "bg-violet-500 dark:bg-violet-500 text-white"
-//                 )}
-//               >
-//                 <div>
-//                   <h2
-//                     className={cn(
-//                       "text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate",
-//                       selection &&
-//                         selectedDate.date == currentDate &&
-//                         "text-slate-100 dark:text-slate-100"
-//                     )}
-//                   >
-//                     {Days[currentDay]}
-//                   </h2>
-//                   <h2 className="text-4xl font-bold text-center mt-2">
-//                     {currentDate}
-
-//                     {/* {`${Months[currentMonth].slice(0, 3)} ${currentDate}`} */}
-//                   </h2>
-//                 </div>
-//                 {untimedEvents.length != 0 && (
-//                   <>
-//                     <h3 className="font-semibold text-center mt-4">
-//                       Untimed Events
-//                     </h3>
-//                     {untimedEvents.map((event, index) => (
-//                       <div className="">
-//                         <Event
-//                           key={`untimed-${index}-weekview`}
-//                           event={event}
-//                           selected={
-//                             selection && selectedDate.date == currentDate
-//                           }
-//                         />
-//                       </div>
-//                     ))}
-//                   </>
-//                 )}
-//               </div>
-//             </div>
-//           );
-//         })}
+//     <section>
+//       <div className="bg-violet-400 text-white rounded-lg pl-3 py-2">
+//         <div className="w-fit text-center">
+//           <h3 className="">
+//             {moment(new Date(currentYear, currentMonth, currentDate))
+//               .format("ddd")
+//               .toUpperCase()}
+//           </h3>
+//           <h2 className="text-3xl font-semibold">
+//             {moment(new Date(currentYear, currentMonth, currentDate)).format(
+//               "DD"
+//             )}
+//           </h2>
+//         </div>
 //       </div>
+//       {console.log(dayEvents)}
 
-//       <div className="grid grid-cols-8 bg-slate-50 dark:bg-neutral-800 rounded-lg py-5 mt-5">
-//         <div className="col-span-1">
+//       {untimedEvents.length > 0 && (
+//         <>
+//           <h3 className="font-semibold text-center mt-4">Untimed Events</h3>
+//           {untimedEvents.map((event, index) => (
+//             <Event
+//               key={`untimed-${event.name}-${index}`}
+//               event={event}
+//               // selected={selection && selectedDate.date === currentDate}
+//             />
+//           ))}
+//         </>
+//       )}
+
+//       <div className="grid grid-cols-2 bg-slate-50 dark:bg-neutral-800 rounded-lg py-5 mt-5">
+//         <div className="w-20">
 //           <div className="grid grid-rows-subgrid">
-//             {hours.map((hour) => (
-//               <div
-//                 key={`${hour}-time-marker-weekview`}
-//                 className="col-span-1 h-16"
-//               >
+//             {hours.map((hour, hourIndex) => (
+//               <div key={`hour-${hourIndex}`} className="col-span-1 h-16">
 //                 <div className="text-center text-sm text-gray-600 dark:text-gray-400">
 //                   {hour}
 //                 </div>
@@ -892,103 +881,214 @@ const DetailedEvent = ({ event, onClick = () => {} }) => (
 //             ))}
 //           </div>
 //         </div>
-//         {weekDates.map((date) => {
-//           const currentDate = date.getDate();
-//           const currentMonth = date.getMonth();
-//           const currentYear = date.getFullYear();
-//           const currentDay = date.getDay();
-//           const dayEvents = getEventsForDay({
-//             day: currentDate,
-//             month: currentMonth,
-//             year: currentYear,
+//       </div>
+
+//       <div>
+//         {hours.map((hour, hourIndex) => {
+//           const currentHour = parseInt(hour);
+
+//           const matchingEvents = timedEvents.filter((event) => {
+//             const { hours: startHour } = parseTime(
+//               event.startTime || event.time || "12:00 AM"
+//             );
+//             const { hours: endHour } = parseTime(
+//               event.endTime || event.time || "12:00 AM"
+//             );
+
+//             if (event.time) return startHour === currentHour;
+//             return startHour <= currentHour && currentHour < endHour;
 //           });
 
-//           const [timedEvents, untimedEvents] = dayEvents.reduce(
-//             ([timed, untimed], event) => {
-//               if (event.startTime || event.endTime || event.time)
-//                 timed.push(event);
-//               else untimed.push(event);
-//               return [timed, untimed];
-//             },
-//             [[], []]
-//           );
-
 //           return (
-//             <div key={`${date.toISOString()}-weekday-weekview-1`}>
-//               {/* <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-//                 {date.getDate()}
-//               </div> */}
-
-//               {hours.map((hour) => {
-//                 const currentHour = parseInt(hour);
-
-//                 // Filter events that match the current hour or span between this hour and the next
-//                 const matchingEvents = timedEvents.filter((event) => {
-//                   const { hours: startHour, minutes: startMinute } = parseTime(
-//                     event.startTime || event.time || "12:00 AM"
-//                   );
-//                   const { hours: endHour } = parseTime(
-//                     event.endTime || event.time || "12:00 AM"
-//                   );
-
-//                   // Case 1: Events with only 'time' key (point-in-time events)
-//                   if (event.time) {
-//                     return startHour === currentHour;
-//                   }
-
-//                   // Case 2: Events with 'startTime' and 'endTime' (span events)
-//                   return (
-//                     startHour <= currentHour &&
-//                     (endHour > currentHour ||
-//                       (endHour === currentHour && startMinute === 0))
-//                   );
-//                 });
-
-//                 // Render the events or a blank div if no matching events found
-//                 return (
+//             <div
+//               key={`hour-${hourIndex}-timedEvents`}
+//               className="col-span-1 h-16 relative"
+//             >
+//               {matchingEvents.length > 0 ? (
+//                 matchingEvents.map((event, eventIndex) => (
 //                   <div
-//                     key={`${date.toISOString()}-${hour}-weekday-weekview-2`}
-//                     className="col-span-1 h-16 relative"
+//                     key={`event-${event.name}-${eventIndex}`}
+//                     className="border-l dark:border-l-neutral-700 h-full px-2"
 //                   >
-//                     {matchingEvents.length > 0 ? (
-//                       matchingEvents.map((event, index) => (
-//                         <div className="border-l dark:border-l-neutral-700 h-full px-2">
-//                           <DetailedEvent
-//                             key={`timed-${hour}-${index}-weekview`}
-//                             event={event}
-//                             style={{
-//                               position: "absolute",
-//                               top: 0,
-//                               height: `${
-//                                 (parseTime(
-//                                   event.endTime || event.time || "12:00 AM"
-//                                 ).hours -
-//                                   parseTime(
-//                                     event.startTime || event.time || "12:00 AM"
-//                                   ).hours) *
-//                                 50
-//                               }px`,
-//                               width: "100%",
-//                             }}
-//                           />
-//                         </div>
-//                       ))
-//                     ) : (
-//                       <div className="h-full border-l dark:border-l-neutral-700"></div> // Blank div if no event found
-//                     )}
+//                     <DetailedEvent
+//                       event={event}
+//                       style={{
+//                         position: "absolute",
+//                         top: 0,
+//                         height: `${
+//                           (parseTime(event.endTime || "12:00 AM").hours -
+//                             parseTime(event.startTime || "12:00 AM").hours) *
+//                           50
+//                         }px`,
+//                         width: "100%",
+//                       }}
+//                       onClick={() => {
+//                         // console.log(
+//                         //   "Day clicked:",
+//                         //   date.getDate(),
+//                         //   "-",
+//                         //   date.getMonth(),
+//                         //   "-",
+//                         //   date.getFullYear()
+//                         // );
+//                         // console.log("Event clicked:", event);
+//                       }}
+//                     />
 //                   </div>
-//                 );
-//               })}
+//                 ))
+//               ) : (
+//                 <div className="h-full border-l dark:border-l-neutral-700"></div>
+//               )}
 //             </div>
 //           );
 //         })}
 //       </div>
-//     </>
+//     </section>
 //   );
 // };
 
-const EventList = ({
+const DayEventList = ({
   date: selectedDate = {},
+  getEventsForDay = () => [],
+  selection = false,
+}) => {
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+  const parseTime = (timeString) => {
+    const [time, modifier] = timeString.split(" ");
+    let [hours, minutes] = time.split(":");
+    if (modifier === "PM" && hours !== "12") hours = parseInt(hours) + 12;
+    if (modifier === "AM" && hours === "12") hours = 0;
+    return { hours: parseInt(hours), minutes: parseInt(minutes) };
+  };
+
+  const currentDate = selectedDate.date;
+  const currentMonth = selectedDate.month;
+  const currentYear = selectedDate.year;
+
+  const dayEvents = getEventsForDay({
+    day: currentDate,
+    month: currentMonth,
+    year: currentYear,
+  });
+
+  const [timedEvents, untimedEvents] = dayEvents.reduce(
+    ([timed, untimed], event) => {
+      if (event.startTime || event.endTime || event.time) timed.push(event);
+      else untimed.push(event);
+      return [timed, untimed];
+    },
+    [[], []]
+  );
+
+  return (
+    <section>
+      {/* Header for the selected day */}
+      <div className="bg-violet-400 text-white rounded-lg pl-3 py-2 mb-4">
+        <div className="w-fit text-center">
+          <h3>
+            {moment(new Date(currentYear, currentMonth, currentDate))
+              .format("ddd")
+              .toUpperCase()}
+          </h3>
+          <h2 className="text-3xl font-semibold">
+            {moment(new Date(currentYear, currentMonth, currentDate)).format(
+              "DD"
+            )}
+          </h2>
+        </div>
+      </div>
+
+      {/* Untimed events */}
+      {untimedEvents.length > 0 && (
+        <>
+          <h3 className="font-semibold text-center mt-4">Untimed Events</h3>
+          {untimedEvents.map((event, index) => (
+            <Event
+              key={`untimed-${event.name}-${index}`}
+              event={event}
+              // selected={selection && selectedDate.date === currentDate}
+            />
+          ))}
+        </>
+      )}
+
+      {/* Day view with 2 columns */}
+      <div className="grid grid-cols-[auto_1fr] bg-slate-50 dark:bg-neutral-800 rounded-lg py-5">
+        {/* Time column */}
+        <div className="">
+          <div className="grid grid-rows-subgrid">
+            {hours.map((hour, hourIndex) => (
+              <div
+                key={`hour-${hourIndex}`}
+                className="h-16 border-b dark:border-neutral-900 px-2 pt-1"
+              >
+                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  {hour}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Events column */}
+        <div className="relative">
+          {hours.map((hour, hourIndex) => {
+            const currentHour = parseInt(hour);
+
+            const matchingEvents = timedEvents.filter((event) => {
+              const { hours: startHour } = parseTime(
+                event.startTime || event.time || "12:00 AM"
+              );
+              const { hours: endHour } = parseTime(
+                event.endTime || event.time || "12:00 AM"
+              );
+
+              if (event.time) return startHour === currentHour;
+              return startHour <= currentHour && currentHour < endHour;
+            });
+
+            return (
+              <div
+                key={`hour-${hourIndex}-timedEvents`}
+                className="h-16 border-b dark:border-neutral-900 relative"
+              >
+                {matchingEvents.length > 0 ? (
+                  matchingEvents.map((event, eventIndex) => (
+                    // <div
+                    //   key={`event-${event.name}-${eventIndex}`}
+                    //   className="absolute top-0 left-0 w-full bg-violet-200 dark:bg-violet-500 p-2 rounded-lg"
+                    //   style={{
+                    //     height: `${
+                    //       (parseTime(event.endTime || "12:00 AM").hours -
+                    //         parseTime(event.startTime || "12:00 AM").hours) *
+                    //       64
+                    //     }px`,
+                    //   }}
+                    // >
+                    <DetailedEvent
+                      event={event}
+                      onClick={() => {
+                        console.log("Event clicked:", event);
+                      }}
+                    />
+                    // </div>
+                  ))
+                ) : (
+                  <div className="h-full"></div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const WeekEventList = ({
+  date: selectedDate = {},
+  setDate = {},
   getEventsForDay = () => [],
   weekDates,
   selection = false,
@@ -1032,11 +1132,16 @@ const EventList = ({
             <div key={`date-${dateIndex}`} className="px-2">
               <div
                 className={cn(
-                  "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square",
+                  "bg-gray-100 dark:bg-neutral-800 p-2 rounded aspect-square cursor-pointer",
                   selection &&
                     selectedDate.date === currentDate &&
                     "bg-violet-500 dark:bg-violet-500 text-white"
                 )}
+                onClick={() => {
+                  setDate.year(currentYear);
+                  setDate.month(currentMonth);
+                  setDate.date(currentDate);
+                }}
               >
                 <div>
                   <h2 className="text-center antialiased text-slate-400 text-sm sm:text-base dark:text-white truncate">

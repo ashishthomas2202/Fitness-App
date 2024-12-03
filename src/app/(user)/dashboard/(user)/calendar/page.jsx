@@ -72,7 +72,9 @@ export default function CalendarPage() {
 
   return (
     <Page title="Calendar">
-      <Calendar items={[...workoutItems, ...mealItems]} />
+      <Calendar
+      //  items={[...workoutItems, ...mealItems]}
+      />
     </Page>
   );
 }
