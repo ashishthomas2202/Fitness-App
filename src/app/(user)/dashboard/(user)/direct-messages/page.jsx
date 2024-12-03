@@ -163,6 +163,109 @@ const AddUserDialog = ({ onAdd = () => {} }) => {
   );
 };
 
+// const Sidebar = ({
+//   selectedUser: selected,
+//   setSelectedUser: setSelected = () => {},
+//   active = true,
+//   goForward = () => {},
+// }) => {
+//   const [searchTerm, setSearchTerm] = useState("");
+//   // const [selected, setSelected] = useState(selectedUser);
+//   const [users, setUsers] = useState([]);
+
+//   const fetchUsers = async () => {
+//     return await axios
+//       .get(`/api/message/user-list`)
+//       .then((res) => {
+//         if (res.data.success) {
+//           setUsers(res.data.data);
+//           return res.data.data;
+//         }
+//         return [];
+//       })
+//       .catch((err) => {
+//         return [];
+//       });
+//   };
+
+//   useEffect(() => {
+//     let intervalId;
+
+//     fetchUsers();
+
+//     // Set up periodic fetching
+//     intervalId = setInterval(() => {
+//       fetchUsers();
+//     }, 2000);
+
+//     // Cleanup function to clear the interval
+//     return () => {
+//       if (intervalId) {
+//         clearInterval(intervalId);
+//       }
+//     };
+//   }, []);
+
+//   // useEffect(() => {
+//   //   setSelected(selectedUser);
+//   // }, [selectedUser]);
+
+//   return (
+//     <aside
+//       className={cn(
+//         " bg-white dark:bg-neutral-900 rounded-lg p-4 w-full sm:min-w-60 sm:w-1/3 flex flex-col space-y-2",
+//         active ? "block" : "hidden sm:block"
+//       )}
+//     >
+//       <header>
+//         <div className="flex items-center gap-2 rounded-lg border border-neutral-200 px-2 overflow-hidden">
+//           <FiSearch className="text-gray-500 dark:text-gray-400" />
+//           <input
+//             className="flex-1 bg-none bg-transparent py-2 font-light focus-visible:outline-none"
+//             placeholder="Search"
+//           />
+//         </div>
+//       </header>
+
+//       {selected && !users.some((user) => user.id === selected.id) && (
+//         <UserItem
+//           user={selected}
+//           selected
+//           onClick={() => {
+//             setSelected(selected);
+//             goForward();
+//           }}
+//         />
+//       )}
+
+//       {users.length > 0 ? (
+//         <main className="flex-1 space-y-2">
+//           {/* <div>users list</div> */}
+//           {users.map((user) => (
+//             <UserItem
+//               user={user}
+//               selected={selected?.id === user?.id}
+//               key={`sidebar-dm-user-${user?.id}`}
+//               onClick={() => {
+//                 setSelected(user);
+//                 goForward();
+//               }}
+//             />
+//           ))}
+//         </main>
+//       ) : (
+//         !selected && (
+//           <main className="flex-1 flex justify-center items-center">
+//             <p className="text-center text-lg font-light text-neutral-300 dark:text-gray-400 pb-8">
+//               No messages to show
+//             </p>
+//           </main>
+//         )
+//       )}
+//     </aside>
+//   );
+// };
+
 const Sidebar = ({
   selectedUser: selected,
   setSelectedUser: setSelected = () => {},
@@ -170,7 +273,6 @@ const Sidebar = ({
   goForward = () => {},
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  // const [selected, setSelected] = useState(selectedUser);
   const [users, setUsers] = useState([]);
 
   const fetchUsers = async () => {
@@ -189,12 +291,29 @@ const Sidebar = ({
   };
 
   useEffect(() => {
+    let intervalId;
+
     fetchUsers();
+
+    // Set up periodic fetching
+    intervalId = setInterval(() => {
+      fetchUsers();
+    }, 2000);
+
+    // Cleanup function to clear the interval
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
-  // useEffect(() => {
-  //   setSelected(selectedUser);
-  // }, [selectedUser]);
+  // Filter users based on the search term
+  const filteredUsers = users.filter((user) =>
+    `${user.firstName} ${user.lastName}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   return (
     <aside
@@ -209,6 +328,8 @@ const Sidebar = ({
           <input
             className="flex-1 bg-none bg-transparent py-2 font-light focus-visible:outline-none"
             placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </header>
@@ -224,10 +345,9 @@ const Sidebar = ({
         />
       )}
 
-      {users.length > 0 ? (
+      {filteredUsers.length > 0 ? (
         <main className="flex-1 space-y-2">
-          {/* <div>users list</div> */}
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <UserItem
               user={user}
               selected={selected?.id === user?.id}
