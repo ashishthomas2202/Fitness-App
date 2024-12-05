@@ -7,10 +7,10 @@ import * as Yup from "yup";
 // Define the Yup validation schema
 const workoutSchema = Yup.object().shape({
   name: Yup.string().required("Workout name is required"),
-  workoutTypes: Yup.array()
+  type: Yup.array()
     .of(Yup.string())
     .min(1, "At least one workout type is required"),
-  categories: Yup.array()
+  category: Yup.array()
     .of(Yup.string())
     .min(1, "At least one category is required"),
   muscle_groups: Yup.array()
@@ -37,7 +37,7 @@ const workoutSchema = Yup.object().shape({
   startDate: Yup.string().nullable(),
   endDate: Yup.string().nullable(),
   color: Yup.string(),
-  id: Yup.string()
+  id: Yup.string(),
 });
 
 // Define the API route handler
@@ -77,8 +77,8 @@ export async function POST(req) {
 
     const {
       name,
-      workoutTypes: type,
-      categories: category,
+      type,
+      category,
       muscle_groups,
       difficulty_level,
       equipment,
@@ -147,12 +147,12 @@ async function validateWorkoutData(data) {
     });
     return { isValid: true, validatedData, errors: null };
   } catch (errors) {
-    return { 
-      isValid: false, 
-      errors: errors.inner.map(err => ({
+    return {
+      isValid: false,
+      errors: errors.inner.map((err) => ({
         path: err.path,
-        message: err.message
-      }))
+        message: err.message,
+      })),
     };
   }
 }

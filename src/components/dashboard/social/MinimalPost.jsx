@@ -17,6 +17,7 @@ import {
 } from "react-icons/io5";
 
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { IoIosSend } from "react-icons/io";
@@ -52,12 +53,14 @@ import { Button } from "@/components/ui/Button";
 import { LuMessageCircle } from "react-icons/lu";
 import { toast } from "react-toastify";
 
-export const Post = ({
+export const MinimalPost = ({
   data: post = {},
   onDelete = () => {},
   isFollowing = false,
   onFollowChange = () => {},
 }) => {
+  const router = useRouter();
+
   const [likes, setLikes] = useState(post?.likes || []);
   const [liked, setLiked] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
@@ -207,13 +210,13 @@ export const Post = ({
           </h4>
         </div>
 
-        <div className="flex-1 text-right select-none">
+        {/* <div className="flex-1 text-right select-none">
           {!selfPost && (
             <button
               className={cn(
                 "px-2 py-1 rounded-full text-sm bg-gradient-to-br text-white",
                 isFollowing
-                  ? "from-neutral-300 to-neutral-400"
+                  ? "px-2 py-1 rounded-full text-sm bg-gradient-to-br text-white from-neutral-300 to-neutral-400"
                   : "from-violet-400 to-indigo-400 shadow-inner "
               )}
               onClick={() => {
@@ -282,6 +285,14 @@ export const Post = ({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+        </div> */}
+        <div className="flex-1 text-right">
+          <Button
+            className="px-2 py-1 rounded-full text-sm bg-gradient-to-br text-white from-violet-400 to-indigo-400 shadow-inner"
+            onClick={() => router.push(`/dashboard/community/${id}`)}
+          >
+            View Post
+          </Button>
         </div>
       </header>
       {body}

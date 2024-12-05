@@ -4,7 +4,6 @@ import WorkoutForm from "@/components/form/WorkoutForm";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
-import { set } from "lodash";
 
 const UpdateWorkoutPage = ({ params }) => {
   const { workoutID } = params;
@@ -39,6 +38,10 @@ const UpdateWorkoutPage = ({ params }) => {
     return response;
   };
 
+  const handleUpdated = (data) => {
+    router.push("/dashboard/admin/workouts");
+  };
+
   // if (!workoutID) return <p>Loading...</p>; // Handle loading state
   useLayoutEffect(() => {
     fetchWorkout();
@@ -54,7 +57,11 @@ const UpdateWorkoutPage = ({ params }) => {
   return (
     <div className="max-w-lg mx-auto mt-10 p-4">
       <h1 className="text-2xl font-bold mb-4">Update Workout</h1>
-      <WorkoutForm mode="update" defaultValues={workout} />
+      <WorkoutForm
+        mode="update"
+        defaultValues={workout}
+        onUpdated={handleUpdated}
+      />
     </div>
   );
 };

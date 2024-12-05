@@ -6,9 +6,13 @@ import { Post } from "@/components/dashboard/social/Post";
 import axios from "axios";
 import { Page } from "@/components/dashboard/Page";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { GoChevronLeft } from "react-icons/go";
+import Link from "next/link";
 
-const CommunityPage = () => {
-  const [posts, setPosts] = useState([]);
+const DetailedCommunityPage = ({ params }) => {
+  const postId = params.postId;
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [followers, setFollowers] = useState([]);
 
@@ -27,38 +31,38 @@ const CommunityPage = () => {
         return [];
       });
   };
-  const fetchPosts = async () => {
+  const fetchPost = async () => {
     await axios
-      .get("/api/post")
+      .get(`/api/post/${postId}`)
       .then((response) => {
         if (response?.data?.success) {
-          setPosts(response.data.data);
+          setPost(response.data.data);
           return response.data.data;
         }
-        return [];
+        return null;
       })
       .catch((error) => {
-        return [];
+        return null;
       })
       .finally(() => {
         setLoading(false);
       });
   };
 
-  const createPost = async (post) => {
-    await axios
-      .post("/api/post/create", post)
-      .then((response) => {
-        if (response?.data?.success) {
-          fetchPosts();
-          return response.data.data;
-        }
-        throw new Error("Failed to create post");
-      })
-      .catch((error) => {
-        throw new Error("Failed to create post");
-      });
-  };
+  //   const createPost = async (post) => {
+  //     await axios
+  //       .post("/api/post/create", post)
+  //       .then((response) => {
+  //         if (response?.data?.success) {
+  //           fetchPosts();
+  //           return response.data.data;
+  //         }
+  //         throw new Error("Failed to create post");
+  //       })
+  //       .catch((error) => {
+  //         throw new Error("Failed to create post");
+  //       });
+  //   };
 
   const handleDeletePost = async (id) => {
     return await axios
@@ -109,42 +113,47 @@ const CommunityPage = () => {
 
   useEffect(() => {
     fetchFollowers();
-    fetchPosts();
+    fetchPost();
   }, []);
 
-  // useEffect(() => {
-  //   console.log(followers);
-  // }, [followers]);
+  //   useEffect(() => {
+  //     console.log(followers);
+  //   }, [followers]);
 
   return (
     <Page className="px-2 dark:bg-transparent">
       {/* Main Content Area */}
       <main className=" flex-1 space-y-4">
-        <header className="max-w-3xl mx-auto top-0">
+        {/* <header className="max-w-3xl mx-auto top-0">
           <h1 className="text-3xl font-bold mb-10">Explore</h1>
           <span className="fixed z-50 md:z-0 bottom-4 right-4 md:relative md:top-0 md:left-0">
             <CreatePostDialog createPost={createPost} />
           </span>
-        </header>
+        </header> */}
         <main className="space-y-4">
-          {!posts || posts?.length == 0 ? (
+          <Link href="/dashboard/community">
+            <Button>
+              <span className="text-xl">
+                <GoChevronLeft />
+              </span>
+              Back to Community
+            </Button>
+          </Link>
+          {!post ? (
             <div className="min-h-40 max-w-3xl mx-auto flex justify-center items-center text-lg font-light bg-neutral-100 text-neutral-400 dark:bg-neutral-900 dark:text-neutral-700 rounded-lg">
               {loading ? (
                 <Loader2 className="h-10 w-10 animate-spin" />
               ) : (
-                <p>No posts to display</p>
+                <p>Post not found</p>
               )}
             </div>
           ) : (
-            posts.map((post) => (
-              <Post
-                key={post.id}
-                data={post}
-                onDelete={handleDeletePost}
-                isFollowing={followers && followers.includes(post.author._id)}
-                onFollowChange={handleFollowChange}
-              />
-            ))
+            <Post
+              data={post}
+              onDelete={handleDeletePost}
+              isFollowing={followers && followers.includes(post?.author?._id)}
+              onFollowChange={handleFollowChange}
+            />
           )}
         </main>
       </main>
@@ -152,4 +161,4 @@ const CommunityPage = () => {
   );
 };
 
-export default CommunityPage;
+export default DetailedCommunityPage;

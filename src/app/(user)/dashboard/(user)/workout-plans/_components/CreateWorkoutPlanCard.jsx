@@ -24,7 +24,7 @@ import { toast } from "react-toastify";
 import { Label } from "@/components/ui/Label";
 import moment from "moment-timezone";
 
-export const CreateWorkoutPlanCard = ({ onCreate = () => { }, data }) => {
+export const CreateWorkoutPlanCard = ({ onCreate = () => {}, data }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planName, setPlanName] = useState("");
   const [workouts, setWorkouts] = useState([]);
@@ -119,9 +119,9 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => { }, data }) => {
       prev.map((workout) =>
         workout.id === id
           ? {
-            ...workout,
-            custom: { ...workout.custom, [field]: Number(value) },
-          }
+              ...workout,
+              custom: { ...workout.custom, [field]: Number(value) },
+            }
           : workout
       )
     );
@@ -262,12 +262,23 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => { }, data }) => {
           {filteredWorkouts.length == 0 ? (
             <div className="h-full flex flex-col items-center justify-center py-2 px-4">
               <span>No workout found</span>
-              <span
-                className="mt-2 text-violet-500 cursor-pointer"
-                onClick={createNewWorkout}
-              >
-                Create your own Workout
-              </span>
+
+              <Dialog>
+                <DialogTrigger>
+                  <span
+                    className="mt-2 text-violet-500 cursor-pointer"
+                    // onClick={createNewWorkout}
+                  >
+                    Create your own Workout
+                  </span>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogTitle>Create Workout</DialogTitle>
+                  <DialogDescription>
+                    You can create your own workout
+                  </DialogDescription>
+                </DialogContent>
+              </Dialog>
             </div>
           ) : (
             <>
@@ -465,7 +476,7 @@ export const CreateWorkoutPlanCard = ({ onCreate = () => { }, data }) => {
   );
 };
 
-const DaySelector = ({ value = [], onChange = () => { } }) => {
+const DaySelector = ({ value = [], onChange = () => {} }) => {
   const [error, setError] = useState(null);
   let days = [
     { Monday: "M" },
@@ -527,5 +538,3 @@ const DaySelector = ({ value = [], onChange = () => { } }) => {
     </div>
   );
 };
-
-

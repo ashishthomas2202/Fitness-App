@@ -128,7 +128,11 @@ export default function WorkoutPlans() {
       <section className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {/* <CreateWorkoutPlanCard onCreate={createWorkoutPlan} />
          */}
-        <WorkoutDialog onCreate={createWorkoutPlan} workouts={workouts}>
+        <WorkoutDialog
+          onCreate={createWorkoutPlan}
+          workouts={workouts}
+          fetchWorkouts={fetchWorkouts}
+        >
           <Card className="p-2 min-h-52 justify-center cursor-pointer">
             <CardContent className="flex flex-col gap-2 justify-center items-center py-0">
               <PlusCircleIcon size={60} />

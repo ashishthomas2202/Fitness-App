@@ -4,7 +4,18 @@ import { Calendar } from "@/components/ui/Calendar";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import moment from "moment-timezone";
-import CreateEventDialog from "@/components/form/CreateTaskEventDialog";
+// import CreateEventDialog from "@/components/form/CreateTaskEventDialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
+import { Button } from "@/components/ui/Button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import CreateTaskForm from "@/components/form/CreateTaskForm";
+import CreateEventForm from "@/components/form/CreateEventForm";
 
 export default function CalendarPage() {
   const [activeWorkoutPlan, setActiveWorkoutPlan] = useState({});
@@ -97,11 +108,22 @@ export default function CalendarPage() {
     fetchAllData();
   }, []);
 
+  const handleTaskCreated = (task) => {
+    // setCalendarItems([...calendarItems, task]);
+    fetchAllData();
+  };
+  const handleEventCreated = (event) => {
+    setCalendarItems([...calendarItems, event]);
+  };
   return (
     <Page title="Calendar">
-      <CreateEventDialog
+      {/* <CreateEventDialog
         // onEventCreated={handleEventCreated}
         onCreated={fetchAllData}
+      /> */}
+      <CreateTaskEventDialog
+        onTaskCreated={handleTaskCreated}
+        onEventCreated={handleEventCreated}
       />
       <Calendar items={calendarItems} />
     </Page>
@@ -175,6 +197,50 @@ const transformMealsToEvents = ({
   });
 
   return events;
+};
+
+const CreateTaskEventDialog = ({ onTaskCreated, onEventCreated }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  // const [activeTab, setActiveTab] = useState("task");
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button className="mb-2" onClick={() => setIsOpen(true)}>
+          Create Task
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Task</DialogTitle>
+        </DialogHeader>
+        {/* <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList>
+            <TabsTrigger value="task">Task</TabsTrigger>
+            <TabsTrigger value="event">Event</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="task"> */}
+        <CreateTaskForm
+          onTaskCreated={(task) => {
+            onTaskCreated(task);
+            setIsOpen(false);
+          }}
+        />
+        {/* </TabsContent>
+
+          <TabsContent value="event">
+            <CreateEventForm
+              onEventCreated={(event) => {
+                onEventCreated(event);
+                setIsOpen(false);
+              }}
+            />
+          </TabsContent>
+        </Tabs> */}
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 // "use client";

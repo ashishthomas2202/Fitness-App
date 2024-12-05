@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import moment from "moment";
 import {
   Dialog,
   DialogTrigger,
@@ -35,8 +34,23 @@ const eventSchema = Yup.object().shape({
   start: Yup.date().required("Start date is required."),
   end: Yup.date().nullable(),
   startTime: Yup.string().nullable(),
-  repeat: Yup.string().nullable(),
-  days: Yup.array().nullable(),
+  repeat: Yup.string()
+    .oneOf(["daily", "weekly", "monthly", null], "Invalid repeat option.")
+    .nullable(),
+  days: Yup.array().when("repeat", {
+    is: "weekly",
+    then: Yup.array()
+      .of(Yup.string())
+      .min(1, "Select at least one day for weekly repeat.")
+      .nullable(),
+  }),
+  day: Yup.number().when("repeat", {
+    is: "monthly",
+    then: Yup.number()
+      .min(1, "Day must be at least 1.")
+      .max(31, "Day must be at most 31.")
+      .required("Specify a day for monthly repeat."),
+  }),
   color: Yup.string()
     .nullable()
     .matches(/^#[0-9A-F]{6}$/i, "Invalid color code."),
@@ -45,10 +59,6 @@ const eventSchema = Yup.object().shape({
 const CreateTaskEventDialog = ({ onCreated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("task");
-
-  const formatTimeTo12Hour = (time) => {
-    return moment(time, "HH:mm").format("hh:mm A");
-  };
 
   // Task Form
   const {
@@ -72,6 +82,7 @@ const CreateTaskEventDialog = ({ onCreated }) => {
   const {
     control: eventControl,
     handleSubmit: handleEventSubmit,
+    watch: watchEvent,
     formState: { errors: eventErrors },
     reset: resetEventForm,
   } = useForm({
@@ -83,14 +94,16 @@ const CreateTaskEventDialog = ({ onCreated }) => {
       startTime: "",
       repeat: null,
       days: [],
+      day: null,
       color: "#8b5cf6",
     },
   });
 
+  const eventRepeat = watchEvent("repeat");
+
   const submitTask = async (data) => {
     const formattedData = {
       ...data,
-      time: formatTimeTo12Hour(data.time),
       type: "task",
     };
 
@@ -107,9 +120,9 @@ const CreateTaskEventDialog = ({ onCreated }) => {
   };
 
   const submitEvent = async (data) => {
+    console.log("Submitting event:", data); // Check if the handler is triggered
     const formattedData = {
       ...data,
-      startTime: data.startTime ? formatTimeTo12Hour(data.startTime) : null,
       type: "event",
     };
 
@@ -140,6 +153,7 @@ const CreateTaskEventDialog = ({ onCreated }) => {
             <TabsTrigger value="event">Event</TabsTrigger>
           </TabsList>
 
+          {/* Task Form */}
           <TabsContent value="task">
             <form onSubmit={handleTaskSubmit(submitTask)} className="space-y-4">
               <Controller
@@ -197,9 +211,13 @@ const CreateTaskEventDialog = ({ onCreated }) => {
             </form>
           </TabsContent>
 
+          {/* Event Form */}
           <TabsContent value="event">
             <form
-              onSubmit={handleEventSubmit(submitEvent)}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEventSubmit(submitEvent)();
+              }}
               className="space-y-4"
             >
               <Controller
@@ -244,17 +262,76 @@ const CreateTaskEventDialog = ({ onCreated }) => {
                 )}
               />
               <Controller
+                name="repeat"
+                control={eventControl}
+                render={({ field }) => (
+                  <div>
+                    <label>Repeat</label>
+                    <select
+                      {...field}
+                      className="w-full border rounded px-3 py-2"
+                    >
+                      <option value="">None</option>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                    {eventErrors.repeat && (
+                      <p className="text-red-500">
+                        {eventErrors.repeat.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+              />
+              {eventRepeat === "weekly" && (
+                <Controller
+                  name="days"
+                  control={eventControl}
+                  render={({ field }) => (
+                    <div>
+                      <label>Days</label>
+                      <Input
+                        {...field}
+                        placeholder="Comma-separated days (e.g., Monday, Tuesday)"
+                      />
+                      {eventErrors.days && (
+                        <p className="text-red-500">
+                          {eventErrors.days.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+              )}
+              {eventRepeat === "monthly" && (
+                <Controller
+                  name="day"
+                  control={eventControl}
+                  render={({ field }) => (
+                    <div>
+                      <label>Day</label>
+                      <Input
+                        {...field}
+                        type="number"
+                        placeholder="Day (1-31)"
+                      />
+                      {eventErrors.day && (
+                        <p className="text-red-500">
+                          {eventErrors.day.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                />
+              )}
+              <Controller
                 name="startTime"
                 control={eventControl}
                 render={({ field }) => (
                   <div>
                     <label>Start Time</label>
                     <Input {...field} type="time" />
-                    {eventErrors.startTime && (
-                      <p className="text-red-500">
-                        {eventErrors.startTime.message}
-                      </p>
-                    )}
                   </div>
                 )}
               />
@@ -304,8 +381,8 @@ export default CreateTaskEventDialog;
 // // Validation Schema for Tasks and Events
 // const taskSchema = Yup.object().shape({
 //   name: Yup.string().required("Task name is required."),
-//   date: Yup.date().nullable().required("Date is required."),
-//   time: Yup.string().nullable().required("Time is required."),
+//   date: Yup.date().required("Date is required."),
+//   time: Yup.string().required("Time is required."),
 //   repeat: Yup.string().nullable(),
 //   days: Yup.array().nullable(),
 //   color: Yup.string()
@@ -315,10 +392,9 @@ export default CreateTaskEventDialog;
 
 // const eventSchema = Yup.object().shape({
 //   name: Yup.string().required("Event name is required."),
-//   start: Yup.date().nullable().required("Start date is required."),
+//   start: Yup.date().required("Start date is required."),
 //   end: Yup.date().nullable(),
 //   startTime: Yup.string().nullable(),
-//   endTime: Yup.string().nullable(),
 //   repeat: Yup.string().nullable(),
 //   days: Yup.array().nullable(),
 //   color: Yup.string()
@@ -330,19 +406,22 @@ export default CreateTaskEventDialog;
 //   const [isOpen, setIsOpen] = useState(false);
 //   const [activeTab, setActiveTab] = useState("task");
 
+//   const formatTimeTo12Hour = (time) => {
+//     return moment(time, "HH:mm").format("hh:mm A");
+//   };
+
 //   // Task Form
 //   const {
 //     control: taskControl,
 //     handleSubmit: handleTaskSubmit,
-//     watch: watchTask,
 //     formState: { errors: taskErrors },
 //     reset: resetTaskForm,
 //   } = useForm({
 //     resolver: yupResolver(taskSchema),
 //     defaultValues: {
 //       name: "",
-//       date: null,
-//       time: null,
+//       date: "",
+//       time: "",
 //       repeat: null,
 //       days: [],
 //       color: "#8b5cf6",
@@ -353,49 +432,37 @@ export default CreateTaskEventDialog;
 //   const {
 //     control: eventControl,
 //     handleSubmit: handleEventSubmit,
-//     watch: watchEvent,
 //     formState: { errors: eventErrors },
 //     reset: resetEventForm,
 //   } = useForm({
 //     resolver: yupResolver(eventSchema),
 //     defaultValues: {
 //       name: "",
-//       start: null,
-//       end: null,
-//       startTime: null,
-//       endTime: null,
+//       start: "",
+//       end: "",
+//       startTime: "",
 //       repeat: null,
 //       days: [],
 //       color: "#8b5cf6",
 //     },
 //   });
 
-//   // Dynamic field visibility based on `repeat`
-//   const taskRepeat = useWatch({ control: taskControl, name: "repeat" });
-//   const eventRepeat = useWatch({ control: eventControl, name: "repeat" });
-
-//   const formatTimeTo12Hour = (time) => {
-//     return moment(time, "HH:mm").format("hh:mm A");
-//   };
-
 //   const submitTask = async (data) => {
 //     const formattedData = {
 //       ...data,
-//       time: data.time ? formatTimeTo12Hour(data.time) : null,
+//       time: formatTimeTo12Hour(data.time),
+//       type: "task",
 //     };
 
 //     try {
-//       const response = await axios.post("/api/events/create", {
-//         ...formattedData,
-//         type: "task",
-//       });
+//       const response = await axios.post("/api/events/create", formattedData);
 //       if (response.data.success) {
 //         onCreated(response.data.data);
 //         setIsOpen(false);
 //         resetTaskForm();
 //       }
 //     } catch (error) {
-//       console.error("Error creating task:", error);
+//       console.error("Error creating task:", error.response?.data || error);
 //     }
 //   };
 
@@ -403,21 +470,18 @@ export default CreateTaskEventDialog;
 //     const formattedData = {
 //       ...data,
 //       startTime: data.startTime ? formatTimeTo12Hour(data.startTime) : null,
-//       endTime: data.endTime ? formatTimeTo12Hour(data.endTime) : null,
+//       type: "event",
 //     };
 
 //     try {
-//       const response = await axios.post("/api/events/create", {
-//         ...formattedData,
-//         type: "event",
-//       });
+//       const response = await axios.post("/api/events/create", formattedData);
 //       if (response.data.success) {
 //         onCreated(response.data.data);
 //         setIsOpen(false);
 //         resetEventForm();
 //       }
 //     } catch (error) {
-//       console.error("Error creating event:", error);
+//       console.error("Error creating event:", error.response?.data || error);
 //     }
 //   };
 
@@ -436,7 +500,6 @@ export default CreateTaskEventDialog;
 //             <TabsTrigger value="event">Event</TabsTrigger>
 //           </TabsList>
 
-//           {/* Task Form */}
 //           <TabsContent value="task">
 //             <form onSubmit={handleTaskSubmit(submitTask)} className="space-y-4">
 //               <Controller
@@ -485,9 +548,6 @@ export default CreateTaskEventDialog;
 //                   <div>
 //                     <label>Color</label>
 //                     <Input {...field} type="color" />
-//                     {taskErrors.color && (
-//                       <p className="text-red-500">{taskErrors.color.message}</p>
-//                     )}
 //                   </div>
 //                 )}
 //               />
@@ -497,7 +557,6 @@ export default CreateTaskEventDialog;
 //             </form>
 //           </TabsContent>
 
-//           {/* Event Form */}
 //           <TabsContent value="event">
 //             <form
 //               onSubmit={handleEventSubmit(submitEvent)}
@@ -560,32 +619,12 @@ export default CreateTaskEventDialog;
 //                 )}
 //               />
 //               <Controller
-//                 name="endTime"
-//                 control={eventControl}
-//                 render={({ field }) => (
-//                   <div>
-//                     <label>End Time</label>
-//                     <Input {...field} type="time" />
-//                     {eventErrors.endTime && (
-//                       <p className="text-red-500">
-//                         {eventErrors.endTime.message}
-//                       </p>
-//                     )}
-//                   </div>
-//                 )}
-//               />
-//               <Controller
 //                 name="color"
 //                 control={eventControl}
 //                 render={({ field }) => (
 //                   <div>
 //                     <label>Color</label>
 //                     <Input {...field} type="color" />
-//                     {eventErrors.color && (
-//                       <p className="text-red-500">
-//                         {eventErrors.color.message}
-//                       </p>
-//                     )}
 //                   </div>
 //                 )}
 //               />

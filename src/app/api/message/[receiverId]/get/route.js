@@ -30,7 +30,19 @@ export async function GET(req, { params }) {
         { sender: currentUser?.id, receiver: receiverId },
         { sender: receiverId, receiver: currentUser?.id },
       ],
-    }).sort({ timestamp: 1 }); // Sort by timestamp (oldest first)
+    })
+      .populate({
+        path: "post",
+        populate: {
+          path: "author",
+          select: "firstName lastName email",
+          populate: {
+            path: "profile",
+            select: "profilePicture",
+          },
+        },
+      }) // Populate the post field
+      .sort({ timestamp: 1 }); // Sort by timestamp (oldest first)
 
     return new Response(
       JSON.stringify({

@@ -1,4 +1,5 @@
 import User from "@/db/models/User";
+import Post from "@/db/models/Post";
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 
@@ -16,8 +17,14 @@ const MessageSchema = new Schema(
     },
     content: {
       type: String,
-      default: "",
+      default: null,
     },
+    post: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+      default: null,
+    },
+
     isRead: {
       type: Boolean,
       default: false,

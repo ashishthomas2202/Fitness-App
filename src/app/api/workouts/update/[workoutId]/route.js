@@ -56,8 +56,8 @@ export async function PUT(req, { params }) {
     const jsonData = await req.json();
 
     delete jsonData.id;
-    jsonData.type = jsonData.workoutTypes;
-    jsonData.category = jsonData.categories;
+    // jsonData.type = jsonData.workoutTypes;
+    // jsonData.category = jsonData.categories;
 
     // Validate the workout data
     const { isValid, validatedData, errors } = await validateWorkoutData(

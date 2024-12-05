@@ -19,6 +19,7 @@ import { MdArrowBack } from "react-icons/md";
 import { Input } from "@/components/ui/Input";
 import { IoIosSend } from "react-icons/io";
 import moment from "moment";
+import { MinimalPost } from "@/components/dashboard/social/MinimalPost";
 export default function DirectMessagePage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [users, setUsers] = useState([]);
@@ -528,10 +529,16 @@ const Main = ({ user, active = false, onBack = () => {} }) => {
                           "px-4 py-2 w-fit rounded-lg break-words",
                           item?.receiver === user?.id
                             ? "justify-self-end bg-violet-200 dark:bg-violet-500"
-                            : "justify-self-start bg-neutral-100 dark:bg-neutral-800"
+                            : "justify-self-start bg-neutral-100 dark:bg-neutral-800",
+                          item?.post &&
+                            "p-0 bg-transparent dark:bg-transparent w-3/4 sm:w-1/2"
                         )}
                       >
-                        {item?.content}
+                        {item?.post ? (
+                          <MinimalPost data={item?.post} />
+                        ) : (
+                          item?.content
+                        )}
                       </div>
                       <p
                         className={cn(

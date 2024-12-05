@@ -36,7 +36,12 @@ const workoutSchema = Yup.object().shape({
   description: Yup.string(),
 });
 
-const WorkoutForm = ({ mode = "create", defaultValues }) => {
+const WorkoutForm = ({
+  mode = "create",
+  defaultValues,
+  onCreated = () => {},
+  onUpdated = () => {},
+}) => {
   const router = useRouter();
   const {
     register,
@@ -84,7 +89,8 @@ const WorkoutForm = ({ mode = "create", defaultValues }) => {
       .then((response) => {
         if (response?.data?.success) {
           toast.success("Workout created successfully!");
-          router.push("/dashboard/admin/workouts");
+          onCreated(response?.data?.data);
+          // router.push("/dashboard/admin/workouts");
           // reset();
           return response?.data?.data;
         } else {
@@ -106,7 +112,8 @@ const WorkoutForm = ({ mode = "create", defaultValues }) => {
       .then((response) => {
         if (response?.data?.success) {
           toast.success("Workout updated successfully!");
-          router.push("/dashboard/admin/workouts");
+          // router.push("/dashboard/admin/workouts");
+          onUpdated(response?.data?.data);
           // reset();
           return response?.data?.data;
         } else {
@@ -459,7 +466,11 @@ const WorkoutForm = ({ mode = "create", defaultValues }) => {
         {/* Submit Button */}
         <div className="mb-4">
           <Button type="submit" disabled={loading}>
-            {loading ? "Submitting..." : "Add Workout"}
+            {loading
+              ? "Submitting..."
+              : mode == "create"
+              ? "Add Workout"
+              : "Update Workout"}
           </Button>
         </div>
       </form>

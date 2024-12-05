@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -23,6 +24,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/Dropdown-menu";
+import WorkoutForm from "@/components/form/WorkoutForm";
 
 const parseSelectedWorkouts = (data) => {
   let distinctWorkouts = [];
@@ -60,6 +62,7 @@ export const WorkoutDialog = ({
   onCreate = () => {},
   onUpdate = () => {},
   workouts = [],
+  fetchWorkouts = () => {},
   data: updateData,
   mode = "create", // create or update
 }) => {
@@ -287,6 +290,11 @@ export const WorkoutDialog = ({
     }
   }, [selectedWorkouts, planName, startDate]);
 
+  const handleCreation = (workout) => {
+    // setSelectedWorkouts((prev) => [...prev, workout]);
+    fetchWorkouts();
+  };
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <div className="contents" onClick={() => setDialogOpen(true)}>
@@ -329,12 +337,26 @@ export const WorkoutDialog = ({
             {filteredWorkouts.length == 0 ? (
               <div className="h-full flex flex-col items-center justify-center py-2 px-4">
                 <span>No workout found</span>
-                <span
-                  className="mt-2 text-violet-500 cursor-pointer"
-                  onClick={createNewWorkout}
-                >
-                  Create your own Workout
-                </span>
+
+                <WorkoutCreationDialog onCreate={handleCreation} />
+
+                {/* <Dialog>
+                  <DialogTrigger>
+                    <span
+                      className="mt-2 text-violet-500 cursor-pointer"
+                      // onClick={createNewWorkout}
+                    >
+                      Create your own Workout
+                    </span>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-fit">
+                    <DialogTitle>Create Workout</DialogTitle>
+                    <DialogDescription>
+                      You can create your own workout
+                    </DialogDescription>
+                    <WorkoutForm onCreated={handleCreation} />
+                  </DialogContent>
+                </Dialog> */}
               </div>
             ) : (
               <>
@@ -361,7 +383,8 @@ export const WorkoutDialog = ({
                   onClick={createNewWorkout}
                 >
                   <div className="flex items-center space-x-4 text-lg font-light">
-                    <span>Create your own workout</span>
+                    {/* <span>Create your own workout</span> */}
+                    <WorkoutCreationDialog onCreate={handleCreation} />
                   </div>
                 </div>
               </>
@@ -632,5 +655,32 @@ const DaySelector = ({ value = [], onChange = () => {} }) => {
       </ul>
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
+  );
+};
+
+const WorkoutCreationDialog = ({ onCreate = () => {} }) => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {/* <DialogTrigger> */}
+      <span
+        className="mt-2 text-violet-500 cursor-pointer"
+        onClick={() => setDialogOpen(true)}
+      >
+        Create your own Workout
+      </span>
+      {/* </DialogTrigger> */}
+      <DialogContent className="max-w-fit">
+        <DialogTitle>Create Workout</DialogTitle>
+        <DialogDescription>You can create your own workout</DialogDescription>
+        <WorkoutForm
+          onCreated={(data) => {
+            onCreate(data);
+            setDialogOpen(false);
+          }}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
