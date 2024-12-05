@@ -19,12 +19,12 @@ export async function GET(req) {
 
     const activeMealPlan = await MealPlan.findOne({
       userId: currentUser.id,
-      status: "active",
+      status: "in progress",
     })
       .populate({
         path: "days.meals.mealId",
-        model: "Meal", 
-        select: "name macros calories", 
+        model: "Meal",
+        select: "name macros calories",
       })
       .sort({ createdAt: -1 });
 
