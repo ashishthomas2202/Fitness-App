@@ -110,6 +110,11 @@ export const MealPlanCard = ({
     calculateMealStats(mealPlan);
   }, [mealPlan]);
 
+
+  const formattedMealPlan = (planData) => {
+    
+  }
+
   return (
     <Card className="select-none">
       <CardHeader className="flex-row justify-between items-center p-4">
