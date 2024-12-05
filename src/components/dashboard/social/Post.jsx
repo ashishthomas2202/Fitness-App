@@ -49,9 +49,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
-import { LuMessageCircle } from "react-icons/lu";
+import { LuClipboard, LuMail, LuMessageCircle, LuShare2 } from "react-icons/lu";
 import { toast } from "react-toastify";
-
+import Link from "next/link";
 export const Post = ({
   data: post = {},
   onDelete = () => {},
@@ -809,86 +809,153 @@ const ShareButtonDialog = ({ postId }) => {
   }, [searchTerm]);
 
   return (
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-      <DialogTrigger asChild>
-        {/* <Button onClick={() => setDialogOpen(true)}>
-          <LuUserPlus2 className="text-2xl" />
-        </Button> */}
-
-        <button
-          className="text-violet-500 h-10 w-10 flex justify-center items-center hover:bg-violet-100 dark:hover:bg-neutral-700 rounded-full"
-          onClick={() => setDialogOpen(true)}
-        >
-          <span className="text-2xl font-bold pr-1">
-            <IoShareSocialOutline />
-          </span>
-        </button>
-      </DialogTrigger>
-      <DialogContent className="md:max-w-screen-md">
-        <DialogTitle>Share</DialogTitle>
-        <DialogDescription></DialogDescription>
-        <div className="flex items-center gap-2 rounded-lg border border-neutral-200 px-2 overflow-hidden">
-          <FiSearch className="text-gray-500 dark:text-gray-400" />
-          <input
-            className="flex-1 bg-none bg-transparent py-2 font-light focus-visible:outline-none"
-            placeholder="Find by name or email"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        {loading ? (
-          <main className="bg-neutral-50 dark:bg-neutral-900 rounded-lg shadow-inner">
-            <Loader2 className="w-16 h-16 animate-spin mx-auto my-20" />
-          </main>
-        ) : users.length > 0 ? (
-          <main className="space-y-2 overflow-y-auto max-h-60 p-2 shadow-inner bg-neutral-50 dark:bg-neutral-900 rounded-lg">
-            {users.map((user, i) => {
-              return (
-                <div
-                  key={`${user?.id}-user-list`}
-                  className="flex gap-2 justify-between items-center rounded-lg p-2 hover:bg-white hover:shadow-sm dark:hover:bg-neutral-950"
-                >
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={
-                        user?.profile?.profilePicture ||
-                        "/default-user-icon.png"
-                      }
-                      height={50}
-                      width={50}
-                      className="rounded-full object-cover object-center h-[50px] w-[50px] overflow-hidden"
-                      alt="user profile picture"
-                    />
-
-                    <div className="">
-                      <h1 className="text-lg font-semibold">
-                        {user?.firstName} {user?.lastName}
-                      </h1>
-                      <h3 className="text-xs font-light">{user?.email}</h3>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() => {
-                      sharePost(user);
-                      setDialogOpen(false);
-                    }}
-                  >
-                    <IoIosSend className="text-xl" />
-                  </Button>
-                </div>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="outline-none" asChild>
+          <button
+            className="text-violet-500 h-10 w-10 flex justify-center items-center hover:bg-violet-100 dark:hover:bg-neutral-700 rounded-full"
+            onClick={() => setDialogOpen(true)}
+          >
+            <span className="text-2xl font-bold pr-1">
+              <IoShareSocialOutline />
+            </span>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => setDialogOpen(true)}
+          >
+            <span>
+              <IoIosSend className="text-xl mr-1" />
+            </span>
+            Direct Message
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `${window.location.origin}/dashboard/community/${postId}`
               );
-            })}
-          </main>
-        ) : (
-          <main className="bg-neutral-50 dark:bg-neutral-900 rounded-lg shadow-inner">
-            <p className="text-center text-lg font-light text-neutral-300 dark:text-gray-400 py-8">
-              No User Found
-            </p>
-          </main>
-        )}
-      </DialogContent>
-    </Dialog>
+              toast.success("Link copied to clipboard");
+            }}
+          >
+            <span>
+              <LuClipboard className="text-xl mr-1" />
+            </span>
+            Copy Link
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => {
+              navigator.share({
+                title: "Share Post",
+                text: "Check out this post",
+                url: `${window.location.origin}/dashboard/community/${postId}`,
+              });
+            }}
+          >
+            <span>
+              <LuShare2 className="text-xl mr-1" />
+            </span>
+            Share
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer">
+            {/* <Link
+              href={`mailto:?subject=Check out this post&body=Check out this post: ${window.location.origin}/dashboard/community/${postId}`}
+              target="_blank"
+            >
+              <span>
+              <LuMail className="text-xl mr-1" />
+              </span>
+              Email
+            </Link> */}
+            <Link
+              href={`mailto:?subject=Check out this amazing post!&body=Hi there,%0D%0A%0D%0A
+  I found this post that I thought you'd be interested in:%0D%0A%0D%0A
+  You can view the post by clicking the link below:%0D%0A%0D%0A
+  ${window.location.origin}/dashboard/community/${postId}%0D%0A%0D%0A
+  Best regards,%0D%0A[Your Name]`}
+              target="_blank"
+              className="flex "
+            >
+              <span>
+                <LuMail className="text-xl mr-1" />
+              </span>
+              Email
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="md:max-w-screen-md">
+          <DialogTitle>Share</DialogTitle>
+          <DialogDescription></DialogDescription>
+          <div className="flex items-center gap-2 rounded-lg border border-neutral-200 px-2 overflow-hidden">
+            <FiSearch className="text-gray-500 dark:text-gray-400" />
+            <input
+              className="flex-1 bg-none bg-transparent py-2 font-light focus-visible:outline-none"
+              placeholder="Find by name or email"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {loading ? (
+            <main className="bg-neutral-50 dark:bg-neutral-900 rounded-lg shadow-inner">
+              <Loader2 className="w-16 h-16 animate-spin mx-auto my-20" />
+            </main>
+          ) : users.length > 0 ? (
+            <main className="space-y-2 overflow-y-auto max-h-60 p-2 shadow-inner bg-neutral-50 dark:bg-neutral-900 rounded-lg">
+              {users.map((user, i) => {
+                return (
+                  <div
+                    key={`${user?.id}-user-list`}
+                    className="flex gap-2 justify-between items-center rounded-lg p-2 hover:bg-white hover:shadow-sm dark:hover:bg-neutral-950"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={
+                          user?.profile?.profilePicture ||
+                          "/default-user-icon.png"
+                        }
+                        height={50}
+                        width={50}
+                        className="rounded-full object-cover object-center h-[50px] w-[50px] overflow-hidden"
+                        alt="user profile picture"
+                      />
+
+                      <div className="">
+                        <h1 className="text-lg font-semibold">
+                          {user?.firstName} {user?.lastName}
+                        </h1>
+                        <h3 className="text-xs font-light">{user?.email}</h3>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        sharePost(user);
+                        setDialogOpen(false);
+                      }}
+                    >
+                      <IoIosSend className="text-xl" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </main>
+          ) : (
+            <main className="bg-neutral-50 dark:bg-neutral-900 rounded-lg shadow-inner">
+              <p className="text-center text-lg font-light text-neutral-300 dark:text-gray-400 py-8">
+                No User Found
+              </p>
+            </main>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
